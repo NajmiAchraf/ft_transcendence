@@ -1,0 +1,45 @@
+#root {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	background-color: black; /* Set a background color for the root element */
+  }
+  
+  .Parent {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+  }
+  
+  /* Other styles for your nav or additional elements can go here */
+
+  #PingPong {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+  }
+
+  #Button {
+	margin: 0;
+	padding: 0;
+	z-index: 1;
+
+  }
+
+  body, html {
+	overflow: hidden;
+	margin: 0;
+	padding: 0;
+  }
+  
