@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { Text } from '../game/Board';
 
 import { usePropsContext } from '../context/PropsContext';
-import { useWebSocketContext } from '../../context/WebSocketContext';
+import { useWebSocketContext } from '../../../context/WebSocketContext';
 
 import { Props } from '../common/Common';
 

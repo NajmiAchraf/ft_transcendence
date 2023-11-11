@@ -1,3 +1,5 @@
+'use client'
+
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
@@ -6,10 +8,10 @@ import { WebSocketContextProvider } from './context/WebSocketContext'
 import React from 'react'
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
+/* export const metadata: Metadata = {
   title: 'PingPong',
   description: 'PingPong',
-}
+} */
 
 export default function RootLayout({
   children,
@@ -21,7 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <React.StrictMode>
           <WebSocketContextProvider>
-              {children}            
+            {children}
           </WebSocketContextProvider>
         </React.StrictMode>
       </body>

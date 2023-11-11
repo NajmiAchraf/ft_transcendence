@@ -3,7 +3,7 @@ import { useRef, useEffect, useState } from 'react'
 import SocketService from '../service/SocketService';
 
 import { usePropsContext } from '../context/PropsContext';
-import { useWebSocketContext } from '../../context/WebSocketContext';
+import { useWebSocketContext } from '../../../context/WebSocketContext';
 import { Props } from '../common/Common';
 
 function PlayPingPong() {

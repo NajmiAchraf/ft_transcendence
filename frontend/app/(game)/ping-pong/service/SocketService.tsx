@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 import { DefaultEventsMap } from "@socket.io/component-emitter";
-import { Socket } from "socket.io-client";
+import { Socket, io } from "socket.io-client";
 
 import Game from "../game/Game";
 import { Props } from "../common/Common";
@@ -17,13 +17,10 @@ export default class SocketService {
 		this.props = props;
 		this.endGame = endGame;
 		this.initialization();
-
 		console.log("readyToPlay");
-
-		// this.game = new Game(this, PPP);
 	}
 
-	stopGame() {
+	stopGame = () => {
 		this.game.stop();
 	}
 

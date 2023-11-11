@@ -8,10 +8,6 @@ export interface IWebSocketContext {
 	setWebSocket: React.Dispatch<React.SetStateAction<Socket<DefaultEventsMap, DefaultEventsMap>>>;
 }
 
-const socket = io("http://localhost:3001", {
-	transports: ['websocket'], //! Force the use of WebSocket
-});
-
 //create context
 const WebSocketContext = createContext<IWebSocketContext | undefined>(undefined);
 
@@ -28,6 +24,10 @@ function useWebSocketContext() {
 }
 
 function WebSocketContextProvider({ children }: { children: any }) {
+	const socket = io("http://localhost:3001", {
+		transports: ['websocket'], //! Force the use of WebSocket
+	});
+
 	const [webSocket, setWebSocket] = useState<Socket<DefaultEventsMap, DefaultEventsMap>>(socket);
 
 	const contextValue: IWebSocketContext = {

@@ -15,7 +15,7 @@ import { Mode, PlayerType } from './Common';
 	// {
 	// 	namespace: '/ping-pong',
 	// 	transports: ['websocket'],
-	// 	origins: '*:*',
+	// 	origins: 'http://localhost:3000',
 	// 	// cors: {
 	// 	// 	origin: '*',
 	// 	// 	methods: ['GET', 'POST'],
@@ -34,13 +34,11 @@ export class PingPongGateway {
 		this.rooms = new Room(this);
 	}
 
-	onConnection = (socket: Socket) => {
-		console.log('New connection : ' + socket.id);
-	}
-
 	onModuleInit() {
 		// on connection
-		this.server.on('connection', this.onConnection);
+		this.server.on('connection', (socket: Socket) => {
+			console.log('New connection : ' + socket.id)
+		});
 
 		console.log("Module connected");
 	}
