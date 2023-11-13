@@ -1,3 +1,5 @@
+'use client';
+
 import * as THREE from 'three'
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 import { FontLoader, Font } from 'three/addons/loaders/FontLoader.js';

@@ -1,12 +1,9 @@
-'use client'
+import React, { ComponentType } from 'react';
+import dynamic from 'next/dynamic';
 
-import React from 'react';
-import dynamic from 'next/dynamic'
+import PropsContextProvider from './context/PropsContext';
 
-import '../index.css'
-import { PropsContextProvider } from './context/PropsContext';
-
-const StartPingPong = dynamic(() => import('./component/StartPingPong'), { ssr: false })
+const StartPingPong: ComponentType<any> = dynamic(() => import('./component/StartPingPong'), { ssr: false }) as ComponentType<any>;
 
 const Page = () => {
 	return (

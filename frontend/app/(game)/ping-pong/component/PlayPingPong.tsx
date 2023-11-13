@@ -1,3 +1,5 @@
+'use client';
+
 import { useRef, useEffect, useState } from 'react'
 
 import SocketService from '../service/SocketService';
@@ -17,14 +19,8 @@ function PlayPingPong() {
 	const [createGame, setCreateGame] = useState<boolean>(false);
 
 	useEffect(() => {
-		//! this is not working :: because it's inside of hook function useEffect :: no need to call a hook function inside of hook function useEffect
-		// propsContext.setProps({
-		// 	...propsContext.props,
-		// 	canvas: canvasRef.current,
-		// } as Props);
-		//? why this is working
 		propsContext.props.canvas = canvasRef.current;
-
+		// console.log('webContext.webSocket.id: ', webContext.webSocket.id);
 		function CreateGame() {
 			try {
 				if (propsContext.props.canvas) {
@@ -46,7 +42,7 @@ function PlayPingPong() {
 		socSrv.current?.leaveGame();
 
 		setEndGame(false);
-		//! and this is working :: because it's outside of hook function useEffect
+
 		propsContext.setProps({
 			...propsContext.props,
 			inGame: false

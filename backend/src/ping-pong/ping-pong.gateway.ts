@@ -1,8 +1,10 @@
 import {
+	MessageBody,
+	OnGatewayInit,
+	OnGatewayConnection,
+	SubscribeMessage,
 	WebSocketGateway,
 	WebSocketServer,
-	SubscribeMessage,
-	MessageBody
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
@@ -24,7 +26,7 @@ import { Mode, PlayerType } from './Common';
 	// 	// },
 	// }
 )
-export class PingPongGateway {
+export default class PingPongGateway implements OnGatewayInit, OnGatewayConnection {
 
 	@WebSocketServer()
 	server: Server;
@@ -34,12 +36,20 @@ export class PingPongGateway {
 		this.rooms = new Room(this);
 	}
 
-	onModuleInit() {
-		// on connection
-		this.server.on('connection', (socket: Socket) => {
-			console.log('New connection : ' + socket.id)
-		});
+	handleConnection(client: Socket) {
+		console.log('New connection : ' + client.id)
+	}
 
+	handleDisconnect(client: Socket) {
+		console.log('Client disconnected: ' + client.id);
+		this.rooms.deletePlayer(client.id);
+	}
+
+	afterInit(server: Server) {
+		console.log("Server initialized");
+	}
+
+	onModuleInit() {
 		console.log("Module connected");
 	}
 
@@ -70,7 +80,7 @@ export class PingPongGateway {
 
 	@SubscribeMessage("leaveGame")
 	leaveGame(socket: Socket) {
-		console.log('Disconnection : ' + socket.id);
+		console.log('leaveGame : ' + socket.id);
 		this.rooms.deletePlayer(socket.id);
 	}
 }

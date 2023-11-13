@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PingPongGateway } from './ping-pong/ping-pong.gateway';
+import PingPongGateway from './ping-pong/ping-pong.gateway';
 
 @Module({
   imports: [],

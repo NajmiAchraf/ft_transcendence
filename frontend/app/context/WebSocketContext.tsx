@@ -1,7 +1,8 @@
-"use client"
+'use client';
+
+import { createContext, useContext, useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { DefaultEventsMap } from "@socket.io/component-emitter";
-import { createContext, useContext, useState } from "react";
+import { DefaultEventsMap } from '@socket.io/component-emitter';
 
 export interface IWebSocketContext {
 	webSocket: Socket<DefaultEventsMap, DefaultEventsMap>;
@@ -11,38 +12,44 @@ export interface IWebSocketContext {
 //create context
 const WebSocketContext = createContext<IWebSocketContext | undefined>(undefined);
 
-//use context
 function useWebSocketContext() {
-
-	const context = useContext(WebSocketContext)
+	const context = useContext(WebSocketContext);
 
 	if (context === undefined) {
-		throw new Error("context not defined");
+		throw new Error('WebSocket context not defined');
 	}
 
-	return (context)
+	return context;
 }
 
-function WebSocketContextProvider({ children }: { children: any }) {
-	const socket = io("http://localhost:3001", {
-		transports: ['websocket'], //! Force the use of WebSocket
+function WebSocketContextProvider({ children }: { children: React.ReactNode }) {
+
+	const socket = io('http://localhost:3001', {
+		transports: ['websocket'],
 	});
 
 	const [webSocket, setWebSocket] = useState<Socket<DefaultEventsMap, DefaultEventsMap>>(socket);
 
+	// useEffect(() => {
+	// 	return () => {
+	// 		// Clean up the WebSocket connection when the component unmounts
+	// 		webSocket.disconnect();
+	// 	};
+	// }, [webSocket]);
+
 	const contextValue: IWebSocketContext = {
 		webSocket,
-		setWebSocket
-	}
+		setWebSocket,
+	};
 
 	return (
 		<WebSocketContext.Provider value={contextValue}>
 			{children}
 		</WebSocketContext.Provider>
 	);
-};
+}
 
 export {
 	useWebSocketContext,
 	WebSocketContextProvider
-}
+};
