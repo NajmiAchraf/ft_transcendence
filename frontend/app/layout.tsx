@@ -1,31 +1,34 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import React from 'react'
+
 import './globals.css'
 import './vanillacss.css'
+
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+
 import { WebSocketContextProvider } from './context/WebSocketContext'
-import React from 'react'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'PingPong',
-  description: 'PingPong',
+	title: 'PingPong',
+	description: 'PingPong',
 }
 
 export default function RootLayout({
-  children,
+	children,
 }: {
-  children: React.ReactNode
+	children: React.ReactNode
 }) {
-  return (
-    <html lang="en">
-      <body className={inter.className}>
-        <React.StrictMode>
-          <WebSocketContextProvider>
-              {children}            
-          </WebSocketContextProvider>
-        </React.StrictMode>
-      </body>
-    </html>
-  )
+	return (
+		<React.StrictMode>
+			<html lang="en">
+				<WebSocketContextProvider>
+					<body className={inter.className}>
+						{children}
+					</body>
+				</WebSocketContextProvider>
+			</html>
+		</React.StrictMode>
+	)
 }

@@ -34,7 +34,7 @@ export default class Ball {
 	left: number = 0;
 	right: number = 0;
 
-	play_ball: boolean = false;
+	play_ball: boolean = true;
 
 	constructor(game: Game, mode: Mode) {
 		this.game = game;
@@ -204,7 +204,6 @@ export default class Ball {
 
 	send() {
 		this.server.to(this.game.queue).emit("ball", {
-			play_ball: this.play_ball,
 			x: this.x,
 			y: this.y,
 			velocityX: this.velocityX,

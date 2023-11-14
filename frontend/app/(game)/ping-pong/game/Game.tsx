@@ -1,3 +1,5 @@
+'use client';
+
 import * as THREE from 'three'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -146,7 +148,7 @@ export default class Game extends CanvasComponent {
 		this.moving_camera = true;
 		const start = Date.now();
 		const end = start + this.duration;
-		const startAngle = Math.PI * 5 / 6;
+		const startAngle = Math.PI;
 		const endAngle = Math.PI / 2;
 		const angleRange = endAngle - startAngle;
 

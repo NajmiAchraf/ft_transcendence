@@ -1,4 +1,6 @@
-import { createContext, useContext, useState } from "react";
+'use client';
+
+import { createContext, useContext, useEffect, useState } from "react";
 import { Props } from "../common/Common";
 
 export interface IPropsContext {
@@ -10,7 +12,7 @@ export interface IPropsContext {
 const PropsContext = createContext<IPropsContext | undefined>(undefined);
 
 //use context
-function usePropsContext() {
+export function usePropsContext() {
 
 	const context = useContext(PropsContext)
 
@@ -37,6 +39,13 @@ function PropsContextProvider({ children }: { children: any }) {
 		setProps
 	}
 
+	useEffect(() => {
+		return () => {
+			// Clean up the WebSocket connection when the component unmounts
+			// webSocket.disconnect();
+		};
+	} /*, [webSocket]*/);
+
 	return (
 		<PropsContext.Provider value={contextValue}>
 			{children}
@@ -44,7 +53,10 @@ function PropsContextProvider({ children }: { children: any }) {
 	);
 };
 
-export {
-	usePropsContext,
-	PropsContextProvider
-}
+// export {
+// 	usePropsContext,
+// 	PropsContextProvider
+// }
+// usePropsContext;
+
+export default PropsContextProvider;

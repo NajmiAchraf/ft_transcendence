@@ -1,3 +1,5 @@
+'use client';
+
 export type Side = "left" | "right";
 export type Mode = "easy" | "medium" | "hard";
 export type Geometry = "cube" | "sphere";

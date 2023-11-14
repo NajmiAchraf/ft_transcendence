@@ -1,3 +1,5 @@
+'use client';
+
 import { Dispatch, SetStateAction } from "react";
 import { DefaultEventsMap } from "@socket.io/component-emitter";
 import { Socket } from "socket.io-client";
@@ -10,20 +12,15 @@ export default class SocketService {
 	private socket: Socket<DefaultEventsMap, DefaultEventsMap>;
 	private props: Props;
 	private dataPlayer: any | undefined = undefined;
-	private endGame: Dispatch<SetStateAction<boolean>>
 
-	constructor(webSocket: Socket<DefaultEventsMap, DefaultEventsMap>, props: Props, endGame: Dispatch<SetStateAction<boolean>>) {
+	constructor(webSocket: Socket<DefaultEventsMap, DefaultEventsMap>, props: Props) {
 		this.socket = webSocket;
 		this.props = props;
-		this.endGame = endGame;
 		this.initialization();
-
 		console.log("readyToPlay");
-
-		// this.game = new Game(this, PPP);
 	}
 
-	stopGame() {
+	stopGame = () => {
 		this.game.stop();
 	}
 
@@ -52,20 +49,17 @@ export default class SocketService {
 		this.socket.on("idRoomDestruction", (idRoomDestruction: string) => {
 			console.log("idRoomDestruction: ", idRoomDestruction);
 			this.game.stop();
-			this.endGame(true);
 		});
 
 		this.socket.on("youWin", (data: any) => {
 			console.log("youWin: ", data);
 			this.game.win();
-			this.endGame(true);
 
 		});
 
 		this.socket.on("youLose", (data: any) => {
 			console.log("youLose: ", data);
 			this.game.lose();
-			this.endGame(true);
 		});
 
 		this.socket.on("dataPlayer", (data: any) => {

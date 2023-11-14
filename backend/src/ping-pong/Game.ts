@@ -32,7 +32,7 @@ export default class Game {
 
 	}
 
-	check_result(): void {
+	private check_result(): void {
 		if (this.player1.score === 10) {
 			const room = Object.keys(this.room.room).find((key) => this.room.getRoom(key).includes(this.queue[0]));
 			this.room.endGame(room, 0);
@@ -50,7 +50,7 @@ export default class Game {
 			if (this.ball.play_ball === false && this.time_status === false) {
 				this.collapsed_time = Date.now();
 				this.time_status = true;
-				this.server.emit("drawGoal");
+				this.server.to(this.queue).emit("drawGoal");
 			}
 			if (Date.now() - this.collapsed_time > this.duration) {
 				this.ball.play_ball = true;

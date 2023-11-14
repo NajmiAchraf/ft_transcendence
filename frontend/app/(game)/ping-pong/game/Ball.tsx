@@ -1,3 +1,5 @@
+'use client';
+
 import * as THREE from 'three';
 
 import Game from './Game'
@@ -22,8 +24,6 @@ export default class Ball {
 
 	velocityX: number;
 
-	play_ball: boolean = false;
-
 	constructor(game: Game, geometry: Geometry) {
 		this.game = game;
 		this.player1 = this.game.player1;
@@ -41,7 +41,6 @@ export default class Ball {
 		this.ball = this.ballSetup(geometry)
 
 		this.game.socket.on("ball", (data: any) => {
-			this.play_ball = data.play_ball;
 			this.x = data.x;
 			this.y = data.y;
 			this.velocityX = data.velocityX;

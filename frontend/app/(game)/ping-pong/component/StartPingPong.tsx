@@ -1,6 +1,9 @@
-import SettingPingPong from './SettingPingPong';
-import PlayPingPong from './PlayPingPong';
+'use client';
+
 import { usePropsContext } from '../context/PropsContext';
+
+import PlayPingPong from './PlayPingPong'
+import SettingPingPong from './SettingPingPong'
 
 function StartPingPong() {
 	const propsContext = usePropsContext();

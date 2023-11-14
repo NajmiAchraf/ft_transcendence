@@ -1,135 +1,141 @@
 import Game from "./Game";
-import { Mode } from './Common';
-
-import { PingPongGateway } from "./ping-pong.gateway";
+import { Mode, PlayerType } from './Common';
+import PingPongGateway from "./ping-pong.gateway";
 
 class Queue {
-	queue: string[];
-	constructor() {
-		this.queue = [];
-	}
+	private queue: string[] = [];
 
-	addPlayer(player): [string, string] {
+	addPlayer(player: string): [string, string] | undefined {
 		if (this.queue.includes(player)) {
 			console.log("Player already in the queue");
 			return undefined;
 		}
+
 		this.queue.push(player);
+
 		if (this.queue.length === 2) {
-
-			let q: [string, string] = [this.queue[0], this.queue[1]];
-
+			const [player1, player2] = this.queue;
 			this.queue = [];
-			return q;
+			return [player1, player2];
 		}
+
 		return undefined;
 	}
 
-	deletePlayer(player): void {
-		this.queue = this.queue.filter((p) => p !== player);
+	deletePlayer(player: string): void {
+		if (this.queue.includes(player)) {
+			this.queue = this.queue.filter((p) => p !== player);
+			console.log("Player deleted from the queue");
+		}
 	}
 }
 
 export default class Room {
-	room: { [key: string]: [player1: string, player2: string | null] };
-	private queue: Queue;
-	private game: { [key: string]: Game }
-	private idRoom: number = -1;
+	room: { [key: string]: [string, string | null] } = {};
+	game: { [key: string]: Game } = {};
+	idRoom: number = -1;
+	queue: Queue = new Queue();
 	pinPongGateway: PingPongGateway;
 
 	constructor(pinPongGateway: PingPongGateway) {
-		this.room = {};
-		this.game = {};
-		this.queue = new Queue();
 		this.pinPongGateway = pinPongGateway;
-		console.log("this.pinPongGateway.server " + this.pinPongGateway.server)
+		console.log("this.pinPongGateway.server " + this.pinPongGateway.server);
 	}
 
 	getRoom(room: string): [string, string | null] {
 		return this.room[room];
 	}
 
-	addPlayer(playerId: string) {
-		// check if the player is already in some room
-		if (Object.keys(this.room).find((key) => this.room[key].includes(playerId))) {
+	private checkRoom(playerID: string): boolean {
+		if (Object.keys(this.room).find((key) => this.room[key].includes(playerID))) {
+			console.log("Player already in a room");
+			return true;
+		}
+		return false;
+	}
+
+	private createGame(queue: [string, string | null], player1Type: PlayerType, player2Type: PlayerType, mode: Mode): void {
+		const idRoom = (++this.idRoom).toString();
+		this.room[idRoom] = queue;
+
+		const [player1ID, player2ID] = queue;
+
+		this.pinPongGateway.server.to(player1ID).emit("dataPlayer", {
+			side: "right",
+			id: player1ID,
+		});
+
+		this.pinPongGateway.server.to(player2ID).emit("dataPlayer", {
+			side: "left",
+			id: player2ID,
+		});
+
+		this.pinPongGateway.server.to(queue).emit("idRoomConstruction", idRoom);
+
+		this.game[idRoom] = new Game(this, queue, player1Type, player2Type, mode);
+
+		// this.game[idRoom].run()
+		setTimeout(() => {
+			this.game[idRoom].run()
+		}, 5000);
+	}
+
+	addPlayer(playerID: string): string | undefined {
+		if (this.checkRoom(playerID) === true) {
 			console.log("Player already in a room");
 			return undefined;
 		}
-		const queue = this.queue.addPlayer(playerId);
+
+		const queue = this.queue.addPlayer(playerID);
+
 		if (queue) {
-
-			this.idRoom++;
-			const idRoom = this.idRoom.toString();
-			this.room[idRoom] = queue;
-
-			this.pinPongGateway.server.to(queue[0]).emit("dataPlayer", {
-				side: "right",
-				id: queue[0],
-			});
-			this.pinPongGateway.server.to(queue[1]).emit("dataPlayer", {
-				side: "left",
-				id: queue[1],
-			});
-
-			this.pinPongGateway.server.to(queue).emit("idRoomConstruction", idRoom);
-			this.game[idRoom] = new Game(this, queue, "player", "player", "medium");
-			this.game[idRoom].run();
-			return idRoom;
+			this.createGame(queue, "player", "player", "medium");
+			return (++this.idRoom).toString();
 		}
+
 		return undefined;
 	}
 
-	addPlayerAI(playerId: string, mode: Mode) {
-		// check if the player is already in some room
-		if (Object.keys(this.room).find((key) => this.room[key].includes(playerId))) {
+	addPlayerAI(playerID: string, mode: Mode): string | undefined {
+		if (this.checkRoom(playerID) === true) {
 			console.log("Player already in a room");
 			return undefined;
 		}
-		let queue: [string, string] = [playerId, null];
 
-		this.idRoom++;
-		const idRoom = this.idRoom.toString();
-		this.room[idRoom] = queue;
+		const queue: [string, string | null] = [playerID, null];
 
-		this.pinPongGateway.server.to(queue[0]).emit("dataPlayer", {
-			side: "right",
-			id: queue[0],
-		});
+		this.createGame(queue, "player", "bot", mode);
 
-		this.pinPongGateway.server.to(queue[0]).emit("idRoomConstruction", idRoom);
-		this.game[idRoom] = new Game(this, queue, "player", "bot", mode);
-		this.game[idRoom].run();
-		return idRoom;
+		return (++this.idRoom).toString();
 	}
 
 	endGame(room: string, loser: number): void {
 		this.pinPongGateway.server.to(this.room[room][loser]).emit("youLose");
+		console.log("Player " + this.room[room][loser] + " lose");
+
 		this.pinPongGateway.server.to(this.room[room][1 - loser]).emit("youWin");
+		console.log("Player " + this.room[room][1 - loser] + " win");
+		//! Set the state of the game {win or lose} {time} {score} {mode} {playerType}
 
-		//! set the state of the game {win or lose} {time} {score} {mode} {playerType}
-
-		// delete the game
+		// Delete the game
 		this.game[room].stop();
 		delete this.game[room];
-		// delete the room
+
+		// Delete the room
 		delete this.room[room];
 	}
 
-	deletePlayer(player: string): void {
-		// find the room of the player
-		let room = Object.keys(this.room).find((key) => this.room[key].includes(player));
+	deletePlayer(playerID: string): void {
+		const room = Object.keys(this.room).find((key) => this.room[key].includes(playerID));
+
 		if (room) {
-			const loser = this.room[room].indexOf(player);
-
+			const loser = this.room[room].indexOf(playerID);
 			this.pinPongGateway.server.to(this.room[room][loser]).emit("idRoomDestruction");
-
 			this.endGame(room, loser);
-			console.log("	Room deleted, id: " + room);
+			console.log("Room deleted, id: " + room);
 			return;
 		}
-		// find the player in the queue
-		this.queue.deletePlayer(player);
-		console.log("	Player deleted from the queue");
+
+		this.queue.deletePlayer(playerID);
 	}
 }
-

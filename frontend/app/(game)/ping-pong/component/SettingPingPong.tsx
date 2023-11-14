@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect } from 'react'
 
 import { Text } from '../game/Board';

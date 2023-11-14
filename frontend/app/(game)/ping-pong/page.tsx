@@ -1,20 +1,16 @@
-'use client'
+import React, { ComponentType } from 'react';
+import dynamic from 'next/dynamic';
 
-import React from 'react';
-import dynamic from 'next/dynamic'
+import PropsContextProvider from './context/PropsContext';
 
-import '../index.css'
-import { PropsContextProvider } from './context/PropsContext';
-import { WebSocketContextProvider } from '../../context/WebSocketContext';
-
-const StartPingPong = dynamic(() => import('./component/StartPingPong'), { ssr: false })
+const StartPingPong: ComponentType<any> = dynamic(() => import('./component/StartPingPong'), { ssr: false }) as ComponentType<any>;
 
 const Page = () => {
 	return (
 		<div id="root" style={{ backgroundColor: "#000000" }}>
-					<PropsContextProvider>
-						<StartPingPong />
-					</PropsContextProvider>
+			<PropsContextProvider>
+				<StartPingPong />
+			</PropsContextProvider>
 		</div>
 	);
 };
