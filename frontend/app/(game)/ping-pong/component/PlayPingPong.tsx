@@ -3,9 +3,10 @@ import { useRef, useEffect, useState } from 'react'
 import SocketService from '../service/SocketService';
 
 import { usePropsContext } from '../context/PropsContext';
-import { useWebSocketContext } from '../../context/WebSocketContext';
+import { useWebSocketContext } from '../../../context/WebSocketContext';
 import { Props } from '../common/Common';
-
+import * as IonIcons from 'ionicons/icons';
+import { IonIcon } from '@ionic/react';
 function PlayPingPong() {
 	const webContext = useWebSocketContext();
 	const propsContext = usePropsContext();
@@ -69,17 +70,32 @@ function PlayPingPong() {
 
 	return (
 		<div className="Parent" id="Parent">
-			<canvas ref={canvasRef} id="PingPong"></canvas>
-
-			<button id="Button" onClick={leaveGame}>
+			<div className="section1">
+				<div className="player p-left">
+					<img src="./img3.png"/>
+					<h4>Smyto</h4>
+				</div>
+				<div className="mid-sec">
+					<div className="game-timer">
+						<h3>10:05</h3>
+					</div>
+					<IonIcon icon={IonIcons.logOutOutline} onClick={leaveGame} />
+				</div>
+				<div className="player p-right">
+					<img src="./img3.png"/>
+					<h4>Smyto</h4>
+				</div>
+			</div>
+			{/*<button id="Button" onClick={leaveGame}>
 				Leave Game
-			</button>
-			{
+			</button>*/}
+			<canvas ref={canvasRef} id="PingPong"></canvas>
+			{/*
 				endGame ? (
 					<button id="Button" onClick={playAgain}> Play Again </button>
 				) : (
 					<div></div>
-				)
+				)*/
 			}
 		</div>
 	);

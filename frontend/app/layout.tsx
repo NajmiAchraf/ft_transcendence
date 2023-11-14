@@ -4,6 +4,7 @@ import './globals.css'
 import './vanillacss.css'
 import { WebSocketContextProvider } from './context/WebSocketContext'
 import React from 'react'
+
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
@@ -17,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr">
+    <html lang="en">
       <body className={inter.className}>
         <React.StrictMode>
           <WebSocketContextProvider>
