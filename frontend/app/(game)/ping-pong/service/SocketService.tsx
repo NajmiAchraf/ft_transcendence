@@ -1,6 +1,5 @@
 'use client';
 
-import { Dispatch, SetStateAction } from "react";
 import { DefaultEventsMap } from "@socket.io/component-emitter";
 import { Socket } from "socket.io-client";
 

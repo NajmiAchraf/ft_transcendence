@@ -6,6 +6,7 @@ import './vanillacss.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 
+import PropsContextProvider from './context/PropsContext'
 import { WebSocketContextProvider } from './context/WebSocketContext'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -24,9 +25,9 @@ export default function RootLayout({
 		<React.StrictMode>
 			<html lang="en">
 				<WebSocketContextProvider>
-					<body className={inter.className}>
-						{children}
-					</body>
+					<PropsContextProvider>
+						<body className={inter.className}> {children} </body>
+					</PropsContextProvider>
 				</WebSocketContextProvider>
 			</html>
 		</React.StrictMode>

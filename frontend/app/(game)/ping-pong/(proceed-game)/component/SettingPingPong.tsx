@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 import { Text } from '../../game/Board';
 
-import { usePropsContext } from '../../context/PropsContext';
+import { usePropsContext } from '../../../../context/PropsContext';
 import { useWebSocketContext } from '../../../../context/WebSocketContext';
 
 import { Props } from '../../common/Common';
@@ -108,6 +108,7 @@ function SettingPingPong() {
 			geometry: propsContext.props.geometry === "cube" ? "sphere" : "cube"
 		} as Props);
 	}
+
 	const joinGame = () => {
 		console.log("joinGame");
 
@@ -139,29 +140,26 @@ function SettingPingPong() {
 
 	return (
 		<div className="Parent" id="Parent">
-			{
-				propsContext.props.playerType === "bot" ? (
-					/* change mode three modes easy medium hard */
-					<button id="Button" onClick={setMode}>Mode {propsContext.props.mode}</button>
-				) : (
-					<div></div>
-				)
-			}
+			{propsContext.props.playerType === "bot" ? (
+				/* change mode three modes easy medium hard */
+				<button id="Button" onClick={setMode}>Mode {propsContext.props.mode}</button>
+			) : (
+				<div></div>
+			)}
 
 			{/* change mirror on(true) off(false) */}
 			<button id="Button" onClick={setMirror}>Mirror {propsContext.props.mirror ? "on" : "off"}</button>
 
 			{/* change geometry cube(sphere) */}
 			<button id="Button" onClick={setGeometry}>Geometry {propsContext.props.geometry}</button>
-			{
-				!propsContext.props.invite ? (
-					/* join game */
-					<button id="Button" onClick={joinGame}>Join Game</button>
-				) : (
-					/* start game */
-					<button id="Button" onClick={invitePlayer}>Confirme Invitation</button>
-				)
-			}
+
+			{!propsContext.props.invite ? (
+				/* join game */
+				<button id="Button" onClick={joinGame}>Join Game</button>
+			) : (
+				/* start game */
+				<button id="Button" onClick={invitePlayer}>Confirme Invitation</button>
+			)}
 		</div>
 	);
 }

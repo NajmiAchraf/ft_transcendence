@@ -6,7 +6,7 @@ import { IonIcon } from '@ionic/react';
 
 import SocketService from './SocketService';
 
-import { usePropsContext } from '../context/PropsContext';
+import { usePropsContext } from '../../../context/PropsContext';
 import { useWebSocketContext } from '../../../context/WebSocketContext';
 import { Props } from '../common/Common';
 
@@ -52,7 +52,7 @@ function PlayPingPong() {
 		<div className="Parent" id="Parent">
 			<div className="section1">
 				<div className="player p-left">
-					<img src="./img3.png" />
+					<img src="/img3.png" />
 					<h4>Smyto</h4>
 				</div>
 				<div className="mid-sec">
@@ -62,7 +62,7 @@ function PlayPingPong() {
 					<IonIcon icon={IonIcons.logOutOutline} onClick={leaveGame} />
 				</div>
 				<div className="player p-right">
-					<img src="./img3.png" />
+					<img src="/img3.png" />
 					<h4>Smyto</h4>
 				</div>
 			</div>

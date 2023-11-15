@@ -1,32 +1,32 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import dynamic from 'next/dynamic';
 
-import { resetPropsContext, usePropsContext } from '../../context/PropsContext';
+import { usePropsContext } from '../../../../context/PropsContext';
+import '../../../ping-pong.css'
 
-const ProceedPingPong = dynamic(() => import('../component/ProceedPingPong'), { ssr: false });
+const PlayPingPong = dynamic(() => import('../../service/PlayPingPong'), { ssr: false });
+const SettingPingPong = dynamic(() => import('../component/SettingPingPong'), { ssr: false });
 
-const Page = () => {
+const Bot = () => {
 	const propsContext = usePropsContext();
-	resetPropsContext();
-
-	// useEffect(() => {
-	// 	propsContext.props.playerType = "bot"
-	// 	propsContext.props.invite = false
-	// }, []);
 
 	propsContext.props = {
 		...propsContext.props,
 		playerType: "bot",
 		invite: false,
-	}
+	};
 
 	return (
 		<div id="root" style={{ backgroundColor: "#000000" }}>
-			<ProceedPingPong />
+			{propsContext.props.inGame ? (
+				<PlayPingPong />
+			) : (
+				<SettingPingPong />
+			)}
 		</div>
 	);
 };
 
-export default Page;
+export default Bot;

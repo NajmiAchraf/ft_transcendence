@@ -60,24 +60,27 @@ export default class Room {
 
 		const [player1ID, player2ID] = queue;
 
-		this.pinPongGateway.server.to(player1ID).emit("dataPlayer", {
-			side: "right",
-			id: player1ID,
-		});
-
-		this.pinPongGateway.server.to(player2ID).emit("dataPlayer", {
-			side: "left",
-			id: player2ID,
-		});
-
-		this.pinPongGateway.server.to(queue).emit("idRoomConstruction", idRoom);
-
 		this.game[idRoom] = new Game(this, queue, player1Type, player2Type, mode);
 
-		// this.game[idRoom].run()
 		setTimeout(() => {
-			this.game[idRoom].run()
-		}, 5000);
+			this.pinPongGateway.server.to(player1ID).emit("dataPlayer", {
+				side: "right",
+				id: player1ID,
+			});
+
+			this.pinPongGateway.server.to(player2ID).emit("dataPlayer", {
+				side: "left",
+				id: player2ID,
+			});
+
+			this.pinPongGateway.server.to(queue).emit("idRoomConstruction", idRoom);
+
+			// this.game[idRoom].run()
+			setTimeout(() => {
+				this.game[idRoom].run()
+			}, 3000);
+		}, 3000);
+
 	}
 
 	//TODO: Add invitation system across the socket beside the queue
