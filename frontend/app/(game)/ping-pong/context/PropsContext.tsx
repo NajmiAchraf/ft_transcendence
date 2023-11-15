@@ -23,6 +23,27 @@ export function usePropsContext() {
 	return (context)
 }
 
+// reset context
+export function resetPropsContext() {
+
+	const context = useContext(PropsContext)
+
+	if (context === undefined) {
+		throw new Error("context not defined");
+	}
+
+	context.setProps({
+		canvas: null,
+		geometry: "cube",
+		mirror: false,
+		mode: "medium",
+		playerType: "player",
+		invite: false,
+		inGame: false,
+	} as Props);
+}
+
+// context provider
 function PropsContextProvider({ children }: { children: any }) {
 
 	const [props, setProps] = useState<Props>({
@@ -31,6 +52,7 @@ function PropsContextProvider({ children }: { children: any }) {
 		mirror: false,
 		mode: "medium",
 		playerType: "player",
+		invite: false,
 		inGame: false,
 	} as Props);
 
@@ -38,13 +60,6 @@ function PropsContextProvider({ children }: { children: any }) {
 		props,
 		setProps
 	}
-
-	useEffect(() => {
-		return () => {
-			// Clean up the WebSocket connection when the component unmounts
-			// webSocket.disconnect();
-		};
-	} /*, [webSocket]*/);
 
 	return (
 		<PropsContext.Provider value={contextValue}>

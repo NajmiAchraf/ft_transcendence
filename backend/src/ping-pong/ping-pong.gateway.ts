@@ -83,4 +83,22 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		console.log('leaveGame : ' + socket.id);
 		this.rooms.deletePlayer(socket.id);
 	}
+
+	@SubscribeMessage("invitePlayer")
+	invitePlayer(@MessageBody() data: {
+		socketId: string,
+		playerId: string,
+	}) {
+		// const socketId = data.socketId;
+		// const playerId = data.playerId;
+
+		console.log('Received data:', data);
+		// try {
+		// 	const idRoom = this.rooms.addPlayer(socketId);
+		// 	if (idRoom)
+		// 		console.log("	Room player created, id: " + idRoom);
+		// } catch (error) {
+		// 	console.log(error);
+		// }
+	}
 }

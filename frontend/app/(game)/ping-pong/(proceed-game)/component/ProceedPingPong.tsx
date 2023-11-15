@@ -1,13 +1,12 @@
 'use client';
 
-import { usePropsContext } from '../context/PropsContext';
+import { usePropsContext } from '../../context/PropsContext';
 
-import PlayPingPong from './PlayPingPong'
+import PlayPingPong from '../../service/PlayPingPong'
 import SettingPingPong from './SettingPingPong'
 
-function StartPingPong() {
+function ProceedPingPong() {
 	const propsContext = usePropsContext();
-
 	return (
 		!propsContext.props.inGame ? (
 			<SettingPingPong />
@@ -17,4 +16,4 @@ function StartPingPong() {
 	);
 }
 
-export default StartPingPong;
+export default ProceedPingPong;

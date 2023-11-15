@@ -20,9 +20,10 @@ export let vars = {
 
 export type Props = {
 	canvas: HTMLCanvasElement | null
-	geometry: Geometry
-	mirror: boolean
-	mode: Mode
-	playerType: PlayerType
-	inGame: boolean
+	geometry: Geometry,
+	mirror: boolean,
+	mode: Mode,
+	playerType: PlayerType,
+	invite: boolean,
+	inGame: boolean,
 }

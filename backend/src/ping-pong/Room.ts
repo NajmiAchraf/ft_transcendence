@@ -80,6 +80,7 @@ export default class Room {
 		}, 5000);
 	}
 
+	//TODO: Add invitation system across the socket beside the queue
 	addPlayer(playerID: string): string | undefined {
 		if (this.checkRoom(playerID) === true) {
 			console.log("Player already in a room");

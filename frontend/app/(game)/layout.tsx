@@ -1,4 +1,5 @@
 import './index.css'
+import PropsContextProvider from './ping-pong/context/PropsContext'
 
 export default function RootLayout({
 	children,
@@ -6,6 +7,8 @@ export default function RootLayout({
 	children: React.ReactNode
 }) {
 	return (
-		<div className="div">{children}</div>
+		<PropsContextProvider>
+			<div className="div"> {children} </div>
+		</PropsContextProvider>
 	)
 }

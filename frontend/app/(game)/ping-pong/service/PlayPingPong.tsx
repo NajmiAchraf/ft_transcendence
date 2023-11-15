@@ -1,14 +1,14 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react'
+import * as IonIcons from 'ionicons/icons';
+import { IonIcon } from '@ionic/react';
 
-import SocketService from '../service/SocketService';
+import SocketService from './SocketService';
 
 import { usePropsContext } from '../context/PropsContext';
 import { useWebSocketContext } from '../../../context/WebSocketContext';
 import { Props } from '../common/Common';
-import * as IonIcons from 'ionicons/icons';
-import { IonIcon } from '@ionic/react';
 
 function PlayPingPong() {
 	const webContext = useWebSocketContext();
