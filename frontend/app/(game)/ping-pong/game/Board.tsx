@@ -5,8 +5,8 @@ import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 import { FontLoader, Font } from 'three/addons/loaders/FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 
-import Game from './Game'
-import { vars, Geometry } from '../common/Common'
+import Game from '@/app/(game)/ping-pong/game/Game'
+import { vars, Geometry } from '@/app/(game)/ping-pong/common/Common'
 
 class Table {
 	board: Board;

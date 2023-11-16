@@ -2,8 +2,8 @@
 
 import * as THREE from 'three'
 
-import Game from './Game'
-import { vars, Geometry, Side } from '../common/Common'
+import Game from '@/app/(game)/ping-pong/game/Game'
+import { vars, Geometry, Side } from '@/app/(game)/ping-pong/common/Common'
 
 class Paddle {
 	side: Side;
@@ -66,13 +66,13 @@ class Paddle {
 		// Define a variable to store the mouse position
 		this.mouse = new THREE.Vector2();
 
-		// console.log("this.game.service.getDataPlayer() ", this.game.service.getDataPlayer())
-		if (this.game.service.getDataPlayer().side === side)
+		// console.log("this.game.getDataPlayer() ", this.game.getDataPlayer())
+		if (this.game.getDataPlayer().side === side)
 			// Add a mouse move event listener to the container if it exists
 			this.canvas.addEventListener("mousemove", this.paddlePositionHandler as EventListener);
 		else
 			// get the player coordinates with the otherID
-			this.game.socket.on("otherPlayerUpdate", (data: any) => {
+			this.game.getSocket().on("otherPlayerUpdate", (data: any) => {
 				this.y = data.y;
 				this.paddle.position.set(this.x, this.y, this.z)
 			});
@@ -124,7 +124,7 @@ class Paddle {
 		}
 
 		// send the player coordinates to the other player
-		this.game.socket.emit("playerUpdate", {
+		this.game.getSocket().emit("playerUpdate", {
 			y: this.y
 		});
 	}

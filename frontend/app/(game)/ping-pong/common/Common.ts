@@ -1,5 +1,6 @@
 'use client';
 
+export type Canvas = HTMLCanvasElement | null;
 export type Side = "left" | "right";
 export type Mode = "easy" | "medium" | "hard";
 export type Geometry = "cube" | "sphere";
@@ -19,11 +20,12 @@ export let vars = {
 }
 
 export type Props = {
-	canvas: HTMLCanvasElement | null
 	geometry: Geometry,
 	mirror: boolean,
 	mode: Mode,
 	playerType: PlayerType,
 	invite: boolean,
 	inGame: boolean,
+	startPlay: boolean,
 }
+

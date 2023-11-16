@@ -7,6 +7,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 
 import PropsContextProvider from './context/PropsContext'
+import CanvasContextProvider from './context/CanvasContext'
 import { WebSocketContextProvider } from './context/WebSocketContext'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -26,7 +27,9 @@ export default function RootLayout({
 			<html lang="en">
 				<WebSocketContextProvider>
 					<PropsContextProvider>
-						<body className={inter.className}> {children} </body>
+						<CanvasContextProvider>
+							<body className={inter.className}> {children} </body>
+						</CanvasContextProvider>
 					</PropsContextProvider>
 				</WebSocketContextProvider>
 			</html>

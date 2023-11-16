@@ -3,11 +3,11 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 
-import { usePropsContext } from '../../../../context/PropsContext';
-import '../../../ping-pong.css'
+import { usePropsContext } from '@/app/context/PropsContext';
+import '@/app/(game)/ping-pong.css'
 
-const PlayPingPong = dynamic(() => import('../../service/PlayPingPong'), { ssr: false });
-const SettingPingPong = dynamic(() => import('../component/SettingPingPong'), { ssr: false });
+const PlayPingPong = dynamic(() => import('@/app/(game)/ping-pong/service/PlayPingPong'), { ssr: false });
+const SettingPingPong = dynamic(() => import('@/app/(game)/ping-pong/(proceed-game)/component/SettingPingPong'), { ssr: false });
 
 const Join = () => {
 	const propsContext = usePropsContext();

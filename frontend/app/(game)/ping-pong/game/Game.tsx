@@ -8,11 +8,11 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { DefaultEventsMap } from "@socket.io/component-emitter";
 import { Socket } from "socket.io-client";
 
-import Ball from "./Ball";
-import Board from "./Board";
-import Player from "./Player";
-import SocketService from "../service/SocketService";
-import { vars, Side, Props } from '../common/Common'
+import Ball from "@/app/(game)/ping-pong/game/Ball";
+import Board from "@/app/(game)/ping-pong/game/Board";
+import Player from "@/app/(game)/ping-pong/game/Player";
+import SocketService from "@/app/(game)/ping-pong/service/SocketService";
+import { vars, Side, Props, Canvas } from '@/app/(game)/ping-pong/common/Common'
 
 
 class CanvasComponent {
@@ -110,26 +110,29 @@ export default class Game extends CanvasComponent {
 	player2: Player
 	ball: Ball
 
-	service: SocketService;
-	socket: Socket<DefaultEventsMap, DefaultEventsMap>;
+	// service: SocketService;
+	getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>;
+	getDataPlayer: () => any;
 	room: string | undefined = undefined;
 	idPlayer: string | undefined = undefined;
 
 	duration: number = 1500;
 
-	constructor(service: SocketService, props: Props) {
-		if (!props.canvas)
+	// constructor(service: SocketService, props: Props, canvas: Canvas) {
+	constructor(getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>, getDataPlayer: () => any, props: Props, canvas: Canvas) {
+		if (!canvas)
 			throw new Error("Canvas is not defined");
-		super(props.canvas)
+		super(canvas)
 
-		this.service = service;
-		this.socket = service.getSocket();
+		// this.service = service;
+		this.getSocket = getSocket;
+		this.getDataPlayer = getDataPlayer;
 		this.board = new Board(this, vars.width, vars.height, vars.depth, props.geometry, props.mirror)
 		this.ball = new Ball(this, props.geometry)
 		this.player1 = new Player(this, "right", props.geometry)
 		this.player2 = new Player(this, "left", props.geometry)
 
-		this.socket.on("drawGoal", () => {
+		this.getSocket().on("drawGoal", () => {
 			// move the camera to the winner side after a goal and back to the center
 			if (this.ball.velocityX < 0)
 				this.moveCameraSeries("left");

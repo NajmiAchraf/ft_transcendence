@@ -4,43 +4,31 @@ import { useRef, useEffect, useState } from 'react'
 import * as IonIcons from 'ionicons/icons';
 import { IonIcon } from '@ionic/react';
 
-import SocketService from './SocketService';
+// import SocketService from './SocketService';
+import { usePropsContext } from '@/app/context/PropsContext';
+import { useWebSocketContext } from '@/app/context/WebSocketContext';
+import { useCanvasContext } from '@/app/context/CanvasContext';
 
-import { usePropsContext } from '../../../context/PropsContext';
-import { useWebSocketContext } from '../../../context/WebSocketContext';
-import { Props } from '../common/Common';
+import { Props } from '@/app/(game)/ping-pong/common/Common';
 
 function PlayPingPong() {
-	const webContext = useWebSocketContext();
+	const canvasContext = useCanvasContext();
 	const propsContext = usePropsContext();
+	const webContext = useWebSocketContext();
 
 	const canvasRef = useRef<HTMLCanvasElement>(null);
-	const socSrv = useRef<SocketService>();
-
-	const [createGame, setCreateGame] = useState<boolean>(false);
 
 	useEffect(() => {
-		propsContext.props.canvas = canvasRef.current;
-		// console.log('webContext.webSocket.id: ', webContext.webSocket.id);
-		function CreateGame() {
-			try {
-				if (propsContext.props.canvas) {
-					socSrv.current = new SocketService(webContext.webSocket, propsContext.props);
-				}
-			} catch (error) {
-				console.error(error);
-			}
-		}
-		if (!createGame) {
-			setCreateGame(true);
-			CreateGame();
+		canvasContext.canvas = canvasRef.current;
+		if (!canvasContext.canvas) {
+			throw new Error("Canvas not defined");
 		}
 	}, []);
 
 	const leaveGame = () => {
-		console.log('leaveGame0');
+		console.log('leaveGame');
 
-		socSrv.current?.leaveGame();
+		webContext.webSocket.emit("leaveGame");
 
 		propsContext.setProps({
 			...propsContext.props,
@@ -66,6 +54,11 @@ function PlayPingPong() {
 					<h4>Smyto</h4>
 				</div>
 			</div>
+			{/* {!propsContext.props.startPlay ? (
+				<canvas ref={canvasContext.canvas.canvas as React.RefObject<HTMLCanvasElement> | undefined} id="PingPong"></canvas>
+			) : (
+				<div></div>
+			)} */}
 			<canvas ref={canvasRef} id="PingPong"></canvas>
 		</div>
 	);

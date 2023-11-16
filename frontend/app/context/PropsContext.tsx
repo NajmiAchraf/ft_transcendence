@@ -21,6 +21,7 @@ function mergeDefaultProps(existingProps: Props): Props {
 		playerType: "player",
 		invite: false,
 		inGame: false,
+		startPlay: false,
 	};
 }
 
@@ -29,7 +30,7 @@ export function usePropsContext() {
 	const context = useContext(PropsContext);
 
 	if (context === undefined) {
-		throw new Error("context not defined");
+		throw new Error("Props context not defined");
 	}
 
 	return context;
@@ -50,13 +51,13 @@ export function useDefaultPropsContext() {
 // context provider
 function PropsContextProvider({ children }: { children: React.ReactNode }) {
 	const [props, setProps] = useState<Props>({
-		canvas: null,
 		geometry: "cube",
 		mirror: false,
 		mode: "medium",
 		playerType: "player",
 		invite: false,
 		inGame: false,
+		startPlay: false,
 	});
 
 	const contextValue: IPropsContext = {
