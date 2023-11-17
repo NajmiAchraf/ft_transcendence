@@ -65,7 +65,11 @@
 	height: 60px;
 	border-radius: 22px;
 }
-
+.game-timer
+{
+	width: 100px;
+    text-align: center;
+}
 .section1 .player
 {
 	flex-basis: 40%;

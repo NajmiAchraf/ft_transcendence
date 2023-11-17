@@ -35,10 +35,10 @@ export default class Game {
 	private check_result(): void {
 		if (this.player1.score === 10) {
 			const room = Object.keys(this.room.room).find((key) => this.room.getRoom(key).includes(this.queue[0]));
-			this.room.endGame(room, 0);
+			this.room.endGame(room, 0, false);
 		} else if (this.player2.score === 10) {
 			const room = Object.keys(this.room.room).find((key) => this.room.getRoom(key).includes(this.queue[1]));
-			this.room.endGame(room, 1);
+			this.room.endGame(room, 1, false);
 		}
 	}
 

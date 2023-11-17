@@ -16,6 +16,7 @@ const Join = () => {
 		...propsContext.props,
 		playerType: "player",
 		invite: false,
+		startPlay: false,
 	}
 
 	return (

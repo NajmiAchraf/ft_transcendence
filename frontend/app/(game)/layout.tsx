@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 
 import Game from '@/app/(game)/ping-pong/game/Game';
 import { Text } from '@/app/(game)/ping-pong/game/Board';
@@ -18,7 +18,8 @@ export default function RootLayout({
 }) {
 	const canvasContext = useCanvasContext();
 	const propsContext = usePropsContext();
-	const webSocket = useWebSocketContext().webSocket;
+	const webSocketContext = useWebSocketContext();
+	const webSocket = webSocketContext.webSocket;
 
 	let game: Game;
 	let dataPlayer: any | undefined = undefined;
@@ -28,13 +29,17 @@ export default function RootLayout({
 			try {
 				await Text.loadFont();
 
-				const stopGame = () => {
-					game.stop();
+				const getSocket = () => {
+					return webSocketContext.webSocket;
 				};
 
-				const getSocket = () => {
-					return webSocket;
-				};
+				const getProps = () => {
+					return propsContext.props;
+				}
+
+				const getCanvas = () => {
+					return canvasContext.canvas;
+				}
 
 				const getDataPlayer = () => {
 					return dataPlayer;
@@ -47,34 +52,45 @@ export default function RootLayout({
 
 					webSocket.on("idRoomConstruction", (idRoomConstruction: string) => {
 						console.log("idRoomConstruction: ", idRoomConstruction);
-
+						console.log("propsContext.props.startPlay: ", propsContext.props.startPlay);
 						if (!propsContext.props.startPlay) {
+							propsContext.props.endGame = false;
 							propsContext.props.startPlay = true;
 
-							game = new Game(getSocket, getDataPlayer, propsContext.props, canvasContext.canvas);
+							game = new Game(getSocket, getProps, getCanvas, getDataPlayer);
 							game.room = idRoomConstruction;
 							game.run();
-						}
 
-						console.log("game.room: ", game.room);
+							console.log("game.room: ", game.room);
+						}
 					});
 
 					webSocket.on("idRoomDestruction", (idRoomDestruction: string) => {
 						console.log("idRoomDestruction: ", idRoomDestruction);
+						console.log("propsContext.props.startPlay: ", propsContext.props.startPlay);
+						if (propsContext.props.startPlay) {
+							propsContext.props.endGame = true;
+							propsContext.props.startPlay = false;
 
-						propsContext.props.startPlay = false;
-
-						stopGame();
+							game.stop();
+						}
 					});
 
 					webSocket.on("youWin", (data: any) => {
 						console.log("youWin: ", data);
-						game.win();
+						if (!propsContext.props.endGame) {
+							propsContext.props.endGame = true;
+							game.win();
+						}
 					});
 
 					webSocket.on("youLose", (data: any) => {
 						console.log("youLose: ", data);
-						game.lose();
+						console.log("propsContext.props.endGame: ", propsContext.props.endGame);
+						if (!propsContext.props.endGame) {
+							propsContext.props.endGame = true;
+							game.lose();
+						}
 					});
 
 					webSocket.on("dataPlayer", (data: any) => {
@@ -90,7 +106,19 @@ export default function RootLayout({
 		}
 
 		SocketService();
-	}, [propsContext.props, canvasContext.canvas]);
+
+		return (() => {
+			console.log("RootLayout unmount");
+			if (propsContext.props.startPlay) {
+				propsContext.props.endGame = true;
+				propsContext.props.startPlay = false;
+
+				game.destroy();
+				console.log(" game.destroy()");
+			}
+		})
+
+	}, [propsContext, webSocketContext, canvasContext]);
 
 	return (
 		<div className="div"> {children} </div>

@@ -21,6 +21,7 @@ function mergeDefaultProps(existingProps: Props): Props {
 		playerType: "player",
 		invite: false,
 		inGame: false,
+		endGame: false,
 		startPlay: false,
 	};
 }
@@ -57,6 +58,7 @@ function PropsContextProvider({ children }: { children: React.ReactNode }) {
 		playerType: "player",
 		invite: false,
 		inGame: false,
+		endGame: false,
 		startPlay: false,
 	});
 

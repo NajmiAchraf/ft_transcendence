@@ -22,11 +22,13 @@ class Queue {
 		return undefined;
 	}
 
-	deletePlayer(player: string): void {
+	deletePlayer(player: string): boolean {
 		if (this.queue.includes(player)) {
 			this.queue = this.queue.filter((p) => p !== player);
 			console.log("Player deleted from the queue");
+			return true;
 		}
+		return false;
 	}
 }
 
@@ -46,8 +48,12 @@ export default class Room {
 		return this.room[room];
 	}
 
+	private fetchRoom(playerID: string) {
+		return (Object.keys(this.room).find((key) => this.room[key].includes(playerID)))
+	}
+
 	private checkRoom(playerID: string): boolean {
-		if (Object.keys(this.room).find((key) => this.room[key].includes(playerID))) {
+		if (this.fetchRoom(playerID)) {
 			console.log("Player already in a room");
 			return true;
 		}
@@ -75,11 +81,11 @@ export default class Room {
 
 			this.pinPongGateway.server.to(queue).emit("idRoomConstruction", idRoom);
 
-			// this.game[idRoom].run()
+			// this.game[idRoom].run() 
 			setTimeout(() => {
 				this.game[idRoom].run()
-			}, 3000);
-		}, 3000);
+			}, 2000);
+		}, 1000);
 
 	}
 
@@ -94,7 +100,7 @@ export default class Room {
 
 		if (queue) {
 			this.createGame(queue, "player", "player", "medium");
-			return (++this.idRoom).toString();
+			return this.idRoom.toString();
 		}
 
 		return undefined;
@@ -110,14 +116,16 @@ export default class Room {
 
 		this.createGame(queue, "player", "bot", mode);
 
-		return (++this.idRoom).toString();
+		return this.idRoom.toString();
 	}
 
-	endGame(room: string, loser: number): void {
-		this.pinPongGateway.server.to(this.room[room][loser]).emit("youLose");
-		console.log("Player " + this.room[room][loser] + " lose");
+	endGame(room: string, loser: number, corruption: boolean): void {
+		if (corruption === false) {
+			this.pinPongGateway.server.to(this.room[room][loser]).emit("youLose", this.room[room][loser]);
+			console.log("Player " + this.room[room][loser] + " lose");
+		}
 
-		this.pinPongGateway.server.to(this.room[room][1 - loser]).emit("youWin");
+		this.pinPongGateway.server.to(this.room[room][1 - loser]).emit("youWin", this.room[room][1 - loser]);
 		console.log("Player " + this.room[room][1 - loser] + " win");
 		//! Set the state of the game {win or lose} {time} {score} {mode} {playerType}
 
@@ -129,17 +137,23 @@ export default class Room {
 		delete this.room[room];
 	}
 
-	deletePlayer(playerID: string): void {
-		const room = Object.keys(this.room).find((key) => this.room[key].includes(playerID));
-
+	deletePlayerRoom(playerID: string): boolean {
+		const room = this.fetchRoom(playerID);
 		if (room) {
 			const loser = this.room[room].indexOf(playerID);
-			this.pinPongGateway.server.to(this.room[room][loser]).emit("idRoomDestruction");
-			this.endGame(room, loser);
-			console.log("Room deleted, id: " + room);
-			return;
-		}
+			const roomID = this.room[room][loser];
 
-		this.queue.deletePlayer(playerID);
+			this.pinPongGateway.server.to(roomID[1 - loser]).emit("idRoomDestruction");
+
+			this.endGame(room, loser, true);
+
+			console.log("Room deleted, id: " + room);
+			return true;
+		}
+		return false;
+	}
+
+	deletePlayerQueue(playerID: string): boolean {
+		return (this.queue.deletePlayer(playerID));
 	}
 }

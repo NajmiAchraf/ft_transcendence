@@ -16,6 +16,7 @@ const Bot = () => {
 		...propsContext.props,
 		playerType: "bot",
 		invite: false,
+		startPlay: false,
 	};
 
 	return (

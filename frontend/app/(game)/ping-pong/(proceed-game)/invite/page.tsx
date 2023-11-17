@@ -16,6 +16,7 @@ const Invite = () => {
 		...propsContext.props,
 		playerType: "player",
 		invite: true,
+		startPlay: false,
 	}
 
 	return (

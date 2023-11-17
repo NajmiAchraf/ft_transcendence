@@ -42,7 +42,9 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 
 	handleDisconnect(client: Socket) {
 		console.log('Client disconnected: ' + client.id);
-		this.rooms.deletePlayer(client.id);
+		if (this.rooms.deletePlayerRoom(client.id)) { }
+		else if (this.rooms.deletePlayerQueue(client.id)) { }
+		else console.log("Player not found in room or queue");
 	}
 
 	afterInit(server: Server) {
@@ -81,7 +83,13 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 	@SubscribeMessage("leaveGame")
 	leaveGame(socket: Socket) {
 		console.log('leaveGame : ' + socket.id);
-		this.rooms.deletePlayer(socket.id);
+		this.rooms.deletePlayerRoom(socket.id);
+	}
+
+	@SubscribeMessage("leaveQueue")
+	leaveQueue(socket: Socket) {
+		console.log('leaveQueue : ' + socket.id);
+		this.rooms.deletePlayerQueue(socket.id);
 	}
 
 	@SubscribeMessage("invitePlayer")

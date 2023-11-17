@@ -11,7 +11,6 @@ import { Socket } from "socket.io-client";
 import Ball from "@/app/(game)/ping-pong/game/Ball";
 import Board from "@/app/(game)/ping-pong/game/Board";
 import Player from "@/app/(game)/ping-pong/game/Player";
-import SocketService from "@/app/(game)/ping-pong/service/SocketService";
 import { vars, Side, Props, Canvas } from '@/app/(game)/ping-pong/common/Common'
 
 
@@ -118,19 +117,18 @@ export default class Game extends CanvasComponent {
 
 	duration: number = 1500;
 
-	// constructor(service: SocketService, props: Props, canvas: Canvas) {
-	constructor(getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>, getDataPlayer: () => any, props: Props, canvas: Canvas) {
-		if (!canvas)
+	constructor(getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>, getProps: () => Props, getCanvas: () => Canvas, getDataPlayer: () => any) {
+		if (!getCanvas())
 			throw new Error("Canvas is not defined");
-		super(canvas)
+		super(getCanvas() as HTMLCanvasElement)
 
 		// this.service = service;
 		this.getSocket = getSocket;
 		this.getDataPlayer = getDataPlayer;
-		this.board = new Board(this, vars.width, vars.height, vars.depth, props.geometry, props.mirror)
-		this.ball = new Ball(this, props.geometry)
-		this.player1 = new Player(this, "right", props.geometry)
-		this.player2 = new Player(this, "left", props.geometry)
+		this.board = new Board(this, vars.width, vars.height, vars.depth, getProps().geometry, getProps().mirror)
+		this.ball = new Ball(this, getProps().geometry)
+		this.player1 = new Player(this, "right", getProps().geometry)
+		this.player2 = new Player(this, "left", getProps().geometry)
 
 		this.getSocket().on("drawGoal", () => {
 			// move the camera to the winner side after a goal and back to the center
@@ -283,7 +281,22 @@ export default class Game extends CanvasComponent {
 		this.scene.clear();
 		// clear the canvas
 		this.renderer.clear();
+		// composer dispose
+		this.composer.dispose();
 		// remove the canvas render
 		this.renderer.dispose();
+		// remove the renderPass to the composer
+		this.renderPass.dispose();
+		// remove the bloomPass to the composer
+		this.bloomPass.dispose();
+		// remove the canvas render
+		this.renderer.dispose();
+	}
+
+	destroy() {
+		// stop
+		this.stop();
+		// remove the canvas
+		this.canvas.remove();
 	}
 }
