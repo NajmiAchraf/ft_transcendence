@@ -28,20 +28,21 @@ function PlayPingPong() {
 	}, []);
 
 	const interval = setInterval(() => {
-		if (Date.now() - startTime.current > 3000) {
-			let time = (Date.now() - startTime.current - 3000) / 1000;
-			let min = Math.floor(time / 60);
-			let sec = Math.floor(time % 60);
-			setCurrentTime(`${min}:${sec}`);
+		if (propsContext.props.startPlay) {
+			const time = (Date.now() - startTime.current) / 1000;
+			const min = Math.floor(time / 60);
+			const sec = Math.floor(time % 60);
+			setCurrentTime(`${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`);
+		}
 
-			if (propsContext.props.endGame)
-				clearInterval(interval);
-
+		if (propsContext.props.endGame) {
+			clearInterval(interval);
 		}
 	}, 1000 / 60);
 
 	const leaveGame = () => {
 		console.log(Date.now() - startTime.current);
+		// if (propsContext.props.startPlay) {
 		if (Date.now() - startTime.current > 3000) {
 			console.log('leaveGame');
 

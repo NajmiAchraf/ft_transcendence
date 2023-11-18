@@ -38,7 +38,7 @@ function WebSocketContextProvider({ children }: { children: React.ReactNode }) {
 	// }, [webSocket]);
 
 	webSocket.on('connect', () => {
-		console.log('Connected!');
+		console.log('Connected!', webSocket.id);
 	});
 
 	const contextValue: IWebSocketContext = {

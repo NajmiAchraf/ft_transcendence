@@ -3,7 +3,7 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 
-import { usePropsContext } from '@/app/context/PropsContext';
+import { usePropsContext, getDefaultProps } from '@/app/context/PropsContext';
 import '@/app/(game)/ping-pong.css'
 
 const PlayPingPong = dynamic(() => import('@/app/(game)/ping-pong/service/PlayPingPong'), { ssr: false });
@@ -11,9 +11,10 @@ const SettingPingPong = dynamic(() => import('@/app/(game)/ping-pong/(proceed-ga
 
 const Bot = () => {
 	const propsContext = usePropsContext();
+	const defaultProps = getDefaultProps();
 
 	propsContext.props = {
-		...propsContext.props,
+		...defaultProps,
 		playerType: "bot",
 		invite: false,
 		startPlay: false,

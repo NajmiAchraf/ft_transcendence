@@ -11,21 +11,6 @@ export interface IPropsContext {
 //create context
 const PropsContext = createContext<IPropsContext | undefined>(undefined);
 
-//! Function to merge default values with existing props
-function mergeDefaultProps(existingProps: Props): Props {
-	return {
-		...existingProps,
-		geometry: "cube",
-		mirror: false,
-		mode: "medium",
-		playerType: "player",
-		invite: false,
-		inGame: false,
-		endGame: false,
-		startPlay: false,
-	};
-}
-
 // use context
 export function usePropsContext() {
 	const context = useContext(PropsContext);
@@ -37,16 +22,21 @@ export function usePropsContext() {
 	return context;
 }
 
-//! default context
-export function useDefaultPropsContext() {
-	const context = usePropsContext();
+// default props
+export function getDefaultProps(): Props {
 
-	useEffect(() => {
-		// Merge default props with existing props when the component mounts
-		// context.setProps((context.props) => mergeDefaultProps(context.props));
-	}, []); // Run this effect only once when the component mounts
+	const defaultProps: Props = {
+		geometry: "cube",
+		mirror: false,
+		mode: "medium",
+		playerType: "player",
+		invite: false,
+		inGame: false,
+		endGame: false,
+		startPlay: false,
+	};
 
-	return context;
+	return defaultProps;
 }
 
 // context provider
