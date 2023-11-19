@@ -10,6 +10,7 @@ import { usePropsContext } from '@/app/context/PropsContext';
 import { useWebSocketContext } from '@/app/context/WebSocketContext';
 
 import '@/app/(game)/ping-pong.css'
+import { Props } from './ping-pong/common/Common';
 
 export default function RootLayout({
 	children,
@@ -19,7 +20,7 @@ export default function RootLayout({
 	const canvasContext = useCanvasContext();
 	const propsContext = usePropsContext();
 	const webSocketContext = useWebSocketContext();
-	const webSocket = webSocketContext.webSocket;
+	const webSocketGame = webSocketContext.game;
 
 	let game: Game;
 	let dataPlayer: any | undefined = undefined;
@@ -30,7 +31,7 @@ export default function RootLayout({
 				await Text.loadFont();
 
 				const getSocket = () => {
-					return webSocketContext.webSocket;
+					return webSocketContext.game;
 				};
 
 				const getProps = () => {
@@ -46,11 +47,11 @@ export default function RootLayout({
 				};
 
 				const initialization = () => {
-					webSocket.on("connect", () => {
+					webSocketGame.on("connect", () => {
 						console.log("Connected to namespace: /ping-pong");
 					});
 
-					webSocket.on("idRoomConstruction", (idRoomConstruction: string) => {
+					webSocketGame.on("idRoomConstruction", (idRoomConstruction: string) => {
 						console.log("idRoomConstruction: ", idRoomConstruction);
 						console.log("propsContext.props.startPlay: ", propsContext.props.startPlay);
 						if (!propsContext.props.startPlay) {
@@ -65,7 +66,7 @@ export default function RootLayout({
 						}
 					});
 
-					webSocket.on("idRoomDestruction", (idRoomDestruction: string) => {
+					webSocketGame.on("idRoomDestruction", (idRoomDestruction: string) => {
 						console.log("idRoomDestruction: ", idRoomDestruction);
 						console.log("propsContext.props.startPlay: ", propsContext.props.startPlay);
 						if (propsContext.props.startPlay) {
@@ -76,7 +77,7 @@ export default function RootLayout({
 						}
 					});
 
-					webSocket.on("youWin", (data: any) => {
+					webSocketGame.on("youWin", (data: any) => {
 						console.log("youWin: ", data);
 						if (!propsContext.props.endGame) {
 							propsContext.props.endGame = true;
@@ -84,7 +85,7 @@ export default function RootLayout({
 						}
 					});
 
-					webSocket.on("youLose", (data: any) => {
+					webSocketGame.on("youLose", (data: any) => {
 						console.log("youLose: ", data);
 						console.log("propsContext.props.endGame: ", propsContext.props.endGame);
 						if (!propsContext.props.endGame) {
@@ -93,9 +94,28 @@ export default function RootLayout({
 						}
 					});
 
-					webSocket.on("dataPlayer", (data: any) => {
+					webSocketGame.on("dataPlayer", (data: any) => {
 						console.log("dataPlayer: ", data);
 						dataPlayer = data;
+					});
+
+					webSocketGame.on("allowToPlay", (data: any) => {
+						propsContext.setProps({
+							...propsContext.props,
+							inGame: true
+						} as Props);
+
+						console.log("allowToPlay: ", data);
+					});
+
+					webSocketGame.on("denyToPlay", (data: any) => {
+
+						propsContext.setProps({
+							...propsContext.props,
+							inGame: false
+						} as Props);
+
+						console.log("denyToPlay: ", data);
 					});
 				};
 

@@ -1,5 +1,5 @@
-import Game from "./Game";
-import { Mode, PlayerType } from './Common';
+import Game from "./logic/Game";
+import { Mode, PlayerType } from './logic/Common';
 import PingPongGateway from "./ping-pong.gateway";
 
 class Queue {

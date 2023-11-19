@@ -4,7 +4,7 @@ import Player from "./Player";
 import Ball from "./Ball";
 
 import { Mode, PlayerType } from "./Common";
-import Room from './Room';
+import Room from '../Room';
 
 export default class Game {
 	player1: Player

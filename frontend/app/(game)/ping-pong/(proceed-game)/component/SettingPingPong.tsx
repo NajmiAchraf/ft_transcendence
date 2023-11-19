@@ -33,13 +33,7 @@ function SettingPingPong() {
 	const joinGame = () => {
 		console.log("joinGame");
 
-		propsContext.setProps({
-			...propsContext.props,
-			inGame: true
-		} as Props);
-
 		webContext.webSocket.emit("joinGame", {
-			socketId: webContext.webSocket.id,
 			playerType: propsContext.props.playerType,
 			mode: propsContext.props.mode,
 		});
@@ -48,13 +42,7 @@ function SettingPingPong() {
 	const invitePlayer = () => {
 		console.log("invitePlayer");
 
-		propsContext.setProps({
-			...propsContext.props,
-			inGame: true
-		} as Props);
-
 		webContext.webSocket.emit("invitePlayer", {
-			socketId: webContext.webSocket.id,
 			playerId: "playerId",
 		});
 	}
