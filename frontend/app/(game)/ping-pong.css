@@ -8,7 +8,7 @@
 	height: 100%;
 	top: 0;
 	left: 0;
-	background-color: black; /* Set a background color for the root element */
+	/* background-color: #1a1c26; */
 }
 
 .Parent
@@ -20,6 +20,7 @@
 	height: 100%;
 	display: flex;
 	flex-direction: column;
+	background-color: #1a1c26;
 }
 
 #PingPong
@@ -74,6 +75,7 @@ body, html
 	display: flex;
 	gap: 1rem;
 	align-items: center;
+	font-size: 2rem;
 }
 
 .section1 .p-left
@@ -97,7 +99,6 @@ body, html
 	gap: 1rem;
 	font-size: 2rem;
 	line-height: 1.2;
-	/* center the font in height */
 	
 }
 
@@ -116,23 +117,11 @@ body, html
 	font-style: normal;
 }
 
-.game-timer
+.game-font
 {
 	width: 100px;
 	text-align: center;
 	font-family: 'Digital-7';
-}
-
-.section1 ion-icon
-{
-	font-size: 3rem;
-	cursor: pointer;
-	transition: 0.5s ease;
-}
-
-.section1 ion-icon:hover
-{
-	color: #9B3C7B;
 }
 
 @media(max-height:600px)
@@ -143,13 +132,9 @@ body, html
 		height: 30px;
 		border-radius: 9px;
 	}
-	.section1 .mid-sec
+	.section1 .game-font
 	{
 		font-size: 1rem;
-	}
-	.section1 .mid-sec ion-icon
-	{
-		font-size: 1.5rem;
 	}
 }
 
@@ -159,6 +144,8 @@ body, html
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	font-size: 4rem;	
+	color: white;
 }
 
 .section2 .center-sec
@@ -172,8 +159,39 @@ body, html
 .waiting
 {
 	width: 100%;
-	font-size: 2rem;
 	text-align: center;
 	font-family: 'Digital-7';
 }
 
+.section3
+{
+	height: 10vh;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	padding-right: 1rem;
+}
+
+.section3 ion-icon
+{
+	font-size: 3rem;
+	cursor: pointer;
+	transition: 0.5s ease;
+}
+
+.section3 ion-icon:hover
+{
+	color: #9B3C7B;
+}
+
+@media(max-height:600px)
+{
+	.section2
+	{
+		font-size: 2rem;
+	}
+	.section3 ion-icon
+	{
+		font-size: 1.5rem;
+	}
+}

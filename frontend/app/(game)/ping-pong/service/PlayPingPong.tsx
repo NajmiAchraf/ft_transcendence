@@ -43,7 +43,7 @@ function PlayPingPong() {
 	const leaveGame = () => {
 		console.log(Date.now() - startTime.current);
 		// if (propsContext.props.startPlay) {
-		if (Date.now() - startTime.current > 3000) {
+		if (Date.now() - startTime.current > 4000) {
 			console.log('leaveGame');
 
 			webContext.webSocket.emit("leaveGame");
@@ -73,25 +73,22 @@ function PlayPingPong() {
 
 	return (
 		<div className="Parent" id="Parent">
+			<canvas ref={canvasRef} id="PingPong"></canvas>
 			<div className="section1">
-				<div className="player p-left">
-					<img src="/img3.png" alt="player-left" />
-					<h4>Smyto</h4>
-				</div>
-				<div className="mid-sec">
-					<div className="game-timer">
-						<h3>{currentTime}</h3>
-					</div>
-
-					{/* {propsContext.props.startPlay ? (
-						<IonIcon icon={IonIcons.logOutOutline} onClick={leaveGame} />
-					) : (
-						<IonIcon icon={IonIcons.logOutOutline} onClick={leaveQueue} />
-					)} */}
-				</div>
 				<div className="player p-right">
 					<img src="/img3.png" alt="player-right" />
-					<h4>Smyto</h4>
+				</div>
+				<div className="player p-left game-font">
+					<h3>Smyto</h3>
+				</div>
+				<div className="mid-sec game-font">
+					<h3>{currentTime}</h3>
+				</div>
+				<div className="player p-right game-font">
+					<h3 >Smyto0000000000</h3>
+				</div>
+				<div className="player p-left">
+					<img src="/img3.png" alt="player-left" />
 				</div>
 			</div>
 			<div className='section2'>
@@ -103,7 +100,14 @@ function PlayPingPong() {
 					)}
 				</div>
 			</div>
-			<canvas ref={canvasRef} id="PingPong"></canvas>
+
+			<div className="section3">
+				{propsContext.props.startPlay ? (
+					<IonIcon icon={IonIcons.logOutOutline} onClick={leaveGame} />
+				) : (
+					<IonIcon icon={IonIcons.logOutOutline} onClick={leaveQueue} />
+				)}
+			</div>
 		</div >
 	);
 }

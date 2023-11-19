@@ -85,7 +85,7 @@ export default class Room {
 			setTimeout(() => {
 				this.game[idRoom].run()
 			}, 2000);
-		}, 1000);
+		}, 2000);
 
 	}
 
