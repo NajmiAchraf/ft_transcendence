@@ -11,10 +11,11 @@ const SettingPingPong = dynamic(() => import('@/app/(game)/ping-pong/(proceed-ga
 
 const Bot = () => {
 	const propsContext = usePropsContext();
-	const defaultProps = getDefaultProps();
+	// const defaultProps = getDefaultProps();
 
 	propsContext.props = {
-		...defaultProps,
+		// ...defaultProps,
+		...propsContext.props,
 		playerType: "bot",
 		invite: false,
 		startPlay: false,

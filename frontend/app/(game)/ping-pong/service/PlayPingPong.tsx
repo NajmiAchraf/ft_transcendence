@@ -83,24 +83,28 @@ function PlayPingPong() {
 						<h3>{currentTime}</h3>
 					</div>
 
-					{propsContext.props.startPlay ? (
+					{/* {propsContext.props.startPlay ? (
 						<IonIcon icon={IonIcons.logOutOutline} onClick={leaveGame} />
 					) : (
 						<IonIcon icon={IonIcons.logOutOutline} onClick={leaveQueue} />
-					)}
+					)} */}
 				</div>
 				<div className="player p-right">
 					<img src="/img3.png" alt="player-right" />
 					<h4>Smyto</h4>
 				</div>
 			</div>
-			{!propsContext.props.startPlay && (
-				<div className="waiting">
-					<h3>  Wait ...  </h3>
+			<div className='section2'>
+				<div className='center-sec'>
+					{!propsContext.props.startPlay && (
+						<div className="waiting">
+							<h3>Wait</h3>
+						</div>
+					)}
 				</div>
-			)}
+			</div>
 			<canvas ref={canvasRef} id="PingPong"></canvas>
-		</div>
+		</div >
 	);
 }
 
