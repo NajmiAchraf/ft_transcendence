@@ -48,8 +48,6 @@ model user {
     blocking_user blocked[] @relation(name: "blocking_user")
     banned_user banned[] @relation(name: "banned_user")
     mutted_user mutted[] @relation(name: "mutted_user")
-    user_socket user_socket[] @relation(name: "user_socket")
-    player_socket player_socket[] @relation(name: "player_socket")
 }
 
 model channel {
@@ -101,22 +99,6 @@ model global_chat {
   sender_id Int
   globalm_sender     user     @relation(name: "globalm_sender", fields: [sender_id], references: [id])
   message_text String
-  created_at DateTime @default(now())
-}
-
-model user_socket {
-  id        Int      @id @default(autoincrement())
-  socket_id String @db.VarChar(255) @unique
-  user_id Int
-  user_socket    user     @relation(name: "user_socket", fields: [user_id], references: [id])
-  created_at DateTime @default(now())
-}
-
-model player_socket {
-  id  Int @id @default(autoincrement())
-  socket_id String @db.VarChar(255) @unique
-  player_id Int
-  player_socket    user     @relation(name: "player_socket", fields: [player_id], references: [id])
   created_at DateTime @default(now())
 }
 

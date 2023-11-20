@@ -13,7 +13,7 @@ import Room from "./Room";
 import { Mode, PlayerType } from './logic/Common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GlobalHelperService } from 'src/common/services/global_helper.service';
-
+import { SocketService } from 'src/common/services/socket.service';
 
 // namespace for websocket events (client -> server)
 @WebSocketGateway(
@@ -32,8 +32,9 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 	rooms: Room;
 
 	constructor(private readonly prismaService: PrismaService,
-		private readonly globalHelperService: GlobalHelperService) {
-		this.rooms = new Room(this);
+		private readonly globalHelperService: GlobalHelperService,
+		private readonly socketService: SocketService) {
+		this.rooms = new Room(prismaService, this);
 	}
 
 	async handleConnection(client: Socket) {
@@ -45,13 +46,8 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 			return;
 		}
 
-		// add player connection to db
-		await this.prismaService.player_socket.create({
-			data: {
-				socket_id: client.id,
-				player_id: userId,
-			}
-		});
+		// insert new connection
+		this.socketService.insert(client.id, userId, 'ping-pong');
 
 		console.log('New connection : ' + client.id);
 	}
@@ -82,16 +78,15 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		const playerType = data.playerType;
 		const mode = data.mode;
 
-		const entry = await this.prismaService.player_socket.findUnique({
+		// check if user is already in game
+		const userId = this.socketService.getUserId(client.id, 'ping-pong');
+		const user = await this.prismaService.user.findUnique({
 			where: {
-				socket_id: client.id,
+				id: userId,
 			},
-			include: {
-				player_socket: true,
-			}
 		});
 
-		if (entry.player_socket.in_game === true) {
+		if (user.in_game === true) {
 			this.server.to(client.id).emit("denyToPlay", { error: "You are already in game" });
 			return;
 		}
@@ -99,24 +94,33 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		// set player in game
 		await this.prismaService.user.update({
 			where: {
-				id: entry.player_socket.id,
+				id: user.id,
 			},
 			data: {
 				in_game: true,
 			}
 		});
 
-		// imit to client that he is in queue
+		// emit to client that he is in queue
 		this.server.to(client.id).emit("allowToPlay", { message: "You are in queue" });
 
 		console.log('Received data:', data);
 		try {
+			// const entry = await this.prismaService.player_socket.findUnique({
+			// 	where: {
+			// 		socket_id: client.id,
+			// 	},
+			// 	select: {
+			// 		player_id: true,
+			// 	}
+			// });
+
 			if (playerType === "player") {
-				const idRoom = this.rooms.addPlayer(client.id);
+				const idRoom = this.rooms.addPlayer(user.id.toString(), client.id);
 				if (idRoom)
 					console.log("	Room player created, id: " + idRoom);
 			} else if (playerType === "bot") {
-				const idRoom = this.rooms.addPlayerAI(client.id, mode);
+				const idRoom = this.rooms.addPlayerBot(user.id.toString(), client.id, mode);
 				console.log("	Room bot created, id: " + idRoom);
 			}
 		} catch (error) {
@@ -126,6 +130,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 
 	@SubscribeMessage("leaveGame")
 	leaveGame(socket: Socket) {
+		// ! We should delete the socket from the ping-pong namespace
 		console.log('leaveGame : ' + socket.id);
 		this.rooms.deletePlayerRoom(socket.id);
 	}

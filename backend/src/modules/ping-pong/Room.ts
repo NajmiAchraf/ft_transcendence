@@ -1,85 +1,92 @@
 import Game from "./logic/Game";
 import { Mode, PlayerType } from './logic/Common';
 import PingPongGateway from "./ping-pong.gateway";
+import { PrismaService } from "../prisma/prisma.service";
+
+type QueueType = [[string, string], [string, string]];
+type RoomType = [[string, string], [string | null, string | null]];
 
 class Queue {
-	private queue: string[] = [];
+	private queue: QueueType = [[null, null], [null, null]];
 
-	addPlayer(player: string): [string, string] | undefined {
-		if (this.queue.includes(player)) {
+	addPlayer(playerID: string, client: string): QueueType | undefined {
+		if (Object.keys(this.queue).includes(playerID)) {
 			console.log("Player already in the queue");
 			return undefined;
 		}
 
-		this.queue.push(player);
+		this.queue.push([playerID, client]);
 
 		if (this.queue.length === 2) {
 			const [player1, player2] = this.queue;
-			this.queue = [];
+			// clear the queue QueueType;
+			this.queue = [[null, null], [null, null]];
 			return [player1, player2];
 		}
 
 		return undefined;
 	}
 
-	deletePlayer(player: string): boolean {
-		if (this.queue.includes(player)) {
-			this.queue = this.queue.filter((p) => p !== player);
-			console.log("Player deleted from the queue");
-			return true;
-		}
+	deletePlayer(playerID: string): boolean {
+		// if (Object.keys(this.queue).includes(playerID)) {
+		// 	this.queue = this.queue.filter((player) => player[0] !== playerID);
+		// 	console.log("Player deleted from the queue");
+		// 	return true;
+		// }
 		return false;
 	}
 }
 
 export default class Room {
-	room: { [key: string]: [string, string | null] } = {};
+	room: { [key: string]: RoomType } = {};
 	game: { [key: string]: Game } = {};
 	idRoom: number = -1;
 	queue: Queue = new Queue();
-	pinPongGateway: PingPongGateway;
+	// pinPongGateway: PingPongGateway;
 
-	constructor(pinPongGateway: PingPongGateway) {
-		this.pinPongGateway = pinPongGateway;
+	constructor(
+		private readonly prismaService: PrismaService,
+		private readonly pinPongGateway: PingPongGateway
+	) {
+		// this.pinPongGateway = pinPongGateway;
 		console.log("this.pinPongGateway.server " + this.pinPongGateway.server);
 	}
 
-	getRoom(room: string): [string, string | null] {
+	getRoom(room: string): RoomType {
 		return this.room[room];
 	}
 
-	private fetchRoom(playerID: string) {
-		return (Object.keys(this.room).find((key) => this.room[key].includes(playerID)))
+	private fetchRoom(playerID: string, clientID: string): string | undefined {
+		return Object.keys(this.room).find((room) => this.room[room].includes([playerID, clientID]));
 	}
 
-	private checkRoom(playerID: string): boolean {
-		if (this.fetchRoom(playerID)) {
+	private checkRoom(playerID: string, clientID: string): boolean {
+		if (this.fetchRoom(playerID, clientID) !== undefined) {
 			console.log("Player already in a room");
 			return true;
 		}
 		return false;
 	}
 
-	private createGame(queue: [string, string | null], player1Type: PlayerType, player2Type: PlayerType, mode: Mode): void {
+	private createGame(queue: RoomType, player1Type: PlayerType, player2Type: PlayerType, mode: Mode): void {
 		const idRoom = (++this.idRoom).toString();
 		this.room[idRoom] = queue;
 
-		const [player1ID, player2ID] = queue;
+		const [player1, player2] = queue;
 
-		this.game[idRoom] = new Game(this, queue, player1Type, player2Type, mode);
+		this.game[idRoom] = new Game(this, [player1[1], player2[1]], player1Type, player2Type, mode);
 
 		setTimeout(() => {
-			this.pinPongGateway.server.to(player1ID).emit("dataPlayer", {
+			this.pinPongGateway.server.to(player1[1]).emit("dataPlayer", {
 				side: "right",
-				id: player1ID,
+
 			});
 
-			this.pinPongGateway.server.to(player2ID).emit("dataPlayer", {
+			this.pinPongGateway.server.to(player2[1]).emit("dataPlayer", {
 				side: "left",
-				id: player2ID,
 			});
 
-			this.pinPongGateway.server.to(queue).emit("idRoomConstruction", idRoom);
+			this.pinPongGateway.server.to([player1[1], player2[1]]).emit("idRoomConstruction", idRoom);
 
 			// this.game[idRoom].run() 
 			setTimeout(() => {
@@ -90,13 +97,13 @@ export default class Room {
 	}
 
 	//TODO: Add invitation system across the socket beside the queue
-	addPlayer(playerID: string): string | undefined {
-		if (this.checkRoom(playerID) === true) {
-			console.log("Player already in a room");
+	addPlayer(playerID: string, clientID: string): string | undefined {
+		if (this.checkRoom(playerID, clientID) === true) {
+			this.pinPongGateway.server.to(clientID).emit("denyToPlay", { error: "You are already in a room" });
 			return undefined;
 		}
 
-		const queue = this.queue.addPlayer(playerID);
+		const queue = this.queue.addPlayer(playerID, clientID);
 
 		if (queue) {
 			this.createGame(queue, "player", "player", "medium");
@@ -106,13 +113,13 @@ export default class Room {
 		return undefined;
 	}
 
-	addPlayerAI(playerID: string, mode: Mode): string | undefined {
-		if (this.checkRoom(playerID) === true) {
-			console.log("Player already in a room");
+	addPlayerBot(playerID: string, clientID: string, mode: Mode): string | undefined {
+		if (this.checkRoom(playerID, clientID) === true) {
+			this.pinPongGateway.server.to(playerID).emit("denyToPlay", { error: "You are already in a room" });
 			return undefined;
 		}
 
-		const queue: [string, string | null] = [playerID, null];
+		const queue: RoomType = [[playerID, clientID], [null, null]];
 
 		this.createGame(queue, "player", "bot", mode);
 
@@ -138,18 +145,18 @@ export default class Room {
 	}
 
 	deletePlayerRoom(playerID: string): boolean {
-		const room = this.fetchRoom(playerID);
-		if (room) {
-			const loser = this.room[room].indexOf(playerID);
-			const roomID = this.room[room][loser];
+		// const room = this.fetchRoom(playerID);
+		// if (room) {
+		// 	const loser = this.room[room].indexOf(playerID);
+		// 	const roomID = this.room[room][loser];
 
-			this.pinPongGateway.server.to(roomID[1 - loser]).emit("idRoomDestruction");
+		// 	this.pinPongGateway.server.to(roomID[1 - loser]).emit("idRoomDestruction");
 
-			this.endGame(room, loser, true);
+		// 	this.endGame(room, loser, true);
 
-			console.log("Room deleted, id: " + room);
-			return true;
-		}
+		// 	console.log("Room deleted, id: " + room);
+		// 	return true;
+		// }
 		return false;
 	}
 

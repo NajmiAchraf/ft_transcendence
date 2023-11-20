@@ -1,30 +1,22 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { GlobalChatDto, RemoveChatDto, UpdateChatDto } from './dto/global_chat.dto';
+import { MessageDto } from './dto/message.dto';
 import { Server, Socket } from 'socket.io';
 import { PrismaService } from '../prisma/prisma.service';
+import { SocketService } from 'src/common/services/socket.service';
 
 @Injectable()
 export class ChatService {
 
-  constructor(private readonly prismaService: PrismaService) { }
+  constructor(private readonly prismaService: PrismaService,
+    private readonly socketService: SocketService) { }
 
-  async create(server: Server, client: Socket, globalChat: GlobalChatDto) {
-    // TODO:: save to db
-    const user = await this.prismaService.user_socket.findUnique({
-      where: {
-        socket_id: client.id,
-      },
-      select: {
-        user_id: true,
-      },
-    });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+  async create(server: Server, client: Socket, messageTxt: string) {
+    const userId = this.socketService.getUserId(client.id);
+
     const entry = await this.prismaService.global_chat.create({
       data: {
-        message_text: globalChat.message,
-        sender_id: user.user_id,
+        message_text: messageTxt,
+        sender_id: userId,
       },
       include: {
         globalm_sender: true,
@@ -38,9 +30,8 @@ export class ChatService {
       message: entry.message_text,
       createdAt: entry.created_at,
     };
+
     server.emit('createChat', message);
-    // console.log(createChatDto);
-    return globalChat;
   }
 
   async findAll(server: Server,) {
@@ -64,11 +55,11 @@ export class ChatService {
     return messages;
   }
 
-  async update(server: Server, client: Socket, updateChatDto: UpdateChatDto) {
+  async update(server: Server, client: Socket, userId: number, messageDto: MessageDto) {
     const entry = await this.prismaService.global_chat.findUnique({
       where: {
-        id: updateChatDto.messageId,
-        sender_id: updateChatDto.userId,
+        id: messageDto.messageId,
+        sender_id: userId,
       },
     });
     if (!entry) {
@@ -76,21 +67,19 @@ export class ChatService {
     }
     await this.prismaService.global_chat.update({
       where: {
-        id: updateChatDto.messageId,
+        id: messageDto.messageId,
       },
       data: {
-        message_text: updateChatDto.message,
+        message_text: messageDto.message,
       }
     });
   }
 
-
-  async remove(server: Server, client: Socket, removeChatDto: RemoveChatDto) {
-    console.log(removeChatDto);
+  async remove(server: Server, client: Socket, userId: number, messageDto: MessageDto) {
     const entry = await this.prismaService.global_chat.findUnique({
       where: {
-        id: removeChatDto.messageId,
-        sender_id: removeChatDto.userId,
+        id: messageDto.messageId,
+        sender_id: userId,
       },
     });
     if (!entry) {
@@ -99,7 +88,7 @@ export class ChatService {
     }
     await this.prismaService.global_chat.delete({
       where: {
-        id: removeChatDto.messageId,
+        id: messageDto.messageId,
       },
     });
   }
@@ -121,34 +110,25 @@ export class ChatService {
 
   async socketDisconnect(client: Socket) {
     console.log(`Client disconnected: ${client.id}`);
-    // console.log(client.handshake.query['accessToken']);
-    // const id: string = ;
-    const entry = await this.prismaService.user_socket.delete({
-      where: {
-        socket_id: client.id,
-      }
-    });
+
+    // delete connection
+    const userId = this.socketService.delete(client.id);
+
+    // check if user has other socket_id
+    const sockets = this.socketService.getSockets(userId);
+
+    if (sockets.length === 0) {
+      await this.prismaService.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          status: 'offline',
+        }
+      });
+    }
 
     // send updated users list to all clients
     client.broadcast.emit('users', await this.getUsers());
-
-    // check if user has other socket_id
-    const entries = await this.prismaService.user_socket.findMany({
-      where: {
-        user_id: entry.user_id,
-      }
-    });
-    console.log(entries.length);
-    if (entries.length !== 0) {
-      return;
-    }
-    await this.prismaService.user.update({
-      where: {
-        id: entry.user_id,
-      },
-      data: {
-        status: 'offline',
-      }
-    });
   }
 }

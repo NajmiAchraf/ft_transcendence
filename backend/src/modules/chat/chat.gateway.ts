@@ -1,11 +1,12 @@
 import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, ConnectedSocket } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
-import { GlobalChatDto, RemoveChatDto } from './dto/global_chat.dto';
+import { MessageDto } from './dto/message.dto';
 // import { UpdateChatDto } from './dto/update-chat.dto';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GlobalHelperService } from 'src/common/services/global_helper.service';
+import { SocketService } from 'src/common/services/socket.service';
 
 @Injectable()
 @WebSocketGateway({
@@ -21,7 +22,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	constructor(private readonly chatService: ChatService,
 		private readonly prismaService: PrismaService,
-		private readonly globalHelperService: GlobalHelperService) { }
+		private readonly globalHelperService: GlobalHelperService,
+		private readonly socketService: SocketService) { }
 
 	async handleConnection(client: Socket) {
 		const userId = await this.globalHelperService.getClientIdFromJwt(client);
@@ -31,12 +33,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			client.disconnect();
 			return;
 		}
-		await this.prismaService.user_socket.create({
-			data: {
-				socket_id: client.id,
-				user_id: userId,
-			}
-		});
+		// insert new connection
+		this.socketService.insert(client.id, userId);
+
+		// update user status to online
 		await this.prismaService.user.update({
 			where: {
 				id: userId,
@@ -52,10 +52,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	@SubscribeMessage('createChat')
-	create(@ConnectedSocket() client: Socket, @MessageBody() globalChat: GlobalChatDto) {
-		console.log(`createChat emmited by ${client.id}`);
-		console.log(globalChat);
-		return this.chatService.create(this.server, client, globalChat);
+	async create(@ConnectedSocket() client: Socket, @MessageBody() message: string) {
+		console.log(`createChat emmited by ${client.id}: message: ${message}`);
+		const userId = await this.globalHelperService.getClientIdFromJwt(client);
+
+		if (userId === undefined) {
+			this.server.to(client.id).emit('Invalid', { error: 'Invalid Access Token' });
+			return;
+		}
+		return this.chatService.create(this.server, client, message);
 	}
 
 	@SubscribeMessage('findAllChat')
@@ -63,14 +68,25 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		return this.chatService.findAll(this.server);
 	}
 
-
 	@SubscribeMessage('updateChat')
-	update(@ConnectedSocket() client: Socket, @MessageBody() updateChatDto) {
-		return this.chatService.update(this.server, client, updateChatDto);
+	async update(@ConnectedSocket() client: Socket, @MessageBody() messageDto: MessageDto) {
+		const userId = await this.globalHelperService.getClientIdFromJwt(client);
+
+		if (userId === undefined) {
+			this.server.to(client.id).emit('Invalid', { error: 'Invalid Access Token' });
+			return;
+		}
+		return this.chatService.update(this.server, client, userId, messageDto);
 	}
 
 	@SubscribeMessage('removeChat')
-	remove(@ConnectedSocket() client: Socket, @MessageBody() removeChatDto: RemoveChatDto) {
-		return this.chatService.remove(this.server, client, removeChatDto);
+	async remove(@ConnectedSocket() client: Socket, @MessageBody() messageDto: MessageDto) {
+		const userId = await this.globalHelperService.getClientIdFromJwt(client);
+
+		if (userId === undefined) {
+			this.server.to(client.id).emit('Invalid', { error: 'Invalid Access Token' });
+			return;
+		}
+		return this.chatService.remove(this.server, client, userId, messageDto);
 	}
 }
