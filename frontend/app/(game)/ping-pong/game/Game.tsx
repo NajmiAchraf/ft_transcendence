@@ -34,10 +34,13 @@ class CanvasComponent {
 
 		// resize for PerspectiveCamera
 		window.addEventListener('resize', () => {
-			this.canvas.style.width = window.innerWidth + 'px';
-			this.canvas.style.height = window.innerHeight + 'px';
-			// this.canvas.style.width = this.canvas.parentElement?.style.width + 'px';
-			// this.canvas.style.height = this.canvas.parentElement?.style.height + 'px';
+			if (screen.orientation?.type === 'landscape-primary' || screen.orientation?.type === 'landscape-secondary') {
+				this.canvas.style.width = window.innerWidth + 'px';
+				this.canvas.style.height = window.innerHeight + 'px';
+			} else {
+				this.canvas.style.width = window.innerHeight + 'px';
+				this.canvas.style.height = window.innerWidth + 'px';
+			}
 			this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
 			this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
 			this.camera.updateProjectionMatrix();

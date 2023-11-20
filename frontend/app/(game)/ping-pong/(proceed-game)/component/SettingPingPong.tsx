@@ -60,12 +60,10 @@ function SettingPingPong() {
 	}
 
 	return (
-		<div className="Parent" id="Parent">
-			{propsContext.props.playerType === "bot" ? (
+		<div className="Settings" id="Settings">
+			{propsContext.props.playerType === "bot" && (
 				/* change mode three modes easy medium hard */
 				<button id="Button" onClick={setMode}>Mode {propsContext.props.mode}</button>
-			) : (
-				<div></div>
 			)}
 
 			{/* change mirror on(true) off(false) */}
