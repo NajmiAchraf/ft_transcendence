@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
-import PingPongGateway from './ping-pong/ping-pong.gateway';
+import { AuthModule } from './modules/auth/auth.module';
+import { UserModule } from './modules/user/user.module';
+import { HomeModule } from './modules/home/home.module';
+import { ChatModule } from './modules/chat/chat.module';
+import { PingPongModule } from './modules/ping-pong/ping-pong.module';
 
 @Module({
-  imports: [],
-  controllers: [],
-  providers: [PingPongGateway],
+  imports: [AuthModule, UserModule, HomeModule, ChatModule, PingPongModule],
 })
+
 export class AppModule { }

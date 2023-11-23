@@ -2,9 +2,9 @@
 
 import * as THREE from 'three';
 
-import Game from './Game'
-import Player from './Player'
-import { vars, Geometry } from '../common/Common'
+import Game from '@/app/(game)/ping-pong/game/Game'
+import Player from '@/app/(game)/ping-pong/game/Player'
+import { vars, Geometry } from '@/app/(game)/ping-pong/common/Common'
 
 export default class Ball {
 	game: Game;
@@ -40,7 +40,7 @@ export default class Ball {
 
 		this.ball = this.ballSetup(geometry)
 
-		this.game.socket.on("ball", (data: any) => {
+		this.game.getSocket().on("ball", (data: any) => {
 			this.x = data.x;
 			this.y = data.y;
 			this.velocityX = data.velocityX;

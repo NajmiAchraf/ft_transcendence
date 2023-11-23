@@ -6,6 +6,8 @@ import './vanillacss.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 
+import PropsContextProvider from './context/PropsContext'
+import CanvasContextProvider from './context/CanvasContext'
 import { WebSocketContextProvider } from './context/WebSocketContext'
 import NavContextProvider from './(NavbarPages)/context/NavContext'
 const inter = Inter({ subsets: ['latin'] })
@@ -25,9 +27,11 @@ export default function RootLayout({
 			<html lang="en">
 				<WebSocketContextProvider>
 					<NavContextProvider>
-						<body className={inter.className}>
-							{children}
-						</body>
+						<PropsContextProvider>
+							<CanvasContextProvider>
+								<body className={inter.className}> {children} </body>
+							</CanvasContextProvider>
+						</PropsContextProvider>
 					</NavContextProvider>
 				</WebSocketContextProvider>
 			</html>

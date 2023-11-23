@@ -1,0 +1,7 @@
+{
+	"[cpp]": {
+		"editor.formatOnSave": true
+	},
+	"files.autoSave": "onFocusChange",
+	"editor.formatOnSave": true
+}

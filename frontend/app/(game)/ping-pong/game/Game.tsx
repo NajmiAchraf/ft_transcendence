@@ -8,11 +8,10 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { DefaultEventsMap } from "@socket.io/component-emitter";
 import { Socket } from "socket.io-client";
 
-import Ball from "./Ball";
-import Board from "./Board";
-import Player from "./Player";
-import SocketService from "../service/SocketService";
-import { vars, Side, Props } from '../common/Common'
+import Ball from "@/app/(game)/ping-pong/game/Ball";
+import Board from "@/app/(game)/ping-pong/game/Board";
+import Player from "@/app/(game)/ping-pong/game/Player";
+import { vars, Side, Props, Canvas } from '@/app/(game)/ping-pong/common/Common'
 
 
 class CanvasComponent {
@@ -35,10 +34,13 @@ class CanvasComponent {
 
 		// resize for PerspectiveCamera
 		window.addEventListener('resize', () => {
-			this.canvas.style.width = window.innerWidth + 'px';
-			this.canvas.style.height = window.innerHeight + 'px';
-			// this.canvas.style.width = this.canvas.parentElement?.style.width + 'px';
-			// this.canvas.style.height = this.canvas.parentElement?.style.height + 'px';
+			if (screen.orientation?.type === 'landscape-primary' || screen.orientation?.type === 'landscape-secondary') {
+				this.canvas.style.width = window.innerWidth + 'px';
+				this.canvas.style.height = window.innerHeight + 'px';
+			} else {
+				this.canvas.style.width = window.innerHeight + 'px';
+				this.canvas.style.height = window.innerWidth + 'px';
+			}
 			this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
 			this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
 			this.camera.updateProjectionMatrix();
@@ -110,26 +112,28 @@ export default class Game extends CanvasComponent {
 	player2: Player
 	ball: Ball
 
-	service: SocketService;
-	socket: Socket<DefaultEventsMap, DefaultEventsMap>;
+	// service: SocketService;
+	getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>;
+	getDataPlayer: () => any;
 	room: string | undefined = undefined;
 	idPlayer: string | undefined = undefined;
 
 	duration: number = 1500;
 
-	constructor(service: SocketService, props: Props) {
-		if (!props.canvas)
+	constructor(getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>, getProps: () => Props, getCanvas: () => Canvas, getDataPlayer: () => any) {
+		if (!getCanvas())
 			throw new Error("Canvas is not defined");
-		super(props.canvas)
+		super(getCanvas() as HTMLCanvasElement)
 
-		this.service = service;
-		this.socket = service.getSocket();
-		this.board = new Board(this, vars.width, vars.height, vars.depth, props.geometry, props.mirror)
-		this.ball = new Ball(this, props.geometry)
-		this.player1 = new Player(this, "right", props.geometry)
-		this.player2 = new Player(this, "left", props.geometry)
+		// this.service = service;
+		this.getSocket = getSocket;
+		this.getDataPlayer = getDataPlayer;
+		this.board = new Board(this, vars.width, vars.height, vars.depth, getProps().geometry, getProps().mirror)
+		this.ball = new Ball(this, getProps().geometry)
+		this.player1 = new Player(this, "right", getProps().geometry)
+		this.player2 = new Player(this, "left", getProps().geometry)
 
-		this.socket.on("drawGoal", () => {
+		this.getSocket().on("drawGoal", () => {
 			// move the camera to the winner side after a goal and back to the center
 			if (this.ball.velocityX < 0)
 				this.moveCameraSeries("left");
@@ -280,6 +284,14 @@ export default class Game extends CanvasComponent {
 		this.scene.clear();
 		// clear the canvas
 		this.renderer.clear();
+		// composer dispose
+		this.composer.dispose();
+		// remove the canvas render
+		this.renderer.dispose();
+		// remove the renderPass to the composer
+		this.renderPass.dispose();
+		// remove the bloomPass to the composer
+		this.bloomPass.dispose();
 		// remove the canvas render
 		this.renderer.dispose();
 	}
