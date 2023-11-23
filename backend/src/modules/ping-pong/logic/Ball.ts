@@ -3,7 +3,7 @@ import { Server } from "socket.io";
 import Game from "./Game";
 import Player, { Paddle } from "./Player";
 
-import { vars, Mode } from "./Common";
+import { vars, Mode } from "../types/Common";
 
 export default class Ball {
 	game: Game;

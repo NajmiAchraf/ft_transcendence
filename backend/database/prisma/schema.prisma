@@ -1,0 +1,185 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+// _github // _42
+model user {
+  id   Int    @id @default(autoincrement())
+  username String @db.VarChar(20) @unique
+  fullname String? @db.VarChar(60)
+  nickname String? @db.VarChar(20) @unique
+  gender String? @db.VarChar(10)
+  password String? @db.VarChar(255)
+  visibility String @db.VarChar(10)
+  avatar String? @db.VarChar(255) // avatar file path
+  status String @db.VarChar(10) // online, offline
+  in_game Boolean @default(false)
+  level Int
+  level_percentage Int
+  win_count Int // Total matches the player won.
+  loss_count Int // Total matches the player lost.
+  highest_score Int // Highest score the player ever achieved.
+  total_points Int
+  refresh_token String? @db.VarChar(255)
+  two_factor_auth Boolean? @default(false)
+  two_factor_secret String? @db.VarChar(255)
+  created_at DateTime @default(now())
+
+  // opposite references
+    friends1 friends[] @relation(name: "User1")
+    friends2 friends[] @relation(name: "User2")
+    dm_sender direct_message[] @relation(name: "dm_sender")
+    dm_receiver direct_message[] @relation(name: "dm_receiver")
+    cm_sender channels_message[] @relation(name: "cm_sender")
+    globalm_sender global_chat[] @relation(name: "globalm_sender")
+    winner game[] @relation(name: "winner")
+    loser game[] @relation(name: "loser")
+    channel_member user_channel[] @relation(name: "channel_member")
+    ach_user user_achievement[] @relation(name: "ach_user")
+    adding_user friendship_request[] @relation(name: "adding_user")
+    added_user friendship_request[] @relation(name: "added_user")
+    blocked_user blocked[] @relation(name: "blocked_user")
+    blocking_user blocked[] @relation(name: "blocking_user")
+    banned_user banned[] @relation(name: "banned_user")
+    mutted_user mutted[] @relation(name: "mutted_user")
+}
+
+model channel {
+  id   Int    @id @default(autoincrement())
+  channel_name String @db.VarChar(20) @unique
+  avatar String? @db.VarChar(255) // avatar file path
+  privacy String @db.VarChar(10)
+  password String?
+  members_count Int
+  created_at DateTime @default(now())
+  // opposite references
+  cm_channel channels_message[] @relation(name: "cm_channel")
+  channel user_channel[] @relation(name: "channel")
+  banning_channel banned[] @relation(name: "banning_channel")
+  mutting_channel mutted[] @relation(name: "mutting_channel")
+}
+
+model friends {
+  id        Int      @id @default(autoincrement())
+  user1_id  Int      // This field will store the foreign key reference to the User model
+  user1     user     @relation(name: "User1", fields: [user1_id], references: [id]) // Define the relationship with a unique name
+  user2_id  Int
+  user2     user     @relation(name: "User2", fields: [user2_id], references: [id]) // Define the relationship with a unique name
+  created_at DateTime @default(now())
+}
+
+model direct_message {
+  id        Int      @id @default(autoincrement())
+  sender_id Int
+  dm_sender     user     @relation(name: "dm_sender", fields: [sender_id], references: [id])
+  receiver_id Int
+  dm_receiver     user     @relation(name: "dm_receiver", fields: [receiver_id], references: [id])
+  message_text String
+  created_at DateTime @default(now())
+}
+
+model channels_message {
+  id        Int      @id @default(autoincrement())
+  channel_id Int
+  cm_channel     channel     @relation(name: "cm_channel", fields: [channel_id], references: [id])
+  sender_id Int
+  cm_sender     user     @relation(name: "cm_sender", fields: [sender_id], references: [id])
+  message_text String
+  created_at DateTime @default(now())
+}
+
+model global_chat {
+  id        Int      @id @default(autoincrement())
+  sender_id Int
+  globalm_sender     user     @relation(name: "globalm_sender", fields: [sender_id], references: [id])
+  message_text String
+  created_at DateTime @default(now())
+}
+
+model game {
+  id        Int      @id @default(autoincrement())
+  winner_id Int?
+  winner     user?     @relation(name: "winner", fields: [winner_id], references: [id])
+  loser_id Int?
+  loser     user?     @relation(name: "loser", fields: [loser_id], references: [id])
+  winner_goals Int
+  loser_goals Int
+  started_at DateTime @default(now())
+  finished_at DateTime @default(now())
+  created_at DateTime @default(now())
+}
+
+model user_channel {
+  id        Int      @id @default(autoincrement())
+  user_id Int
+  channel_member     user     @relation(name: "channel_member", fields: [user_id], references: [id])
+  channel_id Int
+  channel     channel     @relation(name: "channel", fields: [channel_id], references: [id])
+  user_role String @db.VarChar(20)
+  created_at DateTime @default(now())
+}
+
+model user_achievement {
+  id        Int      @id @default(autoincrement())
+  user_id   Int
+  ach_user    user     @relation(name: "ach_user", fields: [user_id], references: [id])
+  achievement_title String @db.VarChar(255)
+  created_at DateTime @default(now())
+}
+
+model friendship_request {
+  id        Int      @id @default(autoincrement())
+  adding_user_id Int
+  adding_user     user     @relation(name: "adding_user", fields: [adding_user_id], references: [id])
+  added_user_id Int
+  added_user     user     @relation(name: "added_user", fields: [added_user_id], references: [id])
+  created_at DateTime @default(now())
+}
+
+model blocked {
+  id        Int      @id @default(autoincrement())
+  blocked_user_id Int
+  blocked_user     user     @relation(name: "blocked_user", fields: [blocked_user_id], references: [id])
+  blocking_user_id Int
+  blocking_user     user     @relation(name: "blocking_user", fields: [blocking_user_id], references: [id])
+  created_at DateTime @default(now())
+}
+
+model banned {
+  id        Int      @id @default(autoincrement())
+  banned_user_id Int
+  banned_user     user     @relation(name: "banned_user", fields: [banned_user_id], references: [id])
+  channel_id Int
+  banning_channel     channel     @relation(name: "banning_channel", fields: [channel_id], references: [id])
+  created_at DateTime @default(now())
+}
+
+model mutted {
+  id        Int      @id @default(autoincrement())
+  mutted_user_id Int
+  mutted_user     user     @relation(name: "mutted_user", fields: [mutted_user_id], references: [id])
+  channel_id Int
+  mutting_channel     channel     @relation(name: "mutting_channel", fields: [channel_id], references: [id])
+  duration Int
+  created_at DateTime @default(now())
+}
+
+// Ping Pong Novice: Play your first match in the game.
+// Perfect Ten: Achieve a score of 10-0 in a match.
+// Point Collector: Score a total of 500 points across all matches.
+// Endurance Master: Play a single match that lasts longer than 30 minutes.
+// Quick Finisher: Win a match in under 5 minutes.
+// IamAHuman: lost against bot
+// cyborg: 1 scored point versus a bot
+// Speed Run: 10 matches in less than 30 min
+// streaker: 3 won matches in a row
+// grandMaster: won 30 matches in a row
+// boomer: lost the first match
+// pingPongMaster: won against the bot

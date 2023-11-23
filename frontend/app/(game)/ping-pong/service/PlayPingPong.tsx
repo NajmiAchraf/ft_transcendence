@@ -46,7 +46,7 @@ function PlayPingPong() {
 		if (Date.now() - startTime.current > 4000) {
 			console.log('leaveGame');
 
-			webContext.webSocket.emit("leaveGame");
+			webContext.game.emit("leaveGame");
 
 			propsContext.setProps({
 				...propsContext.props,
@@ -60,7 +60,7 @@ function PlayPingPong() {
 	const leaveQueue = () => {
 		if (propsContext.props.playerType === "player") {
 			console.log('leaveQueue');
-			webContext.webSocket.emit("leaveQueue");
+			webContext.game.emit("leaveQueue");
 
 			propsContext.setProps({
 				...propsContext.props,

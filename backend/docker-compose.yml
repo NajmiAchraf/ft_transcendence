@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  postgresql:
+      build: ./database/postgresql
+      image: postgres
+      container_name: postgresql
+      restart: on-failure
+      environment:
+        POSTGRES_USER: ${POSTGRES_USER}
+        POSTGRES_HOST: ${POSTGRES_HOST}
+        POSTGRES_PORT: ${POSTGRES_PORT}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        POSTGRES_DB: ${POSTGRES_DB}
+      # init : true
+      networks:
+        - transcendence
+      ports:
+        - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   container_name: pgadmin
+  #   restart: always
+  #   environment:
+  #     POSTGRESQL_PASS: ${POSTGRESQL_PASS}
+  #     DB_NAME: ${DB_NAME}
+  #     PMA_HOST: ${PMA_HOST}
+  #     PMA_PORT: ${PMA_PORT}
+  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+  #   ports:
+  #     - "${PMA_PORT}:${PMA_PORT}"
+  #   networks:
+  #     - transcendence
+
+networks:
+  transcendence:
+    driver: bridge
