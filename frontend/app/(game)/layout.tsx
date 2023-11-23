@@ -113,8 +113,8 @@ export default function RootLayout({
 				propsContext.props.endGame = true;
 				propsContext.props.startPlay = false;
 
-				game.destroy();
-				console.log(" game.destroy()");
+				game.stop();
+				console.log(" game.stop()");
 			}
 		})
 

@@ -295,11 +295,4 @@ export default class Game extends CanvasComponent {
 		// remove the canvas render
 		this.renderer.dispose();
 	}
-
-	destroy() {
-		// stop
-		this.stop();
-		// remove the canvas
-		this.canvas.remove();
-	}
 }

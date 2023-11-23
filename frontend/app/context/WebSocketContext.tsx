@@ -23,9 +23,14 @@ function useWebSocketContext() {
 }
 
 function WebSocketContextProvider({ children }: { children: React.ReactNode }) {
-
-	const socket = io('http://localhost:3001', {
+	// const socket = io('http://localhost:3001', {
+	// 	transports: ['websocket'],
+	// });
+	const socket = io('http://10.14.10.5:3001', {
 		transports: ['websocket'],
+		query: {
+			accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInVzZXJuYW1lIjoib2toaWFyIiwiaWF0IjoxNzAwNjU5OTkyLCJleHAiOjE3MDA3NDYzOTJ9.BA_oNiigZ8Y1Zs4djAIlmetLkv4NAIGYBgUgNoeNc2o',
+		}
 	});
 
 	const [webSocket, setWebSocket] = useState<Socket<DefaultEventsMap, DefaultEventsMap>>(socket);
