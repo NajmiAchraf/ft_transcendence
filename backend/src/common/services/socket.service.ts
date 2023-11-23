@@ -6,25 +6,26 @@ export class SocketService {
 	chatSockets: Map<string, number> = new Map();
 	pingPongSockets: Map<string, number> = new Map();
 
-	constructor(private readonly prismaService: PrismaService) { }
+	constructor(private readonly prismaService: PrismaService) {
+	}
 
 	// inserts a new connection
 	insert(clientId: string, UserId: number, namespace: string = 'chat') {
-		if (namespace === 'PingPong')
-			this.pingPongSockets.set(clientId, UserId);
-		else
+		if (namespace === 'chat')
 			this.chatSockets.set(clientId, UserId);
+		else
+			this.pingPongSockets.set(clientId, UserId);
 		return UserId;
 	}
 
 	// deletes a connection
 	delete(clientId: string, namespace: string = 'chat') {
-		const userId = namespace === 'PingPong' ? this.pingPongSockets.get(clientId) : this.chatSockets.get(clientId);
+		const userId = namespace === 'chat' ? this.chatSockets.get(clientId) : this.pingPongSockets.get(clientId);
 
-		if (namespace === 'PingPong')
-			this.pingPongSockets.delete(clientId);
-		else
+		if (namespace === 'chat')
 			this.chatSockets.delete(clientId);
+		else
+			this.pingPongSockets.delete(clientId);
 		return userId;
 	}
 
@@ -32,13 +33,13 @@ export class SocketService {
 	getSockets(userId: number, namespace: string = 'chat') {
 		const sockets = [];
 
-		if (namespace === 'PingPong')
-			this.pingPongSockets.forEach((value, key) => {
+		if (namespace === 'chat')
+			this.chatSockets.forEach((value, key) => {
 				if (value === userId)
 					sockets.push(key);
 			});
 		else {
-			this.chatSockets.forEach((value, key) => {
+			this.pingPongSockets.forEach((value, key) => {
 				if (value === userId)
 					sockets.push(key);
 			});

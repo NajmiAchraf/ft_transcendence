@@ -24,3 +24,12 @@ export type Props = {
 	playerType: PlayerType
 	inGame: boolean
 }
+
+export type GameResultType = {
+	readonly winnerId: number;
+	readonly loserId: number;
+	readonly winnerScore: number;
+	readonly loserScore: number;
+	readonly startTime: Date;
+	readonly endTime: Date;
+}

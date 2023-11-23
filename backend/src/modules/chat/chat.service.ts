@@ -114,6 +114,8 @@ export class ChatService {
     // delete connection
     const userId = this.socketService.delete(client.id);
 
+    console.log('UserID: ' + userId);
+
     // check if user has other socket_id
     const sockets = this.socketService.getSockets(userId);
 

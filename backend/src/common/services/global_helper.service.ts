@@ -50,11 +50,10 @@ export class GlobalHelperService {
 		return authenticator.verify({ token: code, secret });
 	}
 
-	async getClientIdFromJwt(client: Socket) {
+	async getClientIdFromJwt(client: Socket): Promise<number | undefined> {
 		const token: string = client.handshake.query['accessToken'] as string;
 		let payload;
 
-		console.log(`Client connected: ${client.id}`);
 		try {
 			payload = await jwt.verify(token, process.env.JWT_AT_SECRET);
 

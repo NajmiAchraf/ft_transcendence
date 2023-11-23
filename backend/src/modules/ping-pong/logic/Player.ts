@@ -1,7 +1,7 @@
 import Ball from "./Ball";
 import Game from "./Game";
 
-import { vars, Mode, PlayerType, Side } from "./Common";
+import { vars, Mode, PlayerType, Side } from "../types/Common";
 
 export class Paddle {
 	side: Side;
@@ -52,15 +52,19 @@ export class Paddle {
 		this.y = 0;
 		this.z = vars.z + vars.depth / 2 + this.depth / 2;
 
-		if (this.myID !== null) {
-			// get the player coordinates with the id
-			const player = this.game.server.sockets.sockets.get(myID);
-			if (player) {
-				player.on("playerUpdate", (data) => {
-					this.y = data.y;
-				});
-			}
+		console.log("myID : ", this.myID);
+		if (this.myID !== 'bot') {
+			// get the player coordinates with the id in namespace ping-pong
+			// const player = this.game.room.pingPongGateway.server.of('/ping-pong')
+			// const player = this.game.room.pingPongGateway.server._nsps.get('/ping-pong').sockets.get(this.myID);
+			const player = this.game.server.sockets.sockets.get(this.myID);
+			// console.log('pingPongNamespace: ', pingPongNamespace);
+
+			player.on("playerUpdate", (data: { y: number }) => {
+				this.y = data.y;
+			});
 		}
+
 	}
 
 	update(): void {

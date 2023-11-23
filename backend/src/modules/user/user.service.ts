@@ -58,7 +58,8 @@ export class UserService {
 			nickname: user.nickname,
 			username: user.username,
 			avatar: user.avatar,
-			level: user.ladder_level,
+			level: user.level,
+			level_percentage: user.level_percentage,
 			status,
 		};
 	}
@@ -78,7 +79,8 @@ export class UserService {
 			lossPercentage: (user.loss_count / (user.win_count + user.loss_count)) * 100,
 			highestScore: user.highest_score,
 			totalScore: user.total_points,
-			ladderLevel: user.ladder_level,
+			Level: user.level,
+			LevelPercentage: user.level_percentage,
 		};
 	}
 

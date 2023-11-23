@@ -21,7 +21,8 @@ model user {
   avatar String? @db.VarChar(255) // avatar file path
   status String @db.VarChar(10) // online, offline
   in_game Boolean @default(false)
-  ladder_level Float
+  level Int
+  level_percentage Int
   win_count Int // Total matches the player won.
   loss_count Int // Total matches the player lost.
   highest_score Int // Highest score the player ever achieved.
@@ -104,10 +105,10 @@ model global_chat {
 
 model game {
   id        Int      @id @default(autoincrement())
-  winner_id Int
-  winner     user     @relation(name: "winner", fields: [winner_id], references: [id])
-  loser_id Int
-  loser     user     @relation(name: "loser", fields: [loser_id], references: [id])
+  winner_id Int?
+  winner     user?     @relation(name: "winner", fields: [winner_id], references: [id])
+  loser_id Int?
+  loser     user?     @relation(name: "loser", fields: [loser_id], references: [id])
   winner_goals Int
   loser_goals Int
   started_at DateTime @default(now())

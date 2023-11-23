@@ -5,8 +5,8 @@ import { io, Socket } from 'socket.io-client';
 import { DefaultEventsMap } from '@socket.io/component-emitter';
 
 export interface IWebSocketContext {
-	chat: Socket<DefaultEventsMap, DefaultEventsMap>;
-	setChat: React.Dispatch<React.SetStateAction<Socket<DefaultEventsMap, DefaultEventsMap>>>;
+	// chat: Socket<DefaultEventsMap, DefaultEventsMap>;
+	// setChat: React.Dispatch<React.SetStateAction<Socket<DefaultEventsMap, DefaultEventsMap>>>;
 	game: Socket<DefaultEventsMap, DefaultEventsMap>;
 	setGame: React.Dispatch<React.SetStateAction<Socket<DefaultEventsMap, DefaultEventsMap>>>;
 }
@@ -26,47 +26,47 @@ function useWebSocketContext() {
 
 function WebSocketContextProvider({ children }: { children: React.ReactNode }) {
 
-	const chat = io('http://localhost:3001/chat', {
+	// const chat = io('http://localhost:3001/chat', {
+	// 	transports: ['websocket'],
+	// 	query: {
+	// 		// accessToken: localStorage.getItem('accessToken'),
+	// 		accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInVzZXJuYW1lIjoidXNyYXNkZmFzZGYiLCJpYXQiOjE3MDA1MDI5NjUsImV4cCI6MTcwMDUwNjU2NX0.5urxB2V-1FAm40cmCgjQJxoQW5XWxD-eyrtoA02ZCVQ',
+	// 	}
+	// });
+
+	const game = io('http://localhost:3001', {
 		transports: ['websocket'],
 		query: {
 			// accessToken: localStorage.getItem('accessToken'),
-			accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoidXNlZWVlciIsImlhdCI6MTcwMDMzMjM1NiwiZXhwIjoxNzAwMzM1OTU2fQ.ALz_EkVy3RIfEeqfRhjSMzQDO78ZnEaQWDSsFOafOlQ',
+			accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoidXNlcnJyIiwiaWF0IjoxNzAwNjc4OTY5LCJleHAiOjE3MDA3NjUzNjl9.vZ4gwZ2exoVXJvy74SqLrfsSsz7oNZcixV-76PSkD08',
 		}
 	});
 
-	const game = io('http://localhost:3001/ping-pong', {
-		transports: ['websocket'],
-		query: {
-			// accessToken: localStorage.getItem('accessToken'),
-			accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoidXNlZWVlciIsImlhdCI6MTcwMDMzMjM1NiwiZXhwIjoxNzAwMzM1OTU2fQ.ALz_EkVy3RIfEeqfRhjSMzQDO78ZnEaQWDSsFOafOlQ',
-		}
-	});
-
-	const [socketChat, setsocketChat] = useState<Socket<DefaultEventsMap, DefaultEventsMap>>(chat);
+	// const [socketChat, setsocketChat] = useState<Socket<DefaultEventsMap, DefaultEventsMap>>(chat);
 	const [socketGame, setsocketGame] = useState<Socket<DefaultEventsMap, DefaultEventsMap>>(game);
 
-	useEffect(() => {
+	// useEffect(() => {
 
-		chat.on('connect', () => {
-			console.log(chat.id, ' Connected to namespace: /chat');
-		});
+	// 	chat.on('connect', () => {
+	// 		console.log(chat.id, ' Connected to namespace: /chat');
+	// 	});
 
-		game.on('connect', () => {
-			console.log(game.id, ' Connected to namespace: /ping-pong');
-		});
+	// 	game.on('connect', () => {
+	// 		console.log(game.id, ' Connected to namespace: /ping-pong');
+	// 	});
 
-		return () => {
-			// Clean up the game connection when the component unmounts
-			console.log('disconnect from namespace: /chat and /ping-pong');
-			game.disconnect();
-			chat.disconnect();
-		};
+	// 	return () => {
+	// 		// Clean up the game connection when the component unmounts
+	// 		console.log('disconnect from namespace: /chat and /ping-pong');
+	// 		game.disconnect();
+	// 		chat.disconnect();
+	// 	};
 
-	}, [game, chat]);
+	// }, [game, chat]);
 
 	const contextValue: IWebSocketContext = {
-		chat: socketChat,
-		setChat: setsocketChat,
+		// chat: socketChat,
+		// setChat: setsocketChat,
 		game: socketGame,
 		setGame: setsocketGame,
 	};

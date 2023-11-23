@@ -13,7 +13,8 @@ export class TokenService {
     async generateToken(userId: number, username: String): Promise<Tokens> {
         // generate access token and refresh token
         const [accessToken, refreshToken] = await Promise.all([
-            this.jwtService.signAsync({ sub: userId, username }, { expiresIn: '60m', secret: process.env.JWT_AT_SECRET }),
+            // ! use different expiration duration
+            this.jwtService.signAsync({ sub: userId, username }, { expiresIn: '1d', secret: process.env.JWT_AT_SECRET }),
             this.jwtService.signAsync({ sub: userId, username }, { expiresIn: '7d', secret: process.env.JWT_RT_SECRET }),
         ]);
 
@@ -41,7 +42,8 @@ export class TokenService {
                 data: {
                     username: username,
                     status: 'online',
-                    ladder_level: 0,
+                    level: 0,
+                    level_percentage: 0,
                     win_count: 0,
                     loss_count: 0,
                     highest_score: 0,

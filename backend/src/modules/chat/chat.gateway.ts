@@ -27,7 +27,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	async handleConnection(client: Socket) {
 		const userId = await this.globalHelperService.getClientIdFromJwt(client);
-
 		if (userId === undefined) {
 			this.server.to(client.id).emit('error', { error: 'Invalid Access Token' });
 			client.disconnect();
