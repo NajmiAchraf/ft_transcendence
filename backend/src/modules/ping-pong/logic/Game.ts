@@ -35,13 +35,13 @@ export default class Game {
 	}
 
 	private check_result(): void {
-		if (this.player1.score === 2) {
+		if (this.player1.score === 10) {
 
 			const room = this.room.socketRoom(this.queue[0]);
 
 			this.room.endGame(room, 0, false);
 
-		} else if (this.player2.score === 2) {
+		} else if (this.player2.score === 10) {
 
 			const room = this.room.socketRoom(this.queue[1]);
 

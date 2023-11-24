@@ -94,12 +94,13 @@ class Bot extends Paddle {
 	}
 
 	contact_algorithm(): void {
+		const ball_radius = this.ball.radius;
 		if (this.mode === "easy")
-			this.contact = Math.random() * (this.height / 2 * 1.5) - this.height / 2 * 0.25;
+			this.contact = Math.random() * (this.height / 2 * 1.1 + ball_radius);
 		else if (this.mode === "medium")
-			this.contact = Math.random() * (this.height / 2 * 1.1) - this.height / 2 * 0.05;
+			this.contact = Math.random() * (this.height / 2 * 1 + ball_radius);
 		else if (this.mode === "hard")
-			this.contact = Math.random() * this.height / 2 * 0.5 + this.height / 2 * 0.25;
+			this.contact = Math.random() * (this.height / 2 * 0.9 + ball_radius);
 		// positive or negative
 		if (Math.random() > 0.5)
 			this.contact = -this.contact;

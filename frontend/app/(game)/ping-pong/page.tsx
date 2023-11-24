@@ -1,20 +1,20 @@
 'use client';
 
-import { ReactNode } from 'react'
+import React, { useEffect } from 'react'
+import { useRouter } from 'next/navigation';
 
+import Game from '@/app/(game)/ping-pong/game/Game';
+import { Text } from '@/app/(game)/ping-pong/game/Board';
 
-import PropsContextProvider from '@/app/context/PropsContext'
-import CanvasContextProvider from '@/app/context/CanvasContext'
-import { WebSocketContextProvider } from '@/app/context/WebSocketContext'
+import { useCanvasContext } from '@/app/context/CanvasContext';
+import { usePropsContext } from '@/app/context/PropsContext';
+import { useWebSocketContext } from '@/app/context/WebSocketContext';
 
 import '@/app/(game)/ping-pong.css'
+import { Props } from '@/app/(game)/ping-pong/common/Common';
 
-export default function RootLayout({
-	children,
-}: {
-	children: ReactNode
-}) {
-	/*
+const Service = () => {
+	const router = useRouter();
 	const canvasContext = useCanvasContext();
 	const propsContext = usePropsContext();
 	const webSocketContext = useWebSocketContext();
@@ -137,16 +137,12 @@ export default function RootLayout({
 		})
 
 	}, [propsContext, webSocketContext, canvasContext]);
-	*/
+
+	router.push("ping-pong/join");
 
 	return (
-		<WebSocketContextProvider>
-			<PropsContextProvider>
-				<CanvasContextProvider>
-					<h1>HELLLLLO</h1>
-					<div className="div"> {children} </div>
-				</CanvasContextProvider>
-			</PropsContextProvider>
-		</WebSocketContextProvider>
-	)
-}
+		<></>
+	);
+};
+
+export default Service;
