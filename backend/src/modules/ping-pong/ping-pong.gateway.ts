@@ -57,6 +57,8 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 	async handleDisconnect(client: Socket) {
 		const userId = this.socketService.getUserId(client.id, 'ping-pong');
 
+		if (userId === undefined)
+			return;
 		console.log('DELETE CONNECTION: ' + client.id + ' ' + userId);
 		if (this.rooms.deletePlayerRoom(userId.toString())) { }
 		else if (this.rooms.deletePlayerPair(client.id)) { }

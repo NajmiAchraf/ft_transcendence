@@ -1,19 +1,21 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { SignInDto, SignUpDto } from './dto';
 import { Tokens } from './types';
 import { AuthenticationService } from './authentication/authentication.service';
 import { TokenService } from './token/token.service';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { IntraGuard, RtGuard, GithubGuard } from 'src/common/guards';
 import { AtPublic } from 'src/common/Decorators';
 import { AuthorizationService } from './authorization/authorization.service';
 import { TwoFactorGuard } from 'src/common/guards/twoFactor.guard';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Controller('auth')
 export class AuthController {
     constructor(private readonly authenticaionService: AuthenticationService,
         private readonly tokenService: TokenService,
-        private readonly authorizationService: AuthorizationService) { }
+        private readonly authorizationService: AuthorizationService,
+        private readonly prismaService: PrismaService) { }
 
     // * local authentication routes
     @AtPublic()
@@ -62,7 +64,6 @@ export class AuthController {
         return this.authorizationService.OAuth({ username: user['username'], avatar: user['avatar'] }, 'github');
     }
 
-    // * intra42 open authorization routes
     @AtPublic()
     @UseGuards(IntraGuard)
     @Get('intra/login')
@@ -71,10 +72,44 @@ export class AuthController {
 
     @AtPublic()
     @UseGuards(IntraGuard)
-    @UseGuards(TwoFactorGuard)
+    // @UseGuards(TwoFactorGuard)
     @Get('intra/redirect')
-    async intra42Redirect(@Req() req: Request) {
+    async intra42Redirect(@Req() req: Request, @Res() res: Response) {
         const user = req.user;
-        return this.authorizationService.OAuth({ username: user['username'], avatar: user['avatar'] }, 'intra');
+        const tokens = await this.authorizationService.OAuth({ username: user['username'], avatar: user['avatar'] }, 'intra');
+        console.log("TOKENS : ", tokens);
+        res.cookie('AccessToken', tokens.accessToken);
+        res.cookie('RefreshToken', tokens.refreshToken);
+        const username = user['username'] + '_intra'
+
+        const entry = await this.prismaService.user.findUnique({
+            where: {
+                username: username,
+            },
+            select: {
+                nickname: true,
+            },
+        });
+
+        // res.json({ status: 'hello' });
+        if (entry.nickname)
+            res.redirect('http://www.google.com')
+        // res.redirect('http://localhost:3000/profile') // ! set redirect url in .env
+        else
+            res.redirect('http://www.github.com')
+        // res.redirect('http://localhost:3000/complete_infos');
     }
+
+    @AtPublic()
+    @Get('JwtTokens')
+    async getJwtTokens(@Req() req: Request) {
+        const AccessToken = req.cookies['AccessToken'];
+        const RefreshToken = req.cookies['RefreshToken'];
+
+        if (AccessToken === undefined || RefreshToken === undefined)
+            throw new ForbiddenException('Missing jwt tokens');
+
+        return { AccessToken, RefreshToken };
+    }
+
 }
