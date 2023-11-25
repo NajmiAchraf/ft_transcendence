@@ -90,6 +90,8 @@ export class TokenService {
                 id: userId,
             },
         });
+        console.log('user : ', user);
+        console.log('refreshToken : ', refreshToken);
         if (!user || !user.refresh_token) {
             throw new ForbiddenException('Access Denied');
         }

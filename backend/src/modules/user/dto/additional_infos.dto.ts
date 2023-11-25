@@ -10,6 +10,5 @@ export class AdditionalInfo {
 	@IsString()
 	gender: string;
 
-	// @IsString()
 	avatar: string;
 }

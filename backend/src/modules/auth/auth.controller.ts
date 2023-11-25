@@ -20,18 +20,17 @@ export class AuthController {
     // * local authentication routes
     @AtPublic()
     @Post('local/signup')
-    async signupLocal(@Body() dto: SignUpDto): Promise<Tokens> {
+    async signupLocal(@Req() req: Request, @Body() dto: SignUpDto): Promise<Tokens> {
         return this.authenticaionService.signupLocal(dto);
     }
 
     @AtPublic()
     // @UseGuards(TwoFactorGuard)
     @Post('local/signin')
-    async signinLocal(@Body() dto: SignInDto): Promise<Tokens> {
+    async signinLocal(@Req() req: Request, @Body() dto: SignInDto): Promise<Tokens> {
         return this.authenticaionService.signinLocal(dto);
     }
 
-    // ? jwt routes
     @Get('logout')
     async logout(@Req() req: Request) {
         const user = req.user;
@@ -53,15 +52,37 @@ export class AuthController {
     @UseGuards(GithubGuard)
     @Get('github/login')
     async githubLogin() {
+
     }
 
     @AtPublic()
     @UseGuards(GithubGuard)
     @UseGuards(TwoFactorGuard)
     @Get('github/redirect')
-    async githubRedirect(@Req() req: Request) {
+    async githubRedirect(@Req() req: Request, @Res() res: Response) {
         const user = req.user;
-        return this.authorizationService.OAuth({ username: user['username'], avatar: user['avatar'] }, 'github');
+        const tokens = await this.authorizationService.OAuth({ username: user['username'], avatar: user['avatar'] }, 'github');
+        console.log("TOKENS : ", tokens);
+        res.cookie('AccessToken', tokens.accessToken);
+        res.cookie('RefreshToken', tokens.refreshToken);
+        const username = user['username'] + '_github'
+
+        const entry = await this.prismaService.user.findUnique({
+            where: {
+                username: username,
+            },
+            select: {
+                nickname: true,
+            },
+        });
+
+        // res.json({ status: 'hello' });
+        if (entry.nickname)
+            res.redirect('http://www.google.com')
+        // res.redirect('http://localhost:3000/profile') // ! set redirect url in .env
+        else
+            res.redirect('http://www.github.com')
+        // res.redirect('http://localhost:3000/complete_infos');
     }
 
     @AtPublic()
@@ -111,5 +132,4 @@ export class AuthController {
 
         return { AccessToken, RefreshToken };
     }
-
 }

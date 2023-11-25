@@ -10,6 +10,18 @@ export class UserService {
 		private readonly userHelperService: UserHelperService,
 		private readonly globalHelperService: GlobalHelperService) { }
 	async AddMoreInfos(additionalInfos: AdditionalInfo, userId: number) {
+		const entry = await this.prismaService.user.findUnique({
+			where: {
+				id: userId,
+			},
+			select: {
+				nickname: true,
+			}
+		});
+
+		if (entry.nickname !== null) {
+			throw new BadRequestException('Additional infos already exists');
+		}
 		const user = await this.prismaService.user.findUnique({
 			where: {
 				nickname: additionalInfos.nickname,

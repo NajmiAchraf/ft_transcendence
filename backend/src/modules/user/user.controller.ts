@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Get, UseGuards, Res } from '@nestjs/common';
+import { Body, Controller, Post, Req, Get, UseGuards, Res, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { AdditionalInfo } from './dto';
 import { UserService } from './user.service';
 import { Request, Response } from 'express';
@@ -6,6 +6,9 @@ import { BlockCheckGuard } from 'src/common/guards';
 import { BlockPublic } from 'src/common/Decorators';
 import { VisibilityCheckGuard } from 'src/common/guards/visibility.guard';
 import { TwoFactorService } from './twoFactor/twoFactor.service';
+import { multerConfig } from 'src/common/confs/multer.config';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { avatarDto } from 'src/common/dtos/avatar.dto';
 
 @UseGuards(BlockCheckGuard)
 @Controller('user')
@@ -14,7 +17,10 @@ export class UserController {
 		private readonly twoFactorService: TwoFactorService) { }
 	@BlockPublic()
 	@Post('info')
-	async addMoreInfos(@Body() additionalInfos: AdditionalInfo, @Req() req: Request) {
+	@UseInterceptors(FileInterceptor('avatar', multerConfig))
+	async addMoreInfos(@Body() additionalInfos: AdditionalInfo, @UploadedFile() file: avatarDto, @Req() req: Request) {
+		additionalInfos.avatar = file.filename;
+		console.log(file);
 		return this.userService.AddMoreInfos(additionalInfos, req.user['sub']);
 	}
 
