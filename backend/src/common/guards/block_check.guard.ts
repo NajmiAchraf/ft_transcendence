@@ -21,6 +21,10 @@ export class BlockCheckGuard implements CanActivate {
 		const userId: number = request.user['sub'];
 		const profileId: number = +request.body.profileId;
 
+		if (userId === undefined || profileId === undefined) {
+			return false;
+		}
+
 		if (userId === profileId) {
 			return true;
 		}

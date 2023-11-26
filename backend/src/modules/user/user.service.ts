@@ -235,6 +235,18 @@ export class UserService {
 			},
 		});
 
+		if (body.two_factor_auth === false) {
+			await this.prismaService.user.update({
+				where: {
+					id: userId,
+				},
+				data: {
+					two_factor_auth: false,
+					is_two_factor_authenticated: false,
+				}
+			});
+		}
+
 		// deleting sensitive data
 		delete updatedUser.two_factor_secret;
 		delete updatedUser.password;

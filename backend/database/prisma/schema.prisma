@@ -29,6 +29,7 @@ model user {
   total_points Int
   refresh_token String? @db.VarChar(255)
   two_factor_auth Boolean? @default(false)
+  is_two_factor_authenticated Boolean? @default(false)
   two_factor_secret String? @db.VarChar(255)
   created_at DateTime @default(now())
 

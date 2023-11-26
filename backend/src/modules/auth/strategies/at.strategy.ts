@@ -22,9 +22,8 @@ export class AtStrategy extends PassportStrategy(Strategy, 'jwt') {
             }
         });
 
-        if (!user) {
-            return false;
-        }
+        if (!user)
+            return null;
 
         return payload;
     }

@@ -3,7 +3,7 @@ import { AdditionalInfo } from './dto';
 import { UserService } from './user.service';
 import { Request, Response } from 'express';
 import { BlockCheckGuard } from 'src/common/guards';
-import { BlockPublic } from 'src/common/Decorators';
+import { BlockPublic, TwoFactorPublic } from 'src/common/Decorators';
 import { VisibilityCheckGuard } from 'src/common/guards/visibility.guard';
 import { TwoFactorService } from './twoFactor/twoFactor.service';
 import { multerConfig } from 'src/common/confs/multer.config';
@@ -98,5 +98,14 @@ export class UserController {
 		const userId = req.user['sub'];
 		const { code } = body;
 		return await this.twoFactorService.enableTwoFactor(userId, code);
+	}
+
+	@BlockPublic()
+	@TwoFactorPublic()
+	@Post('check2factor')
+	async checkTwoFactor(@Body() body: any, @Req() req: Request) {
+		const userId = req.user['sub'];
+		const { code } = body;
+		return await this.twoFactorService.checkTwoFactor(userId, code);
 	}
 }

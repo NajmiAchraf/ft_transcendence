@@ -35,6 +35,9 @@ export class TwoFactorService {
 
 		// generate QR code
 		const qrCode = toDataURL(otpauthUrl);
+
+		console.log('optauthUrl:', otpauthUrl);
+		console.log('qrCode:', qrCode);
 		// console.log(qrCode);
 		return qrCode;
 	}
@@ -53,9 +56,40 @@ export class TwoFactorService {
 				},
 				data: {
 					two_factor_auth: true,
+					is_two_factor_authenticated: true,
 				}
 			});
 			return { status: 200, message: 'Two factor authentication enabled' };
+		}
+		throw new ForbiddenException('Invalid two factor code');
+	}
+
+	async checkTwoFactor(userId: number, code: string) {
+		const user = await this.prismaService.user.findUnique({
+			where: {
+				id: userId,
+				two_factor_auth: true,
+			},
+		});
+
+		if (!user) {
+			throw new ForbiddenException('Two factor authentication not enabled');
+		}
+
+		if (user.is_two_factor_authenticated === true) {
+			return { status: 200, message: 'User two factor already authenticated!' };
+		}
+
+		if (this.globalHelperService.isTwoFactorCodeValid(user.two_factor_secret, code)) {
+			await this.prismaService.user.update({
+				where: {
+					id: userId,
+				},
+				data: {
+					is_two_factor_authenticated: true,
+				}
+			});
+			return { status: 200, message: 'User two factor authenticated!' };
 		}
 		throw new ForbiddenException('Invalid two factor code');
 	}

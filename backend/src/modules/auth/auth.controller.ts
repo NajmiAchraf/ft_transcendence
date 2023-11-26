@@ -5,7 +5,7 @@ import { AuthenticationService } from './authentication/authentication.service';
 import { TokenService } from './token/token.service';
 import { Request, Response } from 'express';
 import { IntraGuard, RtGuard, GithubGuard } from 'src/common/guards';
-import { AtPublic } from 'src/common/Decorators';
+import { AtPublic, TwoFactorPublic } from 'src/common/Decorators';
 import { AuthorizationService } from './authorization/authorization.service';
 import { TwoFactorGuard } from 'src/common/guards/twoFactor.guard';
 import { PrismaService } from '../prisma/prisma.service';
@@ -19,13 +19,14 @@ export class AuthController {
 
     // * local authentication routes
     @AtPublic()
+    @TwoFactorPublic()
     @Post('local/signup')
     async signupLocal(@Req() req: Request, @Body() dto: SignUpDto): Promise<Tokens> {
         return this.authenticaionService.signupLocal(dto);
     }
 
     @AtPublic()
-    // @UseGuards(TwoFactorGuard)
+    @TwoFactorPublic()
     @Post('local/signin')
     async signinLocal(@Req() req: Request, @Body() dto: SignInDto): Promise<Tokens> {
         return this.authenticaionService.signinLocal(dto);
@@ -39,6 +40,7 @@ export class AuthController {
     }
 
     @AtPublic()
+    @TwoFactorPublic()
     @UseGuards(RtGuard)
     @Get('refresh')
     async refreshTokens(@Req() req: Request) {
@@ -49,6 +51,7 @@ export class AuthController {
 
     // * github open authorization routes
     @AtPublic()
+    @TwoFactorPublic()
     @UseGuards(GithubGuard)
     @Get('github/login')
     async githubLogin() {
@@ -56,8 +59,8 @@ export class AuthController {
     }
 
     @AtPublic()
+    @TwoFactorPublic()
     @UseGuards(GithubGuard)
-    @UseGuards(TwoFactorGuard)
     @Get('github/redirect')
     async githubRedirect(@Req() req: Request, @Res() res: Response) {
         const user = req.user;
@@ -86,21 +89,23 @@ export class AuthController {
     }
 
     @AtPublic()
+    @TwoFactorPublic()
     @UseGuards(IntraGuard)
     @Get('intra/login')
     async intra42Login() {
     }
 
     @AtPublic()
+    @TwoFactorPublic()
     @UseGuards(IntraGuard)
-    // @UseGuards(TwoFactorGuard)
     @Get('intra/redirect')
     async intra42Redirect(@Req() req: Request, @Res() res: Response) {
         const user = req.user;
         const tokens = await this.authorizationService.OAuth({ username: user['username'], avatar: user['avatar'] }, 'intra');
-        console.log("TOKENS : ", tokens);
+
         res.cookie('AccessToken', tokens.accessToken);
         res.cookie('RefreshToken', tokens.refreshToken);
+
         const username = user['username'] + '_intra'
 
         const entry = await this.prismaService.user.findUnique({
@@ -109,10 +114,23 @@ export class AuthController {
             },
             select: {
                 nickname: true,
-            },
+                two_factor_auth: true,
+            }
         });
 
-        // res.json({ status: 'hello' });
+        if (entry.two_factor_auth === true) {
+            // ! redirect to the front end 2factor page
+            const entry = await this.prismaService.user.update({
+                where: {
+                    username: username,
+                },
+                data: {
+                    is_two_factor_authenticated: false,
+                }
+            });
+            return res.redirect('http://localhost:3000/2factor');
+        }
+
         if (entry.nickname)
             res.redirect('http://www.google.com')
         // res.redirect('http://localhost:3000/profile') // ! set redirect url in .env
@@ -122,6 +140,7 @@ export class AuthController {
     }
 
     @AtPublic()
+    @TwoFactorPublic()
     @Get('JwtTokens')
     async getJwtTokens(@Req() req: Request) {
         const AccessToken = req.cookies['AccessToken'];

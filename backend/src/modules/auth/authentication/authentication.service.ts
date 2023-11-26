@@ -49,6 +49,19 @@ export class AuthenticationService {
         if (!user) {
             throw new ForbiddenException(error_message);
         }
+
+        // set two factor authentication to false
+        if (user.two_factor_auth === true) {
+            await this.prismaService.user.update({
+                where: {
+                    id: user.id,
+                },
+                data: {
+                    is_two_factor_authenticated: false,
+                }
+            });
+        }
+
         const isPasswordValid = await argon2.verify(user.password, dto.password);
 
         if (!isPasswordValid) {
