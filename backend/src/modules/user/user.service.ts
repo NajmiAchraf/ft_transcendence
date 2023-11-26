@@ -91,8 +91,6 @@ export class UserService {
 			lossPercentage: (user.loss_count / (user.win_count + user.loss_count)) * 100,
 			highestScore: user.highest_score,
 			totalScore: user.total_points,
-			Level: user.level,
-			LevelPercentage: user.level_percentage,
 		};
 	}
 
@@ -110,10 +108,10 @@ export class UserService {
 				id: friend.id,
 				nickname: friend.nickname,
 				avatar: friend.avatar,
-				status: 'friend',
+				status: status,
 			};
 		});
-		return friendList;
+		return await Promise.all(friendList);
 	}
 
 	async getAchievements(profileId: number) {

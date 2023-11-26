@@ -100,4 +100,3 @@ export class UserController {
 		return await this.twoFactorService.enableTwoFactor(userId, code);
 	}
 }
-
