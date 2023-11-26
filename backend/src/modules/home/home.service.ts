@@ -96,6 +96,7 @@ export class HomeService {
 				last_five_matches,
 			}
 		});
+		return Promise.all(players);
 	}
 
 	async search(userId: number, pattern: string) {
