@@ -38,15 +38,21 @@ export class GlobalChatService {
     const connectedSockets = Object.values(server.sockets.sockets);
 
     // * Send message to specific connected sockets (checking if user is blocked by the sender)
+
     const filteredSocketsPromises = connectedSockets.filter(async (socket) => {
-      return !(await this.globalHelperService.isBlocked(userId, entry.id) || await this.globalHelperService.isBlocked(entry.sender_id, userId));
+      // get userId from socket, to check if user is blocked by the sender or the sender is blocked by the user
+      const socketUserId = this.socketService.getUserId(socket.id);
+
+      return !(await this.globalHelperService.isBlocked(userId, socketUserId) || await this.globalHelperService.isBlocked(entry.sender_id, userId));
     });
 
     const filteredSockets = await Promise.all(filteredSocketsPromises);
 
+    // send message to all sockets that are not blocked or blocking by the sender
     filteredSockets.forEach(socket => {
       socket.emit('createChat', message);
     });
+
   }
 
   async findAll(server: Server, client: Socket) {
