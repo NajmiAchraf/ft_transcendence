@@ -102,8 +102,32 @@ export class UserService {
 
 		const friendList = friends.map(async (friendship) => {
 			const friend = profileId === friendship.user1_id ? friendship.user2 : friendship.user1;
-			const status = userId === friend.id ? 'self' : await this.globalHelperService.areFriends(userId, friend.id) === true ? 'friend' : 'stranger';
+			// ! check if the user is friend request sender or receiver
+			let status = userId === friend.id ? 'self' : await this.globalHelperService.areFriends(userId, friend.id) === true ? 'friend' : 'stranger';
 
+			if (status === 'stranger') {
+				let entry = await this.prismaService.friendship_request.findFirst({
+					where: {
+						adding_user_id: userId,
+						added_user_id: friend.id,
+					}
+				});
+
+				if (entry) {
+					status = 'request_sent';
+				}
+
+				entry = await this.prismaService.friendship_request.findFirst({
+					where: {
+						adding_user_id: friend.id,
+						added_user_id: userId,
+					}
+				});
+
+				if (entry) {
+					status = 'request_received';
+				}
+			}
 			return {
 				id: friend.id,
 				nickname: friend.nickname,
@@ -272,5 +296,152 @@ export class UserService {
 			nickname: user.nickname,
 			two_factor_auth: user.two_factor_auth,
 		};
+	}
+
+	async sendFriendRequest(profileId: number, userId: number) {
+		// friendship_request
+		const entry = await this.prismaService.friendship_request.findFirst({
+			where: {
+				adding_user_id: userId,
+				added_user_id: profileId,
+			}
+		});
+
+		if (entry) {
+			throw new BadRequestException('Friendship request already sent');
+		}
+
+		const friendship = await this.prismaService.friends.findFirst({
+			where: {
+				OR: [
+					{ user1_id: userId, user2_id: profileId },
+					{ user1_id: profileId, user2_id: userId },
+				],
+			}
+		});
+
+		if (friendship) {
+			throw new BadRequestException('already friends');
+		}
+
+		const friendshipRequest = await this.prismaService.friendship_request.create({
+			data: {
+				adding_user_id: userId,
+				added_user_id: profileId,
+			}
+		});
+	}
+
+	async respondToFriendRequest(profileId: number, userId: number, friendRequestResponse: string) {
+		// check if friendship request exists
+		const entry = await this.prismaService.friendship_request.findFirst({
+			where: {
+				adding_user_id: profileId,
+				added_user_id: userId,
+			}
+		});
+
+		if (!entry) {
+			throw new BadRequestException('Friendship request not found');
+		}
+
+		// delete friendship request
+		await this.prismaService.friendship_request.delete({
+			where: {
+				id: entry.id,
+			}
+		});
+
+		// create friendship if accepted
+		if (friendRequestResponse === 'accept') {
+			await this.prismaService.friends.create({
+				data: {
+					user1_id: userId,
+					user2_id: profileId,
+				}
+			});
+		}
+	}
+
+	async removeFriend(profileId: number, userId: number) {
+		const friendship = await this.prismaService.friends.findFirst({
+			where: {
+				OR: [
+					{ user1_id: userId, user2_id: profileId },
+					{ user1_id: profileId, user2_id: userId },
+				],
+			}
+		});
+
+		if (!friendship) {
+			throw new BadRequestException('Not friends');
+		}
+
+		// delete friendship
+		await this.prismaService.friends.delete({
+			where: {
+				id: friendship.id,
+			}
+		});
+	}
+
+	async blockUser(profileId: number, userId: number) {
+		const entry = await this.prismaService.blocked.findFirst({
+			where: {
+				blocking_user_id: userId,
+				blocked_user_id: profileId,
+			}
+		});
+
+		if (entry) {
+			throw new BadRequestException('Already blocked');
+		}
+
+		// check if they are friends
+		const friendship = await this.prismaService.friends.findFirst({
+			where: {
+				OR: [
+					{ user1_id: userId, user2_id: profileId },
+					{ user1_id: profileId, user2_id: userId },
+				],
+			}
+		});
+
+		if (friendship) {
+			// delete friendship
+			await this.prismaService.friends.delete({
+				where: {
+					id: friendship.id,
+				}
+			});
+		}
+
+		// block user
+		await this.prismaService.blocked.create({
+			data: {
+				blocking_user_id: userId,
+				blocked_user_id: profileId,
+			}
+		});
+	}
+
+	async unblockUser(profileId: number, userId: number) {
+		const entry = await this.prismaService.blocked.findFirst({
+			where: {
+				blocking_user_id: userId,
+				blocked_user_id: profileId,
+			}
+		});
+
+		if (!entry) {
+			throw new BadRequestException('Not blocked');
+		}
+
+		// unblock user
+		await this.prismaService.blocked.delete({
+			where: {
+				id: entry.id,
+			}
+		});
 	}
 }

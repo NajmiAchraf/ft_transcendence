@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Client</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+  <div id="chat"></div>
+  <input type="text" id="messageInput" placeholder="Type a message...">
+  <button onclick="sendMessage()">Send</button>
+
+  <br>
+  <div id="users" style="display: none;"></div>
+  <button onclick="displayUsers()">Display Users</button>
+
+  <script>
+    const socket = io('http://localhost:3001/chat', {
+		query: {
+			accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInVzZXJuYW1lIjoib21hcnJyIiwiaWF0IjoxNzAxMDk4MDc2LCJleHAiOjE3MDExODQ0NzZ9.jcBUkR0_G260IP0gx5gwKQGDlHqr8ZjAc-ls9F1hF5M',
+		}
+	});
+
+  socket.emit('findAllGlobalChat');
+
+  socket.on('findAllGlobalChat', (messages) => {
+      const chatDiv = document.getElementById('chat');
+      // dispaly all the old messages
+      messages.forEach((message) => {
+        chatDiv.innerHTML += `<p id="${message.messageId}">[id: ${message.senderId}, nickname: ${message.senderNickname}] ${message.message} : ${message.createdAt}</p>`;
+        // delete message
+        chatDiv.innerHTML += `<button onclick="deleteMessage(${message.messageId})">Delete</button>`;
+      });
+    });
+
+  
+  socket.on('createChat', (message) => {
+    console.log('message received', message);
+
+      const chatDiv = document.getElementById('chat');
+    
+      chatDiv.innerHTML += `<p id="${message.messageId}">[id: ${message.senderId}, nickname: ${message.senderNickname}] ${message.message} : ${message.createdAt}</p>`;
+      chatDiv.innerHTML += `<button onclick="deleteMessage(${message.messageId})">Delete</button>`;
+    });
+
+    socket.on('removeGlobalChat', (id) => {
+      console.log('message received', id);
+      const chatDiv = document.getElementById('chat');
+      const messageDiv = document.getElementById(id);
+      chatDiv.removeChild(messageDiv);
+    });
+
+    socket.on('error', (message) => {
+      console.log(message.error);
+    });
+
+    socket.on('findAllUsers', (users) => {
+      const usersDiv = document.getElementById('users');
+      usersDiv.innerHTML = '';
+      users.forEach((user) => {
+        usersDiv.innerHTML += `<p>[id: ${user.id}, nickname: ${user.nickname}]</p>`;
+      });
+    });
+
+    function sendMessage() {
+		console.log('sendMessage');
+      const messageInput = document.getElementById('messageInput');
+      const message = messageInput.value;
+      socket.emit('GlobalCreate', message);
+	  console.log(`blah : ${message}`);
+      messageInput.value = '';
+    }
+
+    function displayUsers() {
+      const usersDiv = document.getElementById('users');
+      if (usersDiv.style.display === 'block') {
+        usersDiv.style.display = 'none';
+        return;
+      } else
+        usersDiv.style.display = 'block';
+    }
+
+    function deleteMessage(id) {
+      socket.emit('deleteChat', {id});
+    }
+  </script>
+</body>
+</html>

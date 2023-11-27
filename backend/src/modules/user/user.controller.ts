@@ -46,6 +46,47 @@ export class UserController {
 		return this.userService.getFriendList(userId, profileId);
 	}
 
+	@Post('send_friend_requests')
+	async sendFriendRequest(@Body() body: any, @Req() req: Request) {
+		const profileId = +body.profileId;
+
+		// * send friendship requests to the user (profileId)
+		return this.userService.sendFriendRequest(profileId, req.user['sub']);
+	}
+
+	@Post('respond_to_friend_request')
+	async respondToFriendRequest(@Body() body: any, @Req() req: Request) {
+		const profileId = +body.profileId;
+		const friendRequestResponse = body.friendRequestResponse;
+
+		// * accept friendship requests from the user (profileId)
+		return this.userService.respondToFriendRequest(profileId, req.user['sub'], friendRequestResponse);
+	}
+
+	@Post('remove_friend')
+	async removeFriend(@Body() body: any, @Req() req: Request) {
+		const profileId = +body.profileId;
+
+		// * remove the user (profileId) from the friend list
+		return this.userService.removeFriend(profileId, req.user['sub']);
+	}
+
+	@Post('block_user')
+	async blockUser(@Body() body: any, @Req() req: Request) {
+		const profileId = +body.profileId;
+
+		// * block the user (profileId)
+		return this.userService.blockUser(profileId, req.user['sub']);
+	}
+
+	@Post('unblock_user')
+	async unblockUser(@Body() body: any, @Req() req: Request) {
+		const profileId = +body.profileId;
+
+		// * unblock the user (profileId)
+		return this.userService.unblockUser(profileId, req.user['sub']);
+	}
+
 	@UseGuards(VisibilityCheckGuard)
 	@Post('achievements')
 	async getAchievements(@Body() body: any) {

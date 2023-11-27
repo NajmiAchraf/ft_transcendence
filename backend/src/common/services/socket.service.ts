@@ -22,6 +22,8 @@ export class SocketService {
 	delete(clientId: string, namespace: string = 'chat') {
 		const userId = namespace === 'chat' ? this.chatSockets.get(clientId) : this.pingPongSockets.get(clientId);
 
+		if (userId === undefined)
+			return undefined;
 		if (namespace === 'chat')
 			this.chatSockets.delete(clientId);
 		else

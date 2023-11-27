@@ -7,7 +7,6 @@ import { Request, Response } from 'express';
 import { IntraGuard, RtGuard, GithubGuard } from 'src/common/guards';
 import { AtPublic, TwoFactorPublic } from 'src/common/Decorators';
 import { AuthorizationService } from './authorization/authorization.service';
-import { TwoFactorGuard } from 'src/common/guards/twoFactor.guard';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Controller('auth')

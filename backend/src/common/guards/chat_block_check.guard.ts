@@ -4,7 +4,7 @@ import { Reflector } from '@nestjs/core';
 import { GlobalHelperService } from "../services/global_helper.service";
 
 @Injectable()
-export class BlockCheckGuard implements CanActivate {
+export class ChatBlockCheckGuard implements CanActivate {
 	constructor(private readonly reflector: Reflector,
 		private readonly globalHelper: GlobalHelperService) { }
 	async canActivate(context: ExecutionContext) {
@@ -27,7 +27,8 @@ export class BlockCheckGuard implements CanActivate {
 			return true;
 		}
 
-		if (await this.globalHelper.isBlocked(userId, profileId)) {
+		if (await this.globalHelper.isBlocked(userId, profileId)
+			|| await this.globalHelper.isBlocked(profileId, userId)) {
 			return false;
 		}
 		return true;

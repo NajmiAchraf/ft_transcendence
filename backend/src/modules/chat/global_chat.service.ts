@@ -1,14 +1,16 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { MessageDto } from './dto/message.dto';
 import { Server, Socket } from 'socket.io';
 import { PrismaService } from '../prisma/prisma.service';
 import { SocketService } from 'src/common/services/socket.service';
+import { GlobalHelperService } from 'src/common/services/global_helper.service';
 
 @Injectable()
-export class ChatService {
+export class GlobalChatService {
 
   constructor(private readonly prismaService: PrismaService,
-    private readonly socketService: SocketService) { }
+    private readonly socketService: SocketService,
+    private readonly globalHelperService: GlobalHelperService) { }
 
   async create(server: Server, client: Socket, messageTxt: string) {
     const userId = this.socketService.getUserId(client.id);
@@ -31,14 +33,32 @@ export class ChatService {
       createdAt: entry.created_at,
     };
 
-    server.emit('createChat', message);
+    // server.emit('createChat', message);
+    // Get all connected sockets
+    const connectedSockets = Object.values(server.sockets.sockets);
+
+    // * Send message to specific connected sockets (checking if user is blocked by the sender)
+    const filteredSocketsPromises = connectedSockets.filter(async (socket) => {
+      return !(await this.globalHelperService.isBlocked(userId, entry.id) || await this.globalHelperService.isBlocked(entry.sender_id, userId));
+    });
+
+    const filteredSockets = await Promise.all(filteredSocketsPromises);
+
+    filteredSockets.forEach(socket => {
+      socket.emit('createChat', message);
+    });
   }
 
-  async findAll(server: Server,) {
+  async findAll(server: Server, client: Socket) {
+    const userId = this.socketService.getUserId(client.id);
+
     const entries = await this.prismaService.global_chat.findMany({
       include: {
         globalm_sender: true,
-      }
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
     });
 
     const messages = entries.map(entry => {
@@ -46,13 +66,21 @@ export class ChatService {
         messageId: entry.id,
         senderId: entry.sender_id,
         senderNickname: entry.globalm_sender.nickname,
-        Avatar: entry.globalm_sender.avatar,
+        avatar: entry.globalm_sender.avatar,
         senderStatus: entry.globalm_sender.status,
         message: entry.message_text,
         createdAt: entry.created_at,
       };
     });
-    return messages;
+
+    const filteredMessagesPromises = messages.filter(async (message) => {
+      return !(await this.globalHelperService.isBlocked(userId, message.senderId) ||
+        await this.globalHelperService.isBlocked(message.senderId, userId));
+    });
+
+    const filteredMessages = await Promise.all(filteredMessagesPromises);
+
+    server.to(client.id).emit('findAll', filteredMessages);
   }
 
   async update(server: Server, client: Socket, userId: number, messageDto: MessageDto) {
@@ -73,12 +101,14 @@ export class ChatService {
         message_text: messageDto.message,
       }
     });
+    // broadcast to all clients
+    server.emit('updateGlobalChat', messageDto);
   }
 
-  async remove(server: Server, client: Socket, userId: number, messageDto: MessageDto) {
+  async remove(server: Server, client: Socket, userId: number, messageId: number) {
     const entry = await this.prismaService.global_chat.findUnique({
       where: {
-        id: messageDto.messageId,
+        id: messageId,
         sender_id: userId,
       },
     });
@@ -86,9 +116,13 @@ export class ChatService {
       server.to(client.id).emit('error', { error: 'You are not allowed to delete this message' });
       return;
     }
+    // broadcast to all clients
+    server.emit('removeGlobalChat', messageId);
+
+    // delete message
     await this.prismaService.global_chat.delete({
       where: {
-        id: messageDto.messageId,
+        id: messageId,
       },
     });
   }
@@ -115,7 +149,9 @@ export class ChatService {
     const userId = this.socketService.delete(client.id);
 
     console.log('UserID: ' + userId);
-
+    if (userId === undefined) {
+      return;
+    }
     // check if user has other socket_id
     const sockets = this.socketService.getSockets(userId);
 
@@ -129,8 +165,5 @@ export class ChatService {
         }
       });
     }
-
-    // send updated users list to all clients
-    client.broadcast.emit('users', await this.getUsers());
   }
 }
