@@ -1,16 +1,17 @@
-import { IsString, IsDate, Length, Matches } from 'class-validator';
+import { Length, IsString, Matches, IsOptional } from "class-validator";
 
-export class AdditionalInfo {
+export class CreateChannelDto {
 	@IsString()
 	@Length(5, 20, { message: 'Username should be between 5 and 20 characters' })
 	@Matches(/^[a-zA-Z0-9]+$/, { message: 'Username should contain only letters and digits' })
-	nickname: string;
+	channelName: string;
 
 	@IsString()
-	fullname: string;
+	privacy: string;
 
+	@IsOptional()
 	@IsString()
-	gender: string;
+	password: string;
 
 	avatar: string;
 }

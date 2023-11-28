@@ -7,7 +7,7 @@ export class avatarDto {
 
 	@IsDefined()
 	@IsString()
-	filename: string;
+	path: string;
 
 	@IsDefined()
 	@IsNotEmpty()

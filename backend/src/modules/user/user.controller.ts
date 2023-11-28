@@ -19,7 +19,7 @@ export class UserController {
 	@Post('info')
 	@UseInterceptors(FileInterceptor('avatar', multerConfig))
 	async addMoreInfos(@Body() additionalInfos: AdditionalInfo, @UploadedFile() file: avatarDto, @Req() req: Request) {
-		additionalInfos.avatar = file.filename;
+		additionalInfos.avatar = file.path;
 		console.log(file);
 		return this.userService.AddMoreInfos(additionalInfos, req.user['sub']);
 	}

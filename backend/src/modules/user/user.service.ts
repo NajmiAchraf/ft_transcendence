@@ -190,8 +190,8 @@ export class UserService {
 				created_at: 'desc',
 			},
 			include: {
-				loser: true,
 				winner: true,
+				loser: true,
 			},
 		});
 
@@ -201,6 +201,20 @@ export class UserService {
 			const playerGoals = isPlayerWinner ? match.winner_goals : match.loser_goals;
 			const opponentGoals = isPlayerWinner ? match.loser_goals : match.winner_goals;
 			const duration = (match.finished_at.getTime() - match.started_at.getTime()) / (1000 * 60);
+
+			if (opponent === null) {
+				return {
+					opponent_id: -1,
+					nickname: 'bot',
+					avatar: '',
+					goals: {
+						playerGoals,
+						opponentGoals,
+					},
+					createdAt: match.created_at,
+					duration,
+				};
+			}
 
 			return {
 				opponent_id: opponent.id,
@@ -299,7 +313,12 @@ export class UserService {
 	}
 
 	async sendFriendRequest(profileId: number, userId: number) {
-		// friendship_request
+		// ! should we check if profileId is equal to userId?
+
+		if (profileId === userId) {
+			throw new BadRequestException('You cannot send a friend request to yourself');
+		}
+
 		const entry = await this.prismaService.friendship_request.findFirst({
 			where: {
 				adding_user_id: userId,
@@ -333,6 +352,10 @@ export class UserService {
 	}
 
 	async respondToFriendRequest(profileId: number, userId: number, friendRequestResponse: string) {
+		if (userId === profileId) {
+			throw new BadRequestException('You can not be friend with yourself');
+		}
+
 		// check if friendship request exists
 		const entry = await this.prismaService.friendship_request.findFirst({
 			where: {
@@ -364,6 +387,10 @@ export class UserService {
 	}
 
 	async removeFriend(profileId: number, userId: number) {
+		if (userId === profileId) {
+			throw new BadRequestException('You can not be friend with yourself');
+		}
+
 		const friendship = await this.prismaService.friends.findFirst({
 			where: {
 				OR: [
@@ -386,6 +413,10 @@ export class UserService {
 	}
 
 	async blockUser(profileId: number, userId: number) {
+		if (userId === profileId) {
+			throw new BadRequestException('You can not block yourself');
+		}
+
 		const entry = await this.prismaService.blocked.findFirst({
 			where: {
 				blocking_user_id: userId,
@@ -426,6 +457,10 @@ export class UserService {
 	}
 
 	async unblockUser(profileId: number, userId: number) {
+		if (userId === profileId) {
+			throw new BadRequestException('You can not unblock yourself');
+		}
+
 		const entry = await this.prismaService.blocked.findFirst({
 			where: {
 				blocking_user_id: userId,

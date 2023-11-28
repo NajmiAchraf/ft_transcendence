@@ -11,6 +11,3 @@ export const FriendPublic = () => SetMetadata('isFriendPublic', true);
 
 // Set it a public route for twoFactor
 export const TwoFactorPublic = () => SetMetadata('isTwoFactorPublic', true);
-
-// Set it a public route for visibility check guard
-export const ChatBlockPublic = () => SetMetadata('isChatBlockPublic', true);

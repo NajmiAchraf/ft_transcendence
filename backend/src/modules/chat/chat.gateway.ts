@@ -81,7 +81,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('getAllUsers')
 	async getUsers(@ConnectedSocket() client: Socket) {
-		this.server.emit('users', await this.globalChatService.getUsers());
+		this.server.to(client.id).emit('users', await this.globalChatService.getUsers());
 	}
 
 	@SubscribeMessage('removeGlobalChat')
