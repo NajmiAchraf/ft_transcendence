@@ -61,7 +61,7 @@ class Pair {
 export default class Room {
 	room: { [key: string]: PairType } = {};
 	game: { [key: string]: Game } = {};
-	idRoom: number = -1;
+	idRoom: number = 1;
 	pair: Pair = new Pair();
 	pingPongGateway: PingPongGateway;
 
@@ -77,11 +77,13 @@ export default class Room {
 	}
 
 	private fetchRoom(playerID: string): string | undefined {
+		if (this.room === undefined)
+			return undefined;
 		// find the room where the player is in just the PlayerID without the clientID
 		for (const key in this.room) {
 			// console.log("key " + key);
 			for (const player of this.room[key]) {
-				// console.log("player :" + player[0] + ' ===? ' + playerID);
+				// console.log("player :" + player[0] + ' ===? ' + playerID); 
 				if (player[0] === playerID)
 					return key;
 			}
@@ -116,24 +118,18 @@ export default class Room {
 
 		const [player1, player2] = pair;
 
+		this.pingPongGateway.server.to(player1[1]).emit("dataPlayer", {
+			side: "right",
+			room: idRoom,
+		});
+
+		this.pingPongGateway.server.to(player2[1]).emit("dataPlayer", {
+			side: "left",
+			room: idRoom,
+		});
+
 		this.game[idRoom] = new Game(this, [player1[1], player2[1]], player1Type, player2Type, mode);
 
-		setTimeout(() => {
-			this.pingPongGateway.server.to(player1[1]).emit("dataPlayer", {
-				side: "right",
-			});
-
-			this.pingPongGateway.server.to(player2[1]).emit("dataPlayer", {
-				side: "left",
-			});
-
-			this.pingPongGateway.server.to([player1[1], player2[1]]).emit("idRoomConstruction", idRoom);
-
-			// this.game[idRoom].run() 
-			setTimeout(() => {
-				this.game[idRoom].run()
-			}, 2000);
-		}, 1000);
 	}
 
 	//TODO: Add invitation system across the socket beside the pair
@@ -204,7 +200,6 @@ export default class Room {
 
 		console.log("start: " + start + " end: " + end);
 
-
 		//! Set the state of the game {win or lose} {time} {score} {mode} {playerType}
 
 		const gameResult: GameResultType = {
@@ -217,13 +212,15 @@ export default class Room {
 		};
 		this.pingPongGateway.pingPongService.postGameLogic(gameResult);
 
-
-
-
 		// Delete the game
-		delete this.game[room];
+		if (this.game[room] instanceof Game) {
+			delete this.game[room];
+			this.game[room] = undefined;
+		}
+
 		// Delete the room
 		delete this.room[room];
+		this.room[room] = [['', ''], ['', '']];
 	}
 
 	deletePlayerRoom(playerID: string): boolean {
@@ -234,8 +231,11 @@ export default class Room {
 			const loser = this.room[room].findIndex((player) => player[0] === playerID);
 			const roomID = this.room[room].map((player) => player[1]);
 
-			console.log('all: ' + this.room + ' ' + this.room[room] + ' ' + roomID + ' ' + loser);
-			this.pingPongGateway.server.to(roomID[1 - loser]).emit("idRoomDestruction");
+			// console.log('all: ' + this.room + ' ' + this.room[room] + ' ' + roomID + ' ' + loser);
+			console.log("this.room: " + this.room[room])
+			console.log("this.room[room]: " + this.room[room][loser])
+			console.log("loser: " + loser + " roomID: " + roomID);
+			this.pingPongGateway.server.to(roomID[1 - loser]).emit("roomDestruction");
 
 			this.endGame(room, loser, true);
 

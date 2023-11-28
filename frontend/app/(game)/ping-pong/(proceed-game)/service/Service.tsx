@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react'
-import { useRouter } from 'next/navigation';
+import { useEffect } from 'react'
 
 import Game from '@/app/(game)/ping-pong/game/Game';
 import { Text } from '@/app/(game)/ping-pong/game/Board';
@@ -11,10 +10,8 @@ import { usePropsContext } from '@/app/context/PropsContext';
 import { useWebSocketContext } from '@/app/context/WebSocketContext';
 
 import '@/app/(game)/ping-pong.css'
-import { Props } from '@/app/(game)/ping-pong/common/Common';
 
-const Service = () => {
-	const router = useRouter();
+function Service(setInGame: (inGame: boolean) => void) {
 	const canvasContext = useCanvasContext();
 	const propsContext = usePropsContext();
 	const webSocketContext = useWebSocketContext();
@@ -49,23 +46,30 @@ const Service = () => {
 						console.log("Connected to namespace: /ping-pong");
 					});
 
-					webSocketGame.on("idRoomConstruction", (idRoomConstruction: string) => {
-						console.log("idRoomConstruction: ", idRoomConstruction);
+					webSocketGame.on("roomConstruction", () => {
 						console.log("propsContext.props.startPlay: ", propsContext.props.startPlay);
-						if (!propsContext.props.startPlay) {
+						if (!propsContext.props.readyPlay) {
 							propsContext.props.endGame = false;
-							propsContext.props.startPlay = true;
+							propsContext.props.readyPlay = true;
 
 							game = new Game(getSocket, getProps, getCanvas, getDataPlayer);
-							game.room = idRoomConstruction;
-							game.run();
 
 							console.log("game.room: ", game.room);
 						}
 					});
 
-					webSocketGame.on("idRoomDestruction", (idRoomDestruction: string) => {
-						console.log("idRoomDestruction: ", idRoomDestruction);
+					webSocketGame.on("startPlay", (data: any) => {
+						console.log("startPlay: ", data);
+						if (!propsContext.props.startPlay) {
+							propsContext.props.endGame = false;
+							propsContext.props.startPlay = true;
+
+							game.run();
+						}
+					});
+
+					webSocketGame.on("roomDestruction", (roomDestruction: string) => {
+						console.log("roomDestruction: ", roomDestruction);
 						console.log("propsContext.props.startPlay: ", propsContext.props.startPlay);
 						if (propsContext.props.startPlay) {
 							propsContext.props.endGame = true;
@@ -98,22 +102,27 @@ const Service = () => {
 					});
 
 					webSocketGame.on("allowToPlay", (data: any) => {
-						propsContext.setProps({
-							...propsContext.props,
-							inGame: true
-						} as Props);
+						setInGame(true);
 
 						console.log("allowToPlay: ", data);
 					});
 
 					webSocketGame.on("denyToPlay", (data: any) => {
-
-						propsContext.setProps({
-							...propsContext.props,
-							inGame: false
-						} as Props);
+						setInGame(false);
 
 						console.log("denyToPlay: ", data);
+					});
+
+					webSocketGame.on("leaveRoom", (data: any) => {
+						setInGame(false);
+
+						console.log("leaveRoom: ", data);
+					});
+
+					webSocketGame.on("leaveQueue", (data: any) => {
+						setInGame(false);
+
+						console.log("leaveQueue: ", data);
 					});
 				};
 
@@ -125,24 +134,7 @@ const Service = () => {
 
 		SocketService();
 
-		return (() => {
-			console.log("RootLayout unmount");
-			if (propsContext.props.startPlay) {
-				propsContext.props.endGame = true;
-				propsContext.props.startPlay = false;
-
-				game.stop();
-				console.log(" game.stop()");
-			}
-		})
-
-	}, [propsContext, webSocketContext, canvasContext]);
-
-	router.push("ping-pong/join");
-
-	return (
-		<></>
-	);
+	}, [propsContext, canvasContext]);
 };
 
 export default Service;

@@ -115,7 +115,7 @@ export default class Game extends CanvasComponent {
 	// service: SocketService;
 	getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>;
 	getDataPlayer: () => any;
-	room: string | undefined = undefined;
+	room: string;
 	idPlayer: string | undefined = undefined;
 
 	duration: number = 1500;
@@ -128,11 +128,14 @@ export default class Game extends CanvasComponent {
 		// this.service = service;
 		this.getSocket = getSocket;
 		this.getDataPlayer = getDataPlayer;
+		this.room = getDataPlayer().room;
+
 		this.board = new Board(this, vars.width, vars.height, vars.depth, getProps().geometry, getProps().mirror)
 		this.ball = new Ball(this, getProps().geometry)
 		this.player1 = new Player(this, "right", getProps().geometry)
 		this.player2 = new Player(this, "left", getProps().geometry)
 
+		console.log("readyToPlay");
 		this.getSocket().on("drawGoal", () => {
 			// move the camera to the winner side after a goal and back to the center
 			if (this.ball.velocityX < 0)
@@ -141,6 +144,8 @@ export default class Game extends CanvasComponent {
 				this.moveCameraSeries("right");
 
 		});
+
+		this.getSocket().emit("readyToPlay");
 	}
 
 	// entry point for the game camera move from pi/3 to pi/2
@@ -294,5 +299,21 @@ export default class Game extends CanvasComponent {
 		this.bloomPass.dispose();
 		// remove the canvas render
 		this.renderer.dispose();
+		// Loop over all children of the scene
+		// this.scene.traverse((object) => {
+		// 	if (!object.isMesh) return;
+
+		// 	if (object.geometry) {
+		// 		object.geometry.dispose();
+		// 	}
+
+		// 	if (object.material) {
+		// 		if (Array.isArray(object.material)) {
+		// 			object.material.map((material) => material.dispose());
+		// 		} else {
+		// 			object.material.dispose();
+		// 		}
+		// 	}
+		// });
 	}
 }

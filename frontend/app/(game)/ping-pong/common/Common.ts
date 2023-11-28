@@ -25,8 +25,9 @@ export type Props = {
 	mode: Mode,
 	playerType: PlayerType,
 	invite: boolean,
+	readyPlay: boolean,
+	startPlay: boolean,
 	inGame: boolean,
 	endGame: boolean,
-	startPlay: boolean,
 }
 

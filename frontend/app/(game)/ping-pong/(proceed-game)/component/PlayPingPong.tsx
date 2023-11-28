@@ -9,6 +9,7 @@ import { useWebSocketContext } from '@/app/context/WebSocketContext';
 import { useCanvasContext } from '@/app/context/CanvasContext';
 
 import { Props } from '@/app/(game)/ping-pong/common/Common';
+import Game from '@/app/(game)/ping-pong/game/Game';
 
 function PlayPingPong() {
 	const canvasContext = useCanvasContext();
@@ -22,9 +23,10 @@ function PlayPingPong() {
 
 	useEffect(() => {
 		canvasContext.canvas = canvasRef.current;
-		if (!canvasContext.canvas) {
+		if (!canvasContext.canvas || !canvasRef.current) {
 			throw new Error("Canvas not defined");
 		}
+		webContext.game.emit("readyCanvas");
 	}, []);
 
 	const interval = setInterval(() => {
@@ -42,32 +44,17 @@ function PlayPingPong() {
 
 	const leaveGame = () => {
 		console.log(Date.now() - startTime.current);
-		// if (propsContext.props.startPlay) {
-		if (Date.now() - startTime.current > 4000) {
+		if (propsContext.props.startPlay) {
+			// if (Date.now() - startTime.current > 4000) {
 			console.log('leaveGame');
-
 			webContext.game.emit("leaveGame");
-
-			propsContext.setProps({
-				...propsContext.props,
-				inGame: false
-			} as Props);
-
-			// route to home
 		}
 	};
 
-	const leaveQueue = () => {
+	const leavePair = () => {
 		if (propsContext.props.playerType === "player") {
-			console.log('leaveQueue');
-			webContext.game.emit("leaveQueue");
-
-			propsContext.setProps({
-				...propsContext.props,
-				inGame: false
-			} as Props);
-
-			// route to home
+			console.log('leavePair');
+			webContext.game.emit("leavePair");
 		}
 	};
 
@@ -105,7 +92,7 @@ function PlayPingPong() {
 				{propsContext.props.startPlay ? (
 					<IonIcon icon={IonIcons.logOutOutline} onClick={leaveGame} />
 				) : (
-					<IonIcon icon={IonIcons.logOutOutline} onClick={leaveQueue} />
+					<IonIcon icon={IonIcons.logOutOutline} onClick={leavePair} />
 				)}
 			</div>
 		</div >

@@ -31,9 +31,10 @@ export function getDefaultProps(): Props {
 		mode: "medium",
 		playerType: "player",
 		invite: false,
+		readyPlay: false,
+		startPlay: false,
 		inGame: false,
 		endGame: false,
-		startPlay: false,
 	};
 
 	return defaultProps;
@@ -47,9 +48,10 @@ function PropsContextProvider({ children }: { children: React.ReactNode }) {
 		mode: "medium",
 		playerType: "player",
 		invite: false,
+		readyPlay: false,
+		startPlay: false,
 		inGame: false,
 		endGame: false,
-		startPlay: false,
 	});
 
 	const contextValue: IPropsContext = {

@@ -203,7 +203,7 @@ export default class Ball {
 	}
 
 	send() {
-		this.server.to(this.game.queue).emit("ball", {
+		this.server.to(this.game.pair).emit("ball", {
 			x: this.x,
 			y: this.y,
 			velocityX: this.velocityX,

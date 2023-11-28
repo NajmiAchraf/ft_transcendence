@@ -16,15 +16,6 @@ export let vars = {
 	font_height: 2,
 }
 
-export type Props = {
-	canvas: HTMLCanvasElement | null
-	geometry: Geometry
-	mirror: boolean
-	mode: Mode
-	playerType: PlayerType
-	inGame: boolean
-}
-
 export type GameResultType = {
 	readonly winnerId: number;
 	readonly loserId: number;

@@ -60,7 +60,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		console.log('DELETE CONNECTION: ' + client.id + ' ' + userId);
 		if (this.rooms.deletePlayerRoom(userId.toString())) { }
 		else if (this.rooms.deletePlayerPair(client.id)) { }
-		else console.log("Player not found in room or queue");
+		else console.log("Player not found in room or pair");
 
 		// delete connection
 		await this.quitGame(client);
@@ -158,6 +158,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 			return;
 
 		this.rooms.deletePlayerRoom(userId.toString());
+		this.server.to(client.id).emit("leaveRoom");
 	}
 
 	@SubscribeMessage("leavePair")
@@ -169,6 +170,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 			return;
 
 		this.rooms.deletePlayerPair(userId.toString());
+		this.server.to(client.id).emit("leaveQueue");
 	}
 
 	@SubscribeMessage("invitePlayer")

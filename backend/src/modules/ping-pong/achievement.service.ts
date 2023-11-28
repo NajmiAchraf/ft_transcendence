@@ -230,7 +230,9 @@ export class AchievementService {
 			},
 			take: 10,
 		});
-
+		if (!matches || matches.length !== 10) {
+			return;
+		}
 		// check that the last 10 matches were played in less than 30 minutes
 		const duration = (matches[0].finished_at.getTime() - matches[matches.length - 1].started_at.getTime()) / (1000 * 60);
 
