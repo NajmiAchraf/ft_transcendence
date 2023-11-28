@@ -90,12 +90,14 @@ export class ChatHttpService {
 			});
 
 			if (body.privacy === 'protected') {
+				const hash = await this.globalHelperService.hashData(body.password);
+
 				await this.prsimaService.channel.update({
 					where: {
 						id: channel.id,
 					},
 					data: {
-						password: body.password,
+						password: hash,
 					}
 				});
 			}
@@ -143,7 +145,7 @@ export class ChatHttpService {
 			throw new ForbiddenException('Channel is protected');
 		}
 
-		// check if the adder is admin or owner
+		// check if they are friends
 		if (!await this.globalHelperService.areFriends(userId, memberId)) {
 			throw new ForbiddenException('Only friends can be added to channels');
 		}
@@ -220,32 +222,32 @@ export class ChatHttpService {
 		});
 	}
 
-	// async joinChannel(userId: number, channelId: number, password: string | undefined) {
-	// 	// check if the user is already in the channel
-	// 	const entry = await this.prsimaService.user_channel.findFirst({
-	// 		where: {
-	// 			channel_id: channelId,
-	// 			user_id: userId,
-	// 		},
-	// 	});
+	async joinChannel(userId: number, channelId: number, password: string | undefined) {
+		// check if the user is already in the channel
+		const entry = await this.prsimaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
 
-	// 	if (entry) {
-	// 		throw new ForbiddenException('You are already in the channel');
-	// 	}
+		if (entry) {
+			throw new ForbiddenException('You are already in the channel');
+		}
 
-	// 	// check if the channel is protected
-	// 	const channel = await this.prsimaService.channel.findUnique({
-	// 		where: {
-	// 			id: channelId,
-	// 		},
-	// 		select: {
-	// 			privacy: true,
-	// 			password: true,
-	// 		}
-	// 	});
+		// check if the channel is protected
+		const channel = await this.prsimaService.channel.findUnique({
+			where: {
+				id: channelId,
+			},
+			select: {
+				privacy: true,
+				password: true,
+			}
+		});
 
-	// 	if (channel.privacy === 'protected' && password === channel.password) {
-	// 		throw new ForbiddenException('Channel is protected');
-	// 	}
-	// }
+		if (channel.privacy === 'protected' && !await this.globalHelperService.verifyHash(channel.password, password)) {
+			throw new ForbiddenException('Invalid password');
+		}
+	}
 }

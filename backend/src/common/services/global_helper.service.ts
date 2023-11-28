@@ -3,6 +3,7 @@ import { authenticator } from "otplib";
 import { PrismaService } from "src/modules/prisma/prisma.service";
 import { Socket } from "socket.io";
 import * as jwt from 'jsonwebtoken';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class GlobalHelperService {
@@ -62,5 +63,14 @@ export class GlobalHelperService {
 			console.log('Jwt Verification failed');
 			return undefined;
 		}
+	}
+
+	// helper function to hash data
+	async hashData(data: string) {
+		return argon2.hash(data);
+	}
+
+	async verifyHash(hash: string, data: string) {
+		return argon2.verify(hash, data);
 	}
 }

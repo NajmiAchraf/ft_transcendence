@@ -3,12 +3,14 @@ import { JwtService } from '@nestjs/jwt';
 import { Tokens } from '../types';
 import * as argon2 from 'argon2';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
+import { GlobalHelperService } from 'src/common/services/global_helper.service';
 
 @Injectable()
 export class TokenService {
     constructor(
         private readonly prismaService: PrismaService,
-        private readonly jwtService: JwtService) { }
+        private readonly jwtService: JwtService,
+        private readonly globalHelperService: GlobalHelperService) { }
 
     async generateToken(userId: number, username: String): Promise<Tokens> {
         // generate access token and refresh token
@@ -22,11 +24,6 @@ export class TokenService {
             accessToken,
             refreshToken,
         }
-    }
-
-    // helper function to hash data
-    async hashData(data: string) {
-        return argon2.hash(data);
     }
 
     // helper function to add a user to db
@@ -58,7 +55,7 @@ export class TokenService {
 
     // helper function to store refresh token in db
     async updateRefreshToken(userId: number, rt: string) {
-        const hash = await this.hashData(rt);
+        const hash = await this.globalHelperService.hashData(rt);
         await this.prismaService.user.update({
             where: {
                 id: userId,
@@ -97,7 +94,7 @@ export class TokenService {
             throw new ForbiddenException('Access Denied');
         }
 
-        const isRefreshTokenValid = await argon2.verify(user.refresh_token, refreshToken);
+        const isRefreshTokenValid = await this.globalHelperService.verifyHash(user.refresh_token, refreshToken);
 
         if (!isRefreshTokenValid) {
             throw new ForbiddenException('Invalid refresh token');

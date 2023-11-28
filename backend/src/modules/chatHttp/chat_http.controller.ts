@@ -33,7 +33,6 @@ export class ChatHttpController {
 		return this.chatHttpService.findAllGlobalChat(userId);
 	}
 
-	// ! don't forget to hash the password of the channel
 	@Post('createChannel')
 	@UseInterceptors(FileInterceptor('avatar', multerConfig))
 	async addMoreInfos(@Body() body: CreateChannelDto, @UploadedFile() file: avatarDto, @Req() req: Request) {
@@ -61,10 +60,11 @@ export class ChatHttpController {
 	}
 
 	// ! banned_guard
-	// @Post('joinChannel')
-	// async joinChannel(@Req() req: Request) {
-	// 	const userId = req.user['sub'];
-	// 	const channelId = +req.query.channelId;
-	// 	return this.chatHttpService.joinChannel(userId, channelId);
-	// }
+	@Post('joinChannel')
+	async joinChannel(@Req() req: Request, @Body() body: any) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		const password = body.password;
+		return this.chatHttpService.joinChannel(userId, channelId, password);
+	}
 }
