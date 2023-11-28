@@ -10,6 +10,8 @@ export default class Ball {
 	game: Game;
 
 	ball: THREE.Mesh
+	geometry: THREE.Geometry
+	material: THREE.Material
 
 	player1: Player;
 	player2: Player;
@@ -24,7 +26,9 @@ export default class Ball {
 
 	velocityX: number;
 
-	constructor(game: Game, geometry: Geometry) {
+	onBall: (data: any) => void;
+
+	constructor(game: Game, _geometry: Geometry) {
 		this.game = game;
 		this.player1 = this.game.player1;
 		this.player2 = this.game.player2;
@@ -38,18 +42,23 @@ export default class Ball {
 		this.y = 0;
 		this.z = vars.z + vars.depth / 2 + this.radius / 2 + vars.z_glass;
 
-		this.ball = this.ballSetup(geometry)
+		const { ball, geometry, material } = this.ballSetup(_geometry)
+		this.ball = ball
+		this.geometry = geometry
+		this.material = material
 
-		this.game.getSocket().on("ball", (data: any) => {
+		this.onBall = (data: any) => {
 			this.x = data.x;
 			this.y = data.y;
 			this.velocityX = data.velocityX;
 			this.game.player1.score = data.score1;
 			this.game.player2.score = data.score2;
-		});
+		};
+
+		this.game.getSocket().on("ball", this.onBall);
 	}
 
-	ballSetup(_geometry: Geometry = "cube") {
+	ballSetup(_geometry: Geometry = "cube"): { ball: THREE.Mesh, geometry: THREE.Geometry, material: THREE.Material } {
 		if (_geometry === "sphere") {
 			let geometry = new THREE.SphereGeometry(this.radius / 2)
 			let material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
@@ -57,7 +66,7 @@ export default class Ball {
 			let ball = new THREE.Mesh(geometry, material)
 			ball.position.set(this.x, this.y, this.z)
 			this.game.scene.add(ball)
-			return ball
+			return { ball, geometry, material }
 		}
 		let geometry = new THREE.BoxGeometry(this.radius, this.radius, this.radius)
 		let material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
@@ -65,10 +74,17 @@ export default class Ball {
 		let ball = new THREE.Mesh(geometry, material)
 		ball.position.set(this.x, this.y, this.z)
 		this.game.scene.add(ball)
-		return ball
+		return { ball, geometry, material }
 	}
 
 	update() {
 		this.ball.position.set(this.x, this.y, this.z)
+	}
+
+	dispose() {
+		this.game.scene.remove(this.ball)
+		this.geometry.dispose()
+		this.material.dispose()
+		this.game.getSocket().off("ball", this.onBall);
 	}
 }

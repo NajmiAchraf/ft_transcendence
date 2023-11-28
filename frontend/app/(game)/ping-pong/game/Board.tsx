@@ -9,6 +9,10 @@ import Game from '@/app/(game)/ping-pong/game/Game'
 import { vars, Geometry } from '@/app/(game)/ping-pong/common/Common'
 
 class Table {
+	table: THREE.Mesh | Reflector | null = null;
+	geometry: THREE.BoxGeometry | null = null;
+	material: THREE.MeshPhysicalMaterial | null = null;
+
 	board: Board;
 	game: Game;
 	canvas: HTMLCanvasElement;
@@ -28,8 +32,8 @@ class Table {
 	tableSetup(z: number = 0) {
 		vars.z += z;
 
-		const geometry = new THREE.BoxGeometry(this.width, this.height, this.depth);
-		const material = new THREE.MeshPhysicalMaterial({
+		this.geometry = new THREE.BoxGeometry(this.width, this.height, this.depth);
+		this.material = new THREE.MeshPhysicalMaterial({
 			color: 0x000000,
 			metalness: 0.2,
 			roughness: 0.5,
@@ -39,17 +43,17 @@ class Table {
 			reflectivity: 0.9,
 			side: THREE.DoubleSide,
 		});
-		const table = new THREE.Mesh(geometry, material);
-		this.game.scene.add(table);
-		table.position.set(this.board.x, this.board.y, vars.z);
+		this.table = new THREE.Mesh(this.geometry, this.material);
+		this.game.scene.add(this.table);
+		this.table.position.set(this.board.x, this.board.y, vars.z);
 	}
 
 	mirrorSetup(z: number = 0) {
 		vars.z += z;
 
-		let geometry = new THREE.BoxGeometry(this.width, this.height, this.depth)
+		this.geometry = new THREE.BoxGeometry(this.width, this.height, this.depth)
 
-		let board = new Reflector(geometry, {
+		this.table = new Reflector(this.geometry, {
 			color: 0x000000,
 			textureWidth: this.canvas.clientWidth * window.devicePixelRatio,
 			textureHeight: this.canvas.clientHeight * window.devicePixelRatio,
@@ -57,14 +61,31 @@ class Table {
 			multisample: 10,
 		});
 
-		this.game.scene.add(board);
-		board.position.set(this.board.x, this.board.y, vars.z)
+		this.game.scene.add(this.table);
+		this.table.position.set(this.board.x, this.board.y, vars.z)
+	}
 
-		return board
+	disposeTable() {
+		if (this.table) {
+			this.table.geometry.dispose();
+			this.table.material.dispose();
+			this.game.scene.remove(this.table);
+		}
+	}
+
+	disposeMirror() {
+		if (this.table) {
+			this.table.geometry.dispose();
+			this.game.scene.remove(this.table);
+		}
 	}
 }
 
 class Net {
+	nets: THREE.Mesh[] = [];
+	geometry: THREE.BoxGeometry[] = [];
+	material: THREE.MeshBasicMaterial[] = [];
+
 	board: Board;
 	game: Game;
 	width: number;
@@ -97,6 +118,18 @@ class Net {
 		const netPart = new THREE.Mesh(geometry, material);
 		netPart.position.set(x, y, z);
 		this.game.scene.add(netPart);
+
+		this.geometry.push(geometry);
+		this.material.push(material);
+		this.nets.push(netPart);
+	}
+
+	disposeNet() {
+		for (let i = 0; i < this.nets.length; i++) {
+			this.geometry[i].dispose();
+			this.material[i].dispose();
+			this.game.scene.remove(this.nets[i]);
+		}
 	}
 }
 
@@ -182,6 +215,10 @@ class EndGame {
 
 
 class Border {
+	boarder: THREE.Mesh[] = [];
+	geometry: THREE.BoxGeometry[] = [];
+	material: THREE.MeshBasicMaterial[] = [];
+
 	board: Board;
 	game: Game;
 	width: number;
@@ -202,14 +239,12 @@ class Border {
 		const border = new THREE.Mesh(geometry, material);
 		this.game.scene.add(border);
 		border.position.set(x, y, vars.depth / 2 + this.depth / 2 + vars.z_glass);
+
+		this.geometry.push(geometry);
+		this.material.push(material);
+		this.boarder.push(border);
 	}
-	// private setupVerticalCapsuleBorder(x: number, y: number, width: number, height: number, color: number) {
-	// 	const geometry = new THREE.CapsuleGeometry(height, width - height * 8, 16, 32);
-	// 	const material = new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide });
-	// 	const border = new THREE.Mesh(geometry, material);
-	// 	this.game.scene.add(border);
-	// 	border.position.set(x, y, 0);
-	// }
+
 	private setupCapsuleBorder(x: number, y: number, width: number, height: number, color: number, horizontal: boolean) {
 		const geometry = new THREE.CapsuleGeometry(height, width - height * 2, 16, 32);
 		const material = new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide });
@@ -274,6 +309,14 @@ class Border {
 		else
 			throw new Error("Invalid geometry");
 	}
+
+	disposeBorder() {
+		for (let i = 0; i < this.boarder.length; i++) {
+			this.geometry[i].dispose();
+			this.material[i].dispose();
+			this.game.scene.remove(this.boarder[i]);
+		}
+	}
 }
 
 export default class Board {
@@ -294,6 +337,8 @@ export default class Board {
 	x: number = 0;
 	y: number = 0;
 
+	mirror: boolean;
+
 	constructor(game: Game, width: number, height: number, depth: number, geometry: Geometry, mirror: boolean) {
 		this.game = game;
 		this.width = width;
@@ -301,17 +346,19 @@ export default class Board {
 		this.depth = depth;
 		this.geometry = geometry;
 
+		this.mirror = mirror;
+
 		this.table = new Table(this, width, height, depth);
 		this.net = new Net(this, width, height, depth);
 		this.score = new Score(this);
 		this.border = new Border(this, width, height);
 		this.endGame = new EndGame(this);
 		this.oldScore = [0, 0];
-		this.setup(mirror);
+		this.setup();
 	}
 
-	setup(mirror: boolean) {
-		if (mirror)
+	setup() {
+		if (this.mirror)
 			this.table.mirrorSetup();
 		else
 			this.table.tableSetup();
@@ -339,5 +386,15 @@ export default class Board {
 
 	update(): void {
 		this.updateScores(this.game.player1.score, this.game.player2.score);
+	}
+
+	dispose() {
+		if (this.mirror)
+			this.table.disposeMirror();
+		else
+			this.table.disposeTable();
+		this.net.disposeNet();
+		this.border.disposeBorder();
+		// this.endGame.set(0, 0, 0, "", 0);
 	}
 }

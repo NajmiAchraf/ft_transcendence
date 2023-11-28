@@ -9,6 +9,8 @@ class Paddle {
 	side: Side;
 
 	paddle: THREE.Mesh
+	geometry: THREE.Geometry
+	material: THREE.Material
 
 	game: Game;
 	canvas: HTMLCanvasElement;
@@ -30,9 +32,10 @@ class Paddle {
 	right: number = 0;
 
 	mouse: THREE.Vector2;
-	paddlePositionHandler: (mouse: MouseEvent) => void;
+	onPaddlePositionHandler: (mouse: MouseEvent) => void;
+	onOtherPlayerUpdate: (data: any) => void;
 
-	constructor(game: Game, side: Side, geometry: Geometry) {
+	constructor(game: Game, side: Side, _geometry: Geometry) {
 		this.side = side;
 
 		this.game = game;
@@ -54,14 +57,22 @@ class Paddle {
 		this.y = 0;
 		this.z = vars.z + vars.depth / 2 + this.depth / 2 + vars.z_glass;
 
-		this.paddle = this.paddleSetup(geometry)
+		const { paddle, geometry, material } = this.paddleSetup(_geometry)
+		this.paddle = paddle
+		this.geometry = geometry
+		this.material = material
 
 		if (!this.canvas) {
 			throw new Error("Container element not found.");
 		}
 
 		// Store a reference to the event handler function
-		this.paddlePositionHandler = (mouse: MouseEvent) => this.paddle_position(mouse);
+		this.onPaddlePositionHandler = (mouse: MouseEvent) => this.paddle_position(mouse);
+
+		this.onOtherPlayerUpdate = (data: any) => {
+			this.y = data.y;
+			this.paddle.position.set(this.x, this.y, this.z)
+		};
 
 		// Define a variable to store the mouse position
 		this.mouse = new THREE.Vector2();
@@ -69,33 +80,30 @@ class Paddle {
 		// console.log("this.game.getDataPlayer() ", this.game.getDataPlayer())
 		if (this.game.getDataPlayer().side === side)
 			// Add a mouse move event listener to the container if it exists
-			this.canvas.addEventListener("mousemove", this.paddlePositionHandler as EventListener);
+			this.canvas.addEventListener("mousemove", this.onPaddlePositionHandler as EventListener);
 		else
 			// get the player coordinates with the otherID
-			this.game.getSocket().on("otherPlayerUpdate", (data: any) => {
-				this.y = data.y;
-				this.paddle.position.set(this.x, this.y, this.z)
-			});
+			this.game.getSocket().on("otherPlayerUpdate", this.onOtherPlayerUpdate);
 	}
 
-	paddleSetup(_geometry: Geometry) {
+	paddleSetup(_geometry: Geometry): { paddle: THREE.Mesh, geometry: THREE.Geometry, material: THREE.Material } {
 		if (_geometry === "cube") {
-			const geometry = new THREE.BoxGeometry(this.width, this.height, this.depth)
-			const material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
+			let geometry = new THREE.BoxGeometry(this.width, this.height, this.depth)
+			let material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
 			let paddle = new THREE.Mesh(geometry, material)
 			paddle.position.set(this.x, this.y, this.z)
 			this.game.scene.add(paddle)
 
-			return paddle
+			return { paddle, geometry, material }
 		} else if (_geometry === "sphere") {
 			const radius = this.width / 2;
-			const geometry = new THREE.CapsuleGeometry(radius, this.height - radius * 2, 16, 32);
-			const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+			let geometry = new THREE.CapsuleGeometry(radius, this.height - radius * 2, 16, 32);
+			let material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 			let paddle = new THREE.Mesh(geometry, material);
 			paddle.position.set(this.x, this.y, this.z)
 			this.game.scene.add(paddle)
 
-			return paddle
+			return { paddle, geometry, material }
 		}
 		throw new Error("Invalid geometry");
 	}
@@ -133,6 +141,15 @@ class Paddle {
 		this.paddle.position.set(this.x, this.y, this.z)
 	}
 
+	dispose(): void {
+		this.game.scene.remove(this.paddle);
+		this.geometry.dispose();
+		this.material.dispose();
+		if (this.game.getDataPlayer().side === this.side)
+			this.canvas.removeEventListener("mousemove", this.onPaddlePositionHandler as EventListener);
+		else
+			this.game.getSocket().off("otherPlayerUpdate", this.onOtherPlayerUpdate);
+	}
 }
 
 export default class Player {
@@ -146,5 +163,9 @@ export default class Player {
 
 	update(): void {
 		this.paddle.update();
+	}
+
+	dispose(): void {
+		this.paddle.dispose();
 	}
 }

@@ -26,6 +26,12 @@ export default class Game {
 	duration: number = 1500;
 
 	ready_player: number = 0;
+	listener0: any;
+	listener1: any;
+	readyToPlay0: () => void;
+	readyToPlay1: () => void;
+	readyCanvas0: () => void;
+	readyCanvas1: () => void;
 
 	constructor(room: Room, pair: [string, string], playerType1: PlayerType, playerType2: PlayerType, mode: Mode) {
 		this.room = room;
@@ -35,9 +41,7 @@ export default class Game {
 		this.player1 = new Player(this, "right", playerType1, mode, this.pair[0], this.pair[1])
 		this.player2 = new Player(this, "left", playerType2, mode, this.pair[1], this.pair[0])
 
-		const player0 = this.server.sockets.sockets.get(this.pair[0]);
-		const player1 = this.server.sockets.sockets.get(this.pair[1]);
-		player0.on("readyToPlay", () => {
+		this.readyToPlay0 = () => {
 			this.ready_player++;
 			if (playerType2 === 'bot') {
 				this.start()
@@ -45,24 +49,27 @@ export default class Game {
 				this.start()
 			}
 			console.log("ready_player " + this.ready_player);
-			player0.off("readyToPlay", () => { });
-		});
-		player0.on("readyCanvas", () => {
+		}
+		this.readyToPlay1 = () => {
+			this.ready_player++;
+			if (this.ready_player === 2) {
+				this.start()
+			}
+		}
+		this.readyCanvas0 = () => {
 			this.server.to(this.pair[0]).emit("roomConstruction");
-			player0.off("readyCanvas", () => { });
-		});
-		if (player1 !== undefined) {
-			player1.on("readyToPlay", () => {
-				this.ready_player++;
-				if (this.ready_player === 2) {
-					this.start()
-				}
-				player1.off("readyToPlay", () => { });
-			});
-			player1.on("readyCanvas", () => {
-				this.server.to(this.pair[1]).emit("roomConstruction");
-				player1.off("readyCanvas", () => { });
-			});
+		}
+		this.readyCanvas1 = () => {
+			this.server.to(this.pair[1]).emit("roomConstruction");
+		}
+
+		this.listener0 = this.server.sockets.sockets.get(this.pair[0]);
+		this.listener1 = this.server.sockets.sockets.get(this.pair[1]);
+		this.listener0.on("readyToPlay", this.readyToPlay0);
+		this.listener0.on("readyCanvas", this.readyCanvas0);
+		if (this.listener1 !== undefined) {
+			this.listener1.on("readyToPlay", this.readyToPlay1);
+			this.listener1.on("readyCanvas", this.readyCanvas1);
 		}
 	}
 
@@ -118,8 +125,6 @@ export default class Game {
 		try {
 			this.start_game = Date.now();
 			const framePerSecond = 60;
-			// if (this.interval)
-			// 	clearInterval(this.interval);
 			this.interval = setInterval(() => { this.update(); }, 1000 / framePerSecond);
 		}
 		catch (error) {
@@ -130,14 +135,31 @@ export default class Game {
 	stop(): void {
 		this.end_game = Date.now();
 		this.duration_game = Date.now() - this.start_game;
-		// stop interval
-		// if (this.interval)
 		clearInterval(this.interval);
-		this.interval.unref();
-		// delete game all object
-		delete this.player1;
-		delete this.player2;
-		delete this.ball;
-		delete this.interval;
+	}
+
+	destroy(): void {
+		this.stop();
+
+		this.listener0.off("readyToPlay", this.readyToPlay0);
+		this.listener0.off("readyCanvas", this.readyCanvas0);
+		if (this.listener1 !== undefined) {
+			this.listener1.off("readyToPlay", this.readyToPlay1);
+			this.listener1.off("readyCanvas", this.readyCanvas1);
+		}
+
+		this.player1.destroy();
+		this.player2.destroy();
+
+		delete this.room;
+		delete this.server;
+		delete this.pair;
+		delete this.start_game;
+		delete this.end_game;
+		delete this.duration_game;
+		delete this.collapsed_time;
+		delete this.time_status;
+		delete this.duration;
+		delete this.ready_player;
 	}
 }

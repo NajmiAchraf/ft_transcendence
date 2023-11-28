@@ -212,10 +212,10 @@ export default class Room {
 		};
 		this.pingPongGateway.pingPongService.postGameLogic(gameResult);
 
-		// Delete the game
+		// Delete and free the New Game allocated in the memory
 		if (this.game[room] instanceof Game) {
+			this.game[room].destroy();
 			delete this.game[room];
-			this.game[room] = undefined;
 		}
 
 		// Delete the room

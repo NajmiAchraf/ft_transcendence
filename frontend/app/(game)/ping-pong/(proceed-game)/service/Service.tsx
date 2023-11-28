@@ -3,7 +3,6 @@
 import { useEffect } from 'react'
 
 import Game from '@/app/(game)/ping-pong/game/Game';
-import { Text } from '@/app/(game)/ping-pong/game/Board';
 
 import { useCanvasContext } from '@/app/context/CanvasContext';
 import { usePropsContext } from '@/app/context/PropsContext';
@@ -21,10 +20,8 @@ function Service(setInGame: (inGame: boolean) => void) {
 	let dataPlayer: any | undefined = undefined;
 
 	useEffect(() => {
-		async function SocketService() {
+		function SocketService() {
 			try {
-				await Text.loadFont();
-
 				const getSocket = () => {
 					return webSocketContext.game;
 				};

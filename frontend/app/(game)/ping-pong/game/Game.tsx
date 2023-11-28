@@ -25,6 +25,7 @@ class CanvasComponent {
 	bloomPass: UnrealBloomPass;
 
 	moving_camera: boolean = false;
+	onWindowResize: () => void;
 
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas
@@ -32,8 +33,7 @@ class CanvasComponent {
 		this.scene = this.sceneSetup()
 		this.camera = this.cameraSetup(75, this.canvas.clientWidth / this.canvas.clientHeight, 0.1, 5000, new THREE.Vector3(0, 0, vars.height))
 
-		// resize for PerspectiveCamera
-		window.addEventListener('resize', () => {
+		this.onWindowResize = () => {
 			if (screen.orientation?.type === 'landscape-primary' || screen.orientation?.type === 'landscape-secondary') {
 				this.canvas.style.width = window.innerWidth + 'px';
 				this.canvas.style.height = window.innerHeight + 'px';
@@ -44,7 +44,10 @@ class CanvasComponent {
 			this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
 			this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
 			this.camera.updateProjectionMatrix();
-		});
+		}
+
+		// resize for PerspectiveCamera
+		window.addEventListener('resize', this.onWindowResize);
 
 		// Create an effect composer
 		this.composer = new EffectComposer(this.renderer);
@@ -103,7 +106,50 @@ class CanvasComponent {
 		// this.renderer.render(this.scene, this.camera)
 	}
 
+	dispose() {
+		window.removeEventListener('resize', this.onWindowResize);
 
+		while (this.scene.children.length > 0) {
+			this.scene.remove(this.scene.children[0]);
+		}
+
+		// stop animation
+		this.renderer.setAnimationLoop(null);
+		// clear the scene
+		this.scene.clear();
+		// clear the canvas
+		this.renderer.clear();
+		// composer dispose
+		this.composer.dispose();
+		// remove the canvas render
+		this.renderer.dispose();
+		// remove the renderPass to the composer
+		this.renderPass.dispose();
+		// remove the bloomPass to the composer
+		this.bloomPass.dispose();
+		// remove the canvas render
+		this.renderer.dispose();
+
+		document.body.removeChild(this.renderer.domElement);
+		document.body.removeChild(this.composer.domElement);
+
+		// Loop over all children of the scene
+		// this.scene.traverse((object) => {
+		// 	if (!object.isMesh) return;
+
+		// 	if (object.geometry) {
+		// 		object.geometry.dispose();
+		// 	}
+
+		// 	if (object.material) {
+		// 		if (Array.isArray(object.material)) {
+		// 			object.material.map((material) => material.dispose());
+		// 		} else {
+		// 			object.material.dispose();
+		// 		}
+		// 	}
+		// });
+	}
 }
 
 export default class Game extends CanvasComponent {
@@ -283,37 +329,10 @@ export default class Game extends CanvasComponent {
 	}
 
 	stop() {
-		// stop animation
-		this.renderer.setAnimationLoop(null);
-		// clear the scene
-		this.scene.clear();
-		// clear the canvas
-		this.renderer.clear();
-		// composer dispose
-		this.composer.dispose();
-		// remove the canvas render
-		this.renderer.dispose();
-		// remove the renderPass to the composer
-		this.renderPass.dispose();
-		// remove the bloomPass to the composer
-		this.bloomPass.dispose();
-		// remove the canvas render
-		this.renderer.dispose();
-		// Loop over all children of the scene
-		// this.scene.traverse((object) => {
-		// 	if (!object.isMesh) return;
-
-		// 	if (object.geometry) {
-		// 		object.geometry.dispose();
-		// 	}
-
-		// 	if (object.material) {
-		// 		if (Array.isArray(object.material)) {
-		// 			object.material.map((material) => material.dispose());
-		// 		} else {
-		// 			object.material.dispose();
-		// 		}
-		// 	}
-		// });
+		this.board.dispose();
+		this.ball.dispose();
+		this.player1.dispose();
+		this.player2.dispose();
+		this.dispose();
 	}
 }

@@ -4,10 +4,14 @@ import { usePropsContext } from '@/app/context/PropsContext';
 import { useWebSocketContext } from '@/app/context/WebSocketContext';
 
 import { Props } from '@/app/(game)/ping-pong/common/Common';
+import { useState } from 'react';
 
 function SettingPingPong() {
-	const webContext = useWebSocketContext();
 	const propsContext = usePropsContext();
+	const webContext = useWebSocketContext();
+
+	const [isButtonClicked, setButtonClicked] = useState(false);
+
 
 	const setMode = () => {
 		propsContext.setProps({
@@ -37,6 +41,8 @@ function SettingPingPong() {
 			playerType: propsContext.props.playerType,
 			mode: propsContext.props.mode,
 		});
+
+		setButtonClicked(true);
 	};
 
 	const invitePlayer = () => {
@@ -45,6 +51,8 @@ function SettingPingPong() {
 		webContext.game.emit("invitePlayer", {
 			playerId: "playerId",
 		});
+
+		setButtonClicked(true);
 	}
 
 	return (
@@ -62,12 +70,13 @@ function SettingPingPong() {
 
 			{!propsContext.props.invite ? (
 				/* join game */
-				<button id="Button" onClick={joinGame}>Join Game</button>
+				<button id="Button" onClick={joinGame} disabled={isButtonClicked}>Join Game</button>
 			) : (
 				/* start game */
-				<button id="Button" onClick={invitePlayer}>Confirme Invitation</button>
-			)}
-		</div>
+				<button id="Button" onClick={invitePlayer} disabled={isButtonClicked}>Confirme Invitation</button>
+			)
+			}
+		</div >
 	);
 }
 

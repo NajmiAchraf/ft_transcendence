@@ -8,8 +8,7 @@ import { usePropsContext } from '@/app/context/PropsContext';
 import { useWebSocketContext } from '@/app/context/WebSocketContext';
 import { useCanvasContext } from '@/app/context/CanvasContext';
 
-import { Props } from '@/app/(game)/ping-pong/common/Common';
-import Game from '@/app/(game)/ping-pong/game/Game';
+import { Text } from '@/app/(game)/ping-pong/game/Board';
 
 function PlayPingPong() {
 	const canvasContext = useCanvasContext();
@@ -22,11 +21,22 @@ function PlayPingPong() {
 	const [currentTime, setCurrentTime] = useState<string>("--:--");
 
 	useEffect(() => {
-		canvasContext.canvas = canvasRef.current;
-		if (!canvasContext.canvas || !canvasRef.current) {
-			throw new Error("Canvas not defined");
+		async function Start() {
+			await Text.loadFont();
+
+			canvasContext.canvas = canvasRef.current;
+			if (!canvasContext.canvas || !canvasRef.current) {
+				throw new Error("Canvas not defined");
+			}
+			webContext.game.emit("readyCanvas");
 		}
-		webContext.game.emit("readyCanvas");
+
+		Start();
+		return () => {
+			console.log("PlayPingPong unmount");
+			// reset canvas
+			canvasContext.setCanvas(null);
+		};
 	}, []);
 
 	const interval = setInterval(() => {

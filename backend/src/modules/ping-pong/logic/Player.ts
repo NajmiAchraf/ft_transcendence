@@ -28,6 +28,9 @@ export class Paddle {
 	myID: string;
 	otherID: string;
 
+	listener: any;
+	playerUpdate: (data: { y: number }) => void;
+
 	constructor(game: Game, side: Side, playerType: PlayerType, myID: string, otherID: string) {
 		this.side = side;
 
@@ -52,17 +55,13 @@ export class Paddle {
 		this.y = 0;
 		this.z = vars.z + vars.depth / 2 + this.depth / 2;
 
-		console.log("myID : ", this.myID);
-		if (this.myID !== 'bot') {
-			// get the player coordinates with the id in namespace ping-pong
-			// const player = this.game.room.pingPongGateway.server.of('/ping-pong')
-			// const player = this.game.room.pingPongGateway.server._nsps.get('/ping-pong').sockets.get(this.myID);
-			const player = this.game.server.sockets.sockets.get(this.myID);
-			// console.log('pingPongNamespace: ', pingPongNamespace);
+		this.playerUpdate = (data: { y: number }) => {
+			this.y = data.y;
+		}
 
-			player.on("playerUpdate", (data: { y: number }) => {
-				this.y = data.y;
-			});
+		if (this.myID !== 'bot') {
+			this.listener = this.game.server.sockets.sockets.get(this.myID);
+			this.listener.on("playerUpdate", this.playerUpdate);
 		}
 
 	}
@@ -73,6 +72,12 @@ export class Paddle {
 			this.game.server.to(this.otherID).emit("otherPlayerUpdate", {
 				y: this.y,
 			});
+	}
+
+	destroy(): void {
+		if (this.myID !== 'bot') {
+			this.listener.off("playerUpdate", this.playerUpdate);
+		}
 	}
 }
 
@@ -145,7 +150,11 @@ export default class Player {
 	}
 
 	update(): void {
-		// if (this.paddle instanceof Bot)
 		this.paddle.update();
 	}
+
+	destroy(): void {
+		this.paddle.destroy();
+	}
+
 }
