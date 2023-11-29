@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import Game from '@/app/(game)/ping-pong/game/Game';
 
@@ -15,6 +15,10 @@ function Service(setInGame: (inGame: boolean) => void) {
 	const propsContext = usePropsContext();
 	const webSocketContext = useWebSocketContext();
 	const webSocketGame = webSocketContext.socketGame;
+
+	let [readyPlay, setReadyPlay] = useState<boolean>(false);
+	let [startPlay, setStartPlay] = useState<boolean>(false);
+	let [endGame, setEndGame] = useState<boolean>(true);
 
 	let game: Game;
 	let dataPlayer: any | undefined = undefined;
@@ -39,10 +43,15 @@ function Service(setInGame: (inGame: boolean) => void) {
 				};
 
 				const initGame = () => {
-					console.log("initGame => readyPlay: ", propsContext.props.startPlay);
-					if (!propsContext.props.readyPlay) {
-						propsContext.props.endGame = false;
+					console.log("initGame => readyPlay: ", propsContext.props.readyPlay, " apply: ", endGame);
+					if (endGame) {
+						readyPlay = true;
+						startPlay = false;
+						endGame = false;
+
 						propsContext.props.readyPlay = true;
+						propsContext.props.startPlay = false;
+						propsContext.props.endGame = false;
 
 						game = new Game(getSocket, getProps, getCanvas, getDataPlayer);
 
@@ -51,10 +60,15 @@ function Service(setInGame: (inGame: boolean) => void) {
 				}
 
 				const runGame = () => {
-					console.log("runGame => startPlay: ", propsContext.props.startPlay);
-					if (!propsContext.props.startPlay) {
-						propsContext.props.endGame = false;
+					console.log("runGame => startPlay: ", propsContext.props.startPlay, " apply: ", readyPlay);
+					if (readyPlay) {
+						readyPlay = false;
+						startPlay = true;
+						endGame = false;
+
+						propsContext.props.readyPlay = true;
 						propsContext.props.startPlay = true;
+						propsContext.props.endGame = false;
 
 						game.run();
 
@@ -62,10 +76,15 @@ function Service(setInGame: (inGame: boolean) => void) {
 				}
 
 				const stopGame = () => {
-					console.log("stopGame => startPlay: ", propsContext.props.startPlay);
-					if (propsContext.props.startPlay) {
-						propsContext.props.endGame = true;
+					console.log("stopGame => endGame: ", propsContext.props.endGame, " apply: ", startPlay);
+					if (startPlay) {
+						readyPlay = false;
+						startPlay = false;
+						endGame = true;
+
+						propsContext.props.readyPlay = false;
 						propsContext.props.startPlay = false;
+						propsContext.props.endGame = true;
 
 						game.stop();
 					}
@@ -73,15 +92,18 @@ function Service(setInGame: (inGame: boolean) => void) {
 
 				const winGame = () => {
 					console.log("winGame => endGame: ", propsContext.props.endGame);
-					if (!propsContext.props.endGame) {
+					if (!endGame) {
+						endGame = true;
 						propsContext.props.endGame = true;
+
 						game.win();
 					}
 				}
 
 				const loseGame = () => {
 					console.log("loseGame => endGame: ", propsContext.props.endGame);
-					if (!propsContext.props.endGame) {
+					if (!endGame) {
+						endGame = true;
 						propsContext.props.endGame = true;
 						game.lose();
 					}

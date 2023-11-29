@@ -146,6 +146,12 @@ export default class Game extends CanvasComponent {
 
 	duration: number = 1500;
 
+	// boolean to check done
+	running: boolean = false;
+	stopped: boolean = false;
+	lost: boolean = false;
+	winned: boolean = false;
+
 	constructor(getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>, getProps: () => Props, getCanvas: () => Canvas, getDataPlayer: () => any) {
 		if (!getCanvas())
 			throw new Error("Canvas is not defined");
@@ -284,6 +290,9 @@ export default class Game extends CanvasComponent {
 	}
 
 	run() {
+		if (this.running)
+			return;
+		this.running = true;
 		this.animate();
 		this.renderer.setAnimationLoop(() => {
 			this.update()
@@ -291,6 +300,9 @@ export default class Game extends CanvasComponent {
 	}
 
 	win() {
+		if (this.winned)
+			return;
+		this.winned = true;
 		this.board.win();
 		this.hardResetCamera();
 		// last update
@@ -300,6 +312,9 @@ export default class Game extends CanvasComponent {
 	}
 
 	lose() {
+		if (this.lost)
+			return;
+		this.lost = true;
 		this.board.lose();
 		this.hardResetCamera();
 		// last update
@@ -309,6 +324,9 @@ export default class Game extends CanvasComponent {
 	}
 
 	stop() {
+		if (this.stopped)
+			return;
+		this.stopped = true;
 		this.board.dispose();
 		this.ball.dispose();
 		this.player1.dispose();
