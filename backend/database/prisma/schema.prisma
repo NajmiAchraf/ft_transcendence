@@ -49,7 +49,7 @@ model user {
     blocked_user blocked[] @relation(name: "blocked_user")
     blocking_user blocked[] @relation(name: "blocking_user")
     banned_user banned[] @relation(name: "banned_user")
-    mutted_user mutted[] @relation(name: "mutted_user")
+    muted_user muted[] @relation(name: "muted_user")
 }
 
 model channel {
@@ -64,7 +64,7 @@ model channel {
   cm_channel channels_message[] @relation(name: "cm_channel")
   channel user_channel[] @relation(name: "channel")
   banning_channel banned[] @relation(name: "banning_channel")
-  mutting_channel mutted[] @relation(name: "mutting_channel")
+  muting_channel muted[] @relation(name: "muting_channel")
 }
 
 model friends {
@@ -162,13 +162,12 @@ model banned {
   created_at DateTime @default(now())
 }
 
-model mutted {
+model muted {
   id        Int      @id @default(autoincrement())
-  mutted_user_id Int
-  mutted_user     user     @relation(name: "mutted_user", fields: [mutted_user_id], references: [id])
+  muted_user_id Int
+  muted_user     user     @relation(name: "muted_user", fields: [muted_user_id], references: [id])
   channel_id Int
-  mutting_channel     channel     @relation(name: "mutting_channel", fields: [channel_id], references: [id])
-  duration Int
+  muting_channel     channel     @relation(name: "muting_channel", fields: [channel_id], references: [id])
   created_at DateTime @default(now())
 }
 

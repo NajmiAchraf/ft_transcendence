@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ChatHttpService } from './chat_http.service';
 import { Request } from 'express';
-import { ChatBlockCheckGuard } from 'src/common/guards';
+import { ChatBlockCheckGuard, BannedMemberGuard, BannedUserGuard } from 'src/common/guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerConfig } from 'src/common/confs/multer.config';
 import { avatarDto } from 'src/common/dtos/avatar.dto';
@@ -35,18 +35,18 @@ export class ChatHttpController {
 
 	@Post('createChannel')
 	@UseInterceptors(FileInterceptor('avatar', multerConfig))
-	async addMoreInfos(@Body() body: CreateChannelDto, @UploadedFile() file: avatarDto, @Req() req: Request) {
+	async createChannel(@Body() body: CreateChannelDto, @UploadedFile() file: avatarDto, @Req() req: Request) {
 		body.avatar = file.path;
 		return this.chatHttpService.createChannel(body, req.user['sub']);
 	}
 
-	// ! banned_guard
+	@UseGuards(BannedMemberGuard)
 	@UseGuards(ChatBlockCheckGuard)
 	@Post('addChannelMember')
 	async addChannelMember(@Req() req: Request, @Body() body: any) {
 		const userId = req.user['sub'];
 		const channelId = +body.channelId;
-		const memberId = +body.memberId;
+		const memberId = +body.profileId;
 		return this.chatHttpService.addChannelMember(userId, channelId, memberId);
 	}
 
@@ -55,11 +55,12 @@ export class ChatHttpController {
 	async addChannelAdmin(@Req() req: Request, @Body() body: any) {
 		const userId = req.user['sub'];
 		const channelId = +body.channelId;
-		const memberId = +body.memberId;
+		const memberId = +body.profileId;
 		return this.chatHttpService.addChannelAdmin(userId, channelId, memberId);
 	}
 
 	// ! banned_guard
+	@UseGuards(BannedUserGuard)
 	@Post('joinChannel')
 	async joinChannel(@Req() req: Request, @Body() body: any) {
 		const userId = req.user['sub'];
@@ -67,4 +68,55 @@ export class ChatHttpController {
 		const password = body.password;
 		return this.chatHttpService.joinChannel(userId, channelId, password);
 	}
+
+	@Post('leaveChannel')
+	async leaveChannel(@Req() req: Request, @Body() body: any) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		return this.chatHttpService.leaveChannel(userId, channelId);
+	}
+
+	@Post('kickChannelMember')
+	async kickChannelMember(@Req() req: Request, @Body() body: any) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		const memberId = +body.memberId;
+		return this.chatHttpService.kickChannelMember(userId, channelId, memberId);
+	}
+
+	@Post('banChannelMember')
+	async banChannelMember(@Req() req: Request, @Body() body: any) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		const memberId = +body.memberId;
+		return this.chatHttpService.banChannelMember(userId, channelId, memberId);
+	}
+
+	@Post('muteChannelMember')
+	async muteChannelMember(@Req() req: Request, @Body() body: any) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		const memberId = +body.memberId;
+		return this.chatHttpService.muteChannelMember(userId, channelId, memberId);
+	}
+
+	@Post('changeChannelPassword')
+	async changeChannelPassword(@Req() req: Request, @Body() body: any) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		const password = body.password;
+		return this.chatHttpService.changeChannelPassword(userId, channelId, password);
+	}
+
+	@Post('removeChannelPassword')
+	async removeChannelPassword(@Req() req: Request, @Body() body: any) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		return this.chatHttpService.removeChannelPassword(userId, channelId);
+	}
 }
+
+
+/*
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoib21hcnJyIiwiaWF0IjoxNzAxMjY4NzIxLCJleHAiOjE3MDEzNTUxMjF9.aNBerca4xpVc_4Rn2zzF5C4AQUiWuxK_SPxKdGkM10g
+*/

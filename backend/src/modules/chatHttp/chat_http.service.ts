@@ -72,11 +72,11 @@ export class ChatHttpService {
 
 	async createChannel(body: CreateChannelDto, userId: number) {
 		if (body.privacy !== 'private' && body.privacy !== 'public' && body.privacy !== 'protected') {
-			throw new Error('Invalid privacy');
+			throw new ForbiddenException('Invalid privacy');
 		}
 
 		if (body.privacy === 'protected' && body.password !== undefined) {
-			throw new Error('Password must be provided for protected channels');
+			throw new ForbiddenException('Password must be provided for protected channels');
 		}
 
 		try {
@@ -110,8 +110,94 @@ export class ChatHttpService {
 				}
 			});
 		} catch (error) {
-			return { error: 'Channel name already exists' };
+			throw new ForbiddenException('Channel name already exists');
 		}
+	}
+
+	async changeChannelPassword(userId: number, channelId: number, password: string | undefined) {
+		if (password === undefined) {
+			throw new ForbiddenException('Password must be provided');
+		}
+
+		// check if the user is the owner
+		const entry = await this.prsimaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		if (entry.user_role !== 'owner') {
+			throw new ForbiddenException('Only owners can change the password');
+		}
+
+		const channelEntry = await this.prsimaService.channel.findUnique({
+			where: {
+				id: channelId,
+			},
+			select: {
+				privacy: true,
+			}
+		});
+
+		if (channelEntry.privacy !== 'protected') {
+			throw new ForbiddenException('Only protected channels have passwords');
+		}
+
+		const hash = await this.globalHelperService.hashData(password);
+
+		await this.prsimaService.channel.update({
+			where: {
+				id: channelId,
+			},
+			data: {
+				password: hash,
+			}
+		});
+	}
+
+	async removeChannelPassword(userId: number, channelId: number) {
+		// check if the user is the owner
+		const entry = await this.prsimaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		if (entry.user_role !== 'owner') {
+			throw new ForbiddenException('Only owners can remove the password');
+		}
+
+		const channelEntry = await this.prsimaService.channel.findUnique({
+			where: {
+				id: channelId,
+			},
+			select: {
+				privacy: true,
+			}
+		});
+
+		if (channelEntry.privacy !== 'protected') {
+			throw new ForbiddenException('Only protected channels have passwords');
+		}
+
+		await this.prsimaService.channel.update({
+			where: {
+				id: channelId,
+			},
+			data: {
+				privacy: 'public',
+			}
+		});
 	}
 
 	async addChannelMember(userId: number, channelId: number, memberId: number) {
@@ -131,7 +217,7 @@ export class ChatHttpService {
 			throw new ForbiddenException('You are not in the channel');
 		}
 
-		// check if the channel is not protected
+		// check if the channel is protected
 		const channel = await this.prsimaService.channel.findUnique({
 			where: {
 				id: channelId,
@@ -168,6 +254,18 @@ export class ChatHttpService {
 				user_role: 'member',
 				channel_id: channelId,
 				user_id: memberId,
+			}
+		});
+
+		// * increment members_count
+		await this.prsimaService.channel.update({
+			where: {
+				id: channelId,
+			},
+			data: {
+				members_count: {
+					increment: 1,
+				}
 			}
 		});
 	}
@@ -207,7 +305,7 @@ export class ChatHttpService {
 		}
 
 		// check if user is already an admin
-		if (addedEntry.user_role === 'admin') {
+		if (addedEntry.user_role === 'admin' || addedEntry.user_role === 'owner') {
 			throw new ForbiddenException('User is already an admin');
 		}
 
@@ -235,7 +333,6 @@ export class ChatHttpService {
 			throw new ForbiddenException('You are already in the channel');
 		}
 
-		// check if the channel is protected
 		const channel = await this.prsimaService.channel.findUnique({
 			where: {
 				id: channelId,
@@ -246,8 +343,203 @@ export class ChatHttpService {
 			}
 		});
 
+		// you can join a private channel only if you are invited
+		if (channel.privacy === 'private') {
+			throw new ForbiddenException('Channel is private');
+		}
+		// check if the channel is protected and if the password is correct
 		if (channel.privacy === 'protected' && !await this.globalHelperService.verifyHash(channel.password, password)) {
 			throw new ForbiddenException('Invalid password');
 		}
+
+		// add user to channel
+		await this.prsimaService.user_channel.create({
+			data: {
+				user_role: 'member',
+				channel_id: channelId,
+				user_id: userId,
+			}
+		});
+
+		// * increment members_count
+		await this.prsimaService.channel.update({
+			where: {
+				id: channelId,
+			},
+			data: {
+				members_count: {
+					increment: 1,
+				}
+			}
+		});
+	}
+
+	async leaveChannel(userId: number, channelId: number) {
+		// check if the user is in the channel
+		const entry = await this.prsimaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		// check if the user is the owner
+		if (entry.user_role === 'owner') {
+			const [admin] = await this.prsimaService.user_channel.findMany({
+				where: {
+					channel_id: channelId,
+					user_role: 'admin',
+				},
+				take: 1,
+				orderBy: {
+					created_at: 'asc',
+				}
+			});
+
+			if (!admin) {
+				throw new ForbiddenException('No admin replace the owner');
+			}
+
+			// set the first admin as the owner
+			await this.prsimaService.user_channel.update({
+				where: {
+					id: admin.id,
+				},
+				data: {
+					user_role: 'owner',
+				}
+			});
+		}
+
+		// delete user from channel
+		await this.prsimaService.user_channel.delete({
+			where: {
+				id: entry.id,
+			}
+		});
+
+		// * decrement members_count
+		await this.prsimaService.channel.update({
+			where: {
+				id: channelId,
+			},
+			data: {
+				members_count: {
+					decrement: 1,
+				}
+			}
+		});
+	}
+
+	async kickChannelMember(userId: number, channelId: number, memberId: number) {
+		if (userId === memberId) {
+			throw new ForbiddenException('You cannot kick yourself');
+		}
+
+		const kickerEntry = await this.prsimaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (kickerEntry.user_role !== 'owner' && kickerEntry.user_role !== 'admin') {
+			throw new ForbiddenException('Only admins and owners can kick members');
+		}
+
+		const kickedEntry = await this.prsimaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: memberId,
+			},
+		});
+
+		if (!kickedEntry) {
+			throw new ForbiddenException('User is not in the channel');
+		}
+
+		if (kickedEntry.user_role === 'owner') {
+			throw new ForbiddenException('You cannot kick the owner');
+		}
+
+		if (kickerEntry.user_role !== 'owner' && kickedEntry.user_role === 'admin') {
+			throw new ForbiddenException('Only owners can kick admins');
+		}
+
+		await this.prsimaService.user_channel.delete({
+			where: {
+				id: kickedEntry.id,
+			}
+		});
+
+		// * decrement members_count
+		await this.prsimaService.channel.update({
+			where: {
+				id: channelId,
+			},
+			data: {
+				members_count: {
+					decrement: 1,
+				}
+			}
+		});
+	}
+
+	async banChannelMember(userId: number, channelId: number, memberId: number) {
+		try {
+			await this.kickChannelMember(userId, channelId, memberId);
+
+			await this.prsimaService.banned.create({
+				data: {
+					channel_id: channelId,
+					banned_user_id: memberId,
+				}
+			});
+		} catch (error) {
+			throw new ForbiddenException('Invalid ban');
+		}
+	}
+
+	async muteChannelMember(userId: number, channelId: number, memberId: number) {
+		const muterEntry = await this.prsimaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (muterEntry.user_role !== 'owner' && muterEntry.user_role !== 'admin') {
+			throw new ForbiddenException('Only admins and owners can mute members');
+		}
+
+		const mutedEntry = await this.prsimaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: memberId,
+			},
+		});
+
+		if (!mutedEntry) {
+			throw new ForbiddenException('User is not in the channel');
+		}
+
+		if (mutedEntry.user_role === 'owner') {
+			throw new ForbiddenException('You cannot mute the owner');
+		}
+
+		if (muterEntry.user_role !== 'owner' && mutedEntry.user_role === 'admin') {
+			throw new ForbiddenException('Only owners can mute admins');
+		}
+
+		await this.prsimaService.muted.create({
+			data: {
+				channel_id: channelId,
+				muted_user_id: memberId,
+			}
+		});
 	}
 }

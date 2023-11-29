@@ -16,12 +16,13 @@ export class ChatBlockCheckGuard implements CanActivate {
 
 		const request = context.switchToHttp().getRequest<Request>();
 
+		if (request.user['sub'] === undefined || request.body.profileId === undefined) {
+			return false;
+		}
+
 		const userId: number = request.user['sub'];
 		const profileId: number = +request.body.profileId;
 
-		if (userId === undefined || profileId === undefined) {
-			return false;
-		}
 
 		if (userId === profileId) {
 			return true;

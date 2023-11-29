@@ -200,7 +200,7 @@ export class UserService {
 			const opponent = isPlayerWinner ? match.loser : match.winner;
 			const playerGoals = isPlayerWinner ? match.winner_goals : match.loser_goals;
 			const opponentGoals = isPlayerWinner ? match.loser_goals : match.winner_goals;
-			const duration = (match.finished_at.getTime() - match.started_at.getTime()) / (1000 * 60);
+			const duration = (match.finished_at.getTime() - match.started_at.getTime()) / (1000 * 60); userId
 
 			if (opponent === null) {
 				return {
