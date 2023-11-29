@@ -9,7 +9,8 @@ import Game from '@/app/(game)/ping-pong/game/Game'
 import { vars, Geometry } from '@/app/(game)/ping-pong/common/Common'
 
 class Table {
-	table: THREE.Mesh | Reflector | null = null;
+	table: THREE.Mesh | null = null;
+	mirror: Reflector | null = null;
 	geometry: THREE.BoxGeometry | null = null;
 	material: THREE.MeshPhysicalMaterial | null = null;
 
@@ -53,7 +54,7 @@ class Table {
 
 		this.geometry = new THREE.BoxGeometry(this.width, this.height, this.depth)
 
-		this.table = new Reflector(this.geometry, {
+		this.mirror = new Reflector(this.geometry, {
 			color: 0x000000,
 			textureWidth: this.canvas.clientWidth * window.devicePixelRatio,
 			textureHeight: this.canvas.clientHeight * window.devicePixelRatio,
@@ -61,21 +62,23 @@ class Table {
 			multisample: 10,
 		});
 
-		this.game.scene.add(this.table);
-		this.table.position.set(this.board.x, this.board.y, vars.z)
+		this.game.scene.add(this.mirror);
+		this.mirror.position.set(this.board.x, this.board.y, vars.z)
 	}
 
 	disposeTable() {
 		if (this.table) {
-			this.table.geometry.dispose();
+			this.geometry?.dispose();
+			this.material?.dispose();
 			this.game.scene.remove(this.table);
 		}
 	}
 
 	disposeMirror() {
-		if (this.table) {
-			this.table.geometry.dispose();
-			this.game.scene.remove(this.table);
+		if (this.mirror) {
+			this.geometry?.dispose();
+			this.mirror.dispose();
+			this.game.scene.remove(this.mirror);
 		}
 	}
 }
@@ -133,9 +136,11 @@ class Net {
 }
 
 export class Text {
+	textGeometry: TextGeometry | null = null;
+	textMaterial: THREE.MeshBasicMaterial | null = null;
+	textMesh: THREE.Mesh | null = null;
 
 	position: THREE.Vector3;
-	text: THREE.Mesh | null = null;
 	game: Game;
 	oldText: string = "";
 
@@ -152,23 +157,34 @@ export class Text {
 
 	set(text: string, x: number = 0, size: number = vars.font_size, height: number = vars.font_height) {
 		if (text !== this.oldText) {
-			if (this.text) {
-				this.text.geometry.dispose();
-				this.game.scene.remove(this.text);
+			if (this.textMesh) {
+				this.textGeometry?.dispose();
+				this.textMaterial?.dispose();
+				this.game.scene.remove(this.textMesh);
 			}
 
-			const textGeometry = new TextGeometry(text, {
+			this.textGeometry = new TextGeometry(text, {
 				font: Text.font,
 				size: size,
 				height: height,
 			});
 
-			const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-			const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-			textMesh.position.set(this.position.x - x, this.position.y, this.position.z);
-			this.game.scene.add(textMesh);
-			this.text = textMesh;
+			this.textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+			this.textMesh = new THREE.Mesh(this.textGeometry, this.textMaterial);
+			this.textMesh.position.set(this.position.x - x, this.position.y, this.position.z);
+
+			this.game.scene.add(this.textMesh);
+
 			this.oldText = text;
+		}
+	}
+
+	dispose() {
+		if (this.textMesh) {
+			this.textGeometry?.dispose();
+			this.textMaterial?.dispose();
+			this.game.scene.remove(this.textMesh);
 		}
 	}
 }
@@ -195,9 +211,15 @@ class Score {
 		this.score1.set(player1Score.toString(), x1);
 		this.score2.set(player2Score.toString());
 	}
+
+	dispose() {
+		this.score1.dispose();
+		this.score2.dispose();
+	}
 }
 
 class EndGame {
+	endMesh: Text | null = null;
 	board: Board;
 	game: Game;
 
@@ -207,8 +229,14 @@ class EndGame {
 	}
 
 	set(x: number, y: number, z: number, state: string, size: number) {
-		const text = new Text(this.game, new THREE.Vector3(x, y, vars.z + vars.font_height + z));
-		text.set(state, 0, size);
+		this.endMesh = new Text(this.game, new THREE.Vector3(x, y, vars.z + vars.font_height + z));
+		this.endMesh.set(state, 0, size);
+	}
+
+	dispose() {
+		if (this.endMesh) {
+			this.endMesh.dispose();
+		}
 	}
 }
 
@@ -394,6 +422,7 @@ export default class Board {
 			this.table.disposeTable();
 		this.net.disposeNet();
 		this.border.disposeBorder();
-		// this.endGame.set(0, 0, 0, "", 0);
+		this.score.dispose();
+		this.endGame.dispose();
 	}
 }
