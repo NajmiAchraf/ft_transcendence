@@ -9,7 +9,7 @@ class Paddle {
 	side: Side;
 
 	paddle: THREE.Mesh
-	geometry: THREE.Geometry
+	geometry: THREE.BoxGeometry | THREE.CapsuleGeometry
 	material: THREE.Material
 
 	game: Game;
@@ -86,7 +86,7 @@ class Paddle {
 			this.game.getSocket().on("otherPlayerUpdate", this.onOtherPlayerUpdate);
 	}
 
-	paddleSetup(_geometry: Geometry): { paddle: THREE.Mesh, geometry: THREE.Geometry, material: THREE.Material } {
+	paddleSetup(_geometry: Geometry): { paddle: THREE.Mesh, geometry: THREE.BoxGeometry | THREE.CapsuleGeometry, material: THREE.Material } {
 		if (_geometry === "cube") {
 			let geometry = new THREE.BoxGeometry(this.width, this.height, this.depth)
 			let material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })

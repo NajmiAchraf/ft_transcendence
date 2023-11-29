@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { Props } from "../(game)/ping-pong/common/Common";
+import { Props } from "../common/Common";
 
 export interface IPropsContext {
 	props: Props;

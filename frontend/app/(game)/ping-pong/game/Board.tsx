@@ -68,7 +68,6 @@ class Table {
 	disposeTable() {
 		if (this.table) {
 			this.table.geometry.dispose();
-			this.table.material.dispose();
 			this.game.scene.remove(this.table);
 		}
 	}

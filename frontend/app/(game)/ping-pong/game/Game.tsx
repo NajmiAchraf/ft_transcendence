@@ -129,26 +129,6 @@ class CanvasComponent {
 		this.bloomPass.dispose();
 		// remove the canvas render
 		this.renderer.dispose();
-
-		document.body.removeChild(this.renderer.domElement);
-		document.body.removeChild(this.composer.domElement);
-
-		// Loop over all children of the scene
-		// this.scene.traverse((object) => {
-		// 	if (!object.isMesh) return;
-
-		// 	if (object.geometry) {
-		// 		object.geometry.dispose();
-		// 	}
-
-		// 	if (object.material) {
-		// 		if (Array.isArray(object.material)) {
-		// 			object.material.map((material) => material.dispose());
-		// 		} else {
-		// 			object.material.dispose();
-		// 		}
-		// 	}
-		// });
 	}
 }
 

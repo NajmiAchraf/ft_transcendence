@@ -235,6 +235,7 @@ export default class Room {
 			console.log("this.room: " + this.room[room])
 			console.log("this.room[room]: " + this.room[room][loser])
 			console.log("loser: " + loser + " roomID: " + roomID);
+
 			this.pingPongGateway.server.to(roomID[1 - loser]).emit("roomDestruction");
 
 			this.endGame(room, loser, true);

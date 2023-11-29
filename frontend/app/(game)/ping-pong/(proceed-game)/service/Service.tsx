@@ -4,9 +4,9 @@ import { useEffect } from 'react'
 
 import Game from '@/app/(game)/ping-pong/game/Game';
 
-import { useCanvasContext } from '@/app/context/CanvasContext';
-import { usePropsContext } from '@/app/context/PropsContext';
-import { useWebSocketContext } from '@/app/context/WebSocketContext';
+import { useCanvasContext } from '@/app/(game)/ping-pong/context/CanvasContext';
+import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
+import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 
 import '@/app/(game)/ping-pong.css'
 
@@ -14,7 +14,7 @@ function Service(setInGame: (inGame: boolean) => void) {
 	const canvasContext = useCanvasContext();
 	const propsContext = usePropsContext();
 	const webSocketContext = useWebSocketContext();
-	const webSocketGame = webSocketContext.game;
+	const webSocketGame = webSocketContext.socketGame;
 
 	let game: Game;
 	let dataPlayer: any | undefined = undefined;
@@ -23,7 +23,7 @@ function Service(setInGame: (inGame: boolean) => void) {
 		function SocketService() {
 			try {
 				const getSocket = () => {
-					return webSocketContext.game;
+					return webSocketContext.socketGame;
 				};
 
 				const getProps = () => {
@@ -38,59 +38,58 @@ function Service(setInGame: (inGame: boolean) => void) {
 					return dataPlayer;
 				};
 
-				const initialization = () => {
+				const initGame = () => {
+					console.log("initGame => readyPlay: ", propsContext.props.startPlay);
+					if (!propsContext.props.readyPlay) {
+						propsContext.props.endGame = false;
+						propsContext.props.readyPlay = true;
+
+						game = new Game(getSocket, getProps, getCanvas, getDataPlayer);
+
+						console.log("game.room: ", game.room);
+					}
+				}
+
+				const runGame = () => {
+					console.log("runGame => startPlay: ", propsContext.props.startPlay);
+					if (!propsContext.props.startPlay) {
+						propsContext.props.endGame = false;
+						propsContext.props.startPlay = true;
+
+						game.run();
+
+					}
+				}
+
+				const stopGame = () => {
+					console.log("stopGame => startPlay: ", propsContext.props.startPlay);
+					if (propsContext.props.startPlay) {
+						propsContext.props.endGame = true;
+						propsContext.props.startPlay = false;
+
+						game.stop();
+					}
+				}
+
+				const winGame = () => {
+					console.log("winGame => endGame: ", propsContext.props.endGame);
+					if (!propsContext.props.endGame) {
+						propsContext.props.endGame = true;
+						game.win();
+					}
+				}
+
+				const loseGame = () => {
+					console.log("loseGame => endGame: ", propsContext.props.endGame);
+					if (!propsContext.props.endGame) {
+						propsContext.props.endGame = true;
+						game.lose();
+					}
+				}
+
+				const services = () => {
 					webSocketGame.on("connect", () => {
 						console.log("Connected to namespace: /ping-pong");
-					});
-
-					webSocketGame.on("roomConstruction", () => {
-						console.log("propsContext.props.startPlay: ", propsContext.props.startPlay);
-						if (!propsContext.props.readyPlay) {
-							propsContext.props.endGame = false;
-							propsContext.props.readyPlay = true;
-
-							game = new Game(getSocket, getProps, getCanvas, getDataPlayer);
-
-							console.log("game.room: ", game.room);
-						}
-					});
-
-					webSocketGame.on("startPlay", (data: any) => {
-						console.log("startPlay: ", data);
-						if (!propsContext.props.startPlay) {
-							propsContext.props.endGame = false;
-							propsContext.props.startPlay = true;
-
-							game.run();
-						}
-					});
-
-					webSocketGame.on("roomDestruction", (roomDestruction: string) => {
-						console.log("roomDestruction: ", roomDestruction);
-						console.log("propsContext.props.startPlay: ", propsContext.props.startPlay);
-						if (propsContext.props.startPlay) {
-							propsContext.props.endGame = true;
-							propsContext.props.startPlay = false;
-
-							game.stop();
-						}
-					});
-
-					webSocketGame.on("youWin", (data: any) => {
-						console.log("youWin: ", data);
-						if (!propsContext.props.endGame) {
-							propsContext.props.endGame = true;
-							game.win();
-						}
-					});
-
-					webSocketGame.on("youLose", (data: any) => {
-						console.log("youLose: ", data);
-						console.log("propsContext.props.endGame: ", propsContext.props.endGame);
-						if (!propsContext.props.endGame) {
-							propsContext.props.endGame = true;
-							game.lose();
-						}
 					});
 
 					webSocketGame.on("dataPlayer", (data: any) => {
@@ -111,6 +110,7 @@ function Service(setInGame: (inGame: boolean) => void) {
 					});
 
 					webSocketGame.on("leaveRoom", (data: any) => {
+						stopGame();
 						setInGame(false);
 
 						console.log("leaveRoom: ", data);
@@ -123,7 +123,34 @@ function Service(setInGame: (inGame: boolean) => void) {
 					});
 				};
 
-				initialization();
+				const serviceGame = () => {
+					webSocketGame.on("roomConstruction", () => {
+						initGame();
+					});
+
+					webSocketGame.on("startPlay", (data: any) => {
+						console.log("startPlay: ", data);
+						runGame();
+					});
+
+					webSocketGame.on("roomDestruction", (roomDestruction: string) => {
+						console.log("roomDestruction: ", roomDestruction);
+						stopGame();
+					});
+
+					webSocketGame.on("youWin", (data: any) => {
+						console.log("youWin: ", data);
+						winGame();
+					});
+
+					webSocketGame.on("youLose", (data: any) => {
+						console.log("youLose: ", data);
+						loseGame();
+					});
+				}
+
+				services();
+				serviceGame();
 			} catch (error) {
 				console.error(error);
 			}

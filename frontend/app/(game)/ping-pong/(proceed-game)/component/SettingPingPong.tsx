@@ -1,7 +1,7 @@
 'use client';
 
-import { usePropsContext } from '@/app/context/PropsContext';
-import { useWebSocketContext } from '@/app/context/WebSocketContext';
+import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
+import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 
 import { Props } from '@/app/(game)/ping-pong/common/Common';
 import { useState } from 'react';
@@ -37,7 +37,7 @@ function SettingPingPong() {
 	const joinGame = () => {
 		console.log("joinGame");
 
-		webContext.game.emit("joinGame", {
+		webContext.socketGame.emit("joinGame", {
 			playerType: propsContext.props.playerType,
 			mode: propsContext.props.mode,
 		});
@@ -48,7 +48,7 @@ function SettingPingPong() {
 	const invitePlayer = () => {
 		console.log("invitePlayer");
 
-		webContext.game.emit("invitePlayer", {
+		webContext.socketGame.emit("invitePlayer", {
 			playerId: "playerId",
 		});
 

@@ -10,7 +10,7 @@ export default class Ball {
 	game: Game;
 
 	ball: THREE.Mesh
-	geometry: THREE.Geometry
+	geometry: THREE.BoxGeometry | THREE.SphereGeometry
 	material: THREE.Material
 
 	player1: Player;
@@ -58,7 +58,10 @@ export default class Ball {
 		this.game.getSocket().on("ball", this.onBall);
 	}
 
-	ballSetup(_geometry: Geometry = "cube"): { ball: THREE.Mesh, geometry: THREE.Geometry, material: THREE.Material } {
+	ballSetup(_geometry: Geometry = "cube"): {
+		ball: THREE.Mesh, geometry: THREE.BoxGeometry | THREE.SphereGeometry
+			, material: THREE.Material
+	} {
 		if (_geometry === "sphere") {
 			let geometry = new THREE.SphereGeometry(this.radius / 2)
 			let material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })

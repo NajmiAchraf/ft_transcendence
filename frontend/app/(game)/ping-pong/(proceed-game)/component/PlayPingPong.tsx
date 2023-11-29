@@ -4,9 +4,9 @@ import { useRef, useEffect, useState } from 'react'
 import * as IonIcons from 'ionicons/icons';
 import { IonIcon } from '@ionic/react';
 
-import { usePropsContext } from '@/app/context/PropsContext';
-import { useWebSocketContext } from '@/app/context/WebSocketContext';
-import { useCanvasContext } from '@/app/context/CanvasContext';
+import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
+import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
+import { useCanvasContext } from '@/app/(game)/ping-pong/context/CanvasContext';
 
 import { Text } from '@/app/(game)/ping-pong/game/Board';
 
@@ -24,18 +24,19 @@ function PlayPingPong() {
 		async function Start() {
 			await Text.loadFont();
 
+			// canvasContext.setCanvas(canvasRef.current);
 			canvasContext.canvas = canvasRef.current;
 			if (!canvasContext.canvas || !canvasRef.current) {
 				throw new Error("Canvas not defined");
 			}
-			webContext.game.emit("readyCanvas");
+			webContext.socketGame.emit("readyCanvas");
 		}
 
 		Start();
 		return () => {
 			console.log("PlayPingPong unmount");
 			// reset canvas
-			canvasContext.setCanvas(null);
+			canvasContext.canvas = null;
 		};
 	}, []);
 
@@ -57,14 +58,14 @@ function PlayPingPong() {
 		if (propsContext.props.startPlay) {
 			// if (Date.now() - startTime.current > 4000) {
 			console.log('leaveGame');
-			webContext.game.emit("leaveGame");
+			webContext.socketGame.emit("leaveGame");
 		}
 	};
 
 	const leavePair = () => {
 		if (propsContext.props.playerType === "player") {
 			console.log('leavePair');
-			webContext.game.emit("leavePair");
+			webContext.socketGame.emit("leavePair");
 		}
 	};
 

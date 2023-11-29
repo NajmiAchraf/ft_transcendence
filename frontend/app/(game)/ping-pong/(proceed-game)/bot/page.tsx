@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 
 import Service from '@/app/(game)/ping-pong/(proceed-game)/service/Service';
-import { usePropsContext } from '@/app/context/PropsContext';
+import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import '@/app/(game)/ping-pong.css'
 
 const PlayPingPong = dynamic(() => import('@/app/(game)/ping-pong/(proceed-game)/component/PlayPingPong'), { ssr: false });
