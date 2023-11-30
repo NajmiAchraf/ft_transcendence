@@ -305,6 +305,7 @@ export class UserService {
 		}
 
 		return {
+			username: user.username,
 			visibility: user.visibility,
 			avatar: user.avatar,
 			nickname: user.nickname,
