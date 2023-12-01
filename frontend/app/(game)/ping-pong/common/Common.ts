@@ -5,6 +5,7 @@ export type Side = "left" | "right";
 export type Mode = "easy" | "medium" | "hard";
 export type Geometry = "cube" | "sphere";
 export type PlayerType = "player" | "bot";
+export type PlayStates = 'readyPlay' | 'startPlay' | 'endPlay';
 
 export let vars = {
 	speed_init: 600 / 150, //! depend on width

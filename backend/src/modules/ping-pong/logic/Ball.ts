@@ -34,7 +34,7 @@ export default class Ball {
 	left: number = 0;
 	right: number = 0;
 
-	play_ball: boolean = true;
+	play_ball: boolean = false;
 
 	constructor(game: Game, mode: Mode) {
 		this.game = game;

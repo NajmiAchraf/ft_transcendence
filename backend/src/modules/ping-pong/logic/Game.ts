@@ -116,9 +116,7 @@ export default class Game {
 	private start(): void {
 		this.server.to(this.pair).emit("startPlay");
 
-		setTimeout(() => {
-			this.run();
-		}, 3000);
+		this.run();
 	}
 
 	private run(): void {

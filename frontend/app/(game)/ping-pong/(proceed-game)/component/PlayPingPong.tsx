@@ -54,16 +54,14 @@ function PlayPingPong() {
 	}, 1000 / 60);
 
 	const leaveGame = () => {
-		console.log(Date.now() - startTime.current);
 		if (propsContext.props.startPlay) {
-			// if (Date.now() - startTime.current > 4000) {
 			console.log('leaveGame');
 			webContext.socketGame.emit("leaveGame");
 		}
 	};
 
 	const leavePair = () => {
-		if (propsContext.props.playerType === "player") {
+		if (propsContext.props.playerType === "player" && !propsContext.props.readyPlay) {
 			console.log('leavePair');
 			webContext.socketGame.emit("leavePair");
 		}
