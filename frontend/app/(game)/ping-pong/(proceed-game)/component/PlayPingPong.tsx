@@ -23,8 +23,7 @@ function PlayPingPong() {
 	useEffect(() => {
 		async function Start() {
 			await Text.loadFont();
-
-			// canvasContext.setCanvas(canvasRef.current);
+			// set canvas
 			canvasContext.canvas = canvasRef.current;
 			if (!canvasContext.canvas || !canvasRef.current) {
 				throw new Error("Canvas not defined");
@@ -43,9 +42,11 @@ function PlayPingPong() {
 	const interval = setInterval(() => {
 		if (propsContext.props.startPlay) {
 			const time = (Date.now() - startTime.current) / 1000;
+			const hour = Math.floor(time / 3600);
 			const min = Math.floor(time / 60);
 			const sec = Math.floor(time % 60);
-			setCurrentTime(`${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`);
+
+			setCurrentTime(`${hour === 0 ? '' : '0' + hour + ':'}${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec} `);
 		}
 
 		if (propsContext.props.endGame) {
@@ -61,7 +62,7 @@ function PlayPingPong() {
 	};
 
 	const leavePair = () => {
-		if (propsContext.props.playerType === "player" && !propsContext.props.readyPlay) {
+		if (propsContext.props.playerType === "player") {
 			console.log('leavePair');
 			webContext.socketGame.emit("leavePair");
 		}
@@ -75,13 +76,13 @@ function PlayPingPong() {
 					<img src="/img3.png" alt="player-right" />
 				</div>
 				<div className="player p-left game-font">
-					<h3>Smyto</h3>
+					<h3>name</h3>
 				</div>
 				<div className="mid-sec game-font">
 					<h3>{currentTime}</h3>
 				</div>
 				<div className="player p-right game-font">
-					<h3 >Smyto0000000000</h3>
+					<h3>name</h3>
 				</div>
 				<div className="player p-left">
 					<img src="/img3.png" alt="player-left" />
@@ -91,14 +92,14 @@ function PlayPingPong() {
 				<div className='center-sec'>
 					{!propsContext.props.startPlay && (
 						<div className="waiting">
-							<h3>Wait</h3>
+							<h3>wait</h3>
 						</div>
 					)}
 				</div>
 			</div>
 
 			<div className="section3">
-				{propsContext.props.startPlay ? (
+				{propsContext.props.readyPlay ? (
 					<IonIcon icon={IonIcons.logOutOutline} onClick={leaveGame} />
 				) : (
 					<IonIcon icon={IonIcons.logOutOutline} onClick={leavePair} />

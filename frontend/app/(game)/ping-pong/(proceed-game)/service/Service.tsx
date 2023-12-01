@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
+
 import Game from '@/app/(game)/ping-pong/game/Game';
+
+import { PlayStates } from '@/app/(game)/ping-pong/common/Common';
+
 import { useCanvasContext } from '@/app/(game)/ping-pong/context/CanvasContext';
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
-import '@/app/(game)/ping-pong.css';
-import { PlayStates } from '../../common/Common';
 
 function Service(setInGame: (inGame: boolean) => void): void {
 	const canvasContext = useCanvasContext();
