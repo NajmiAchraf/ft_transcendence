@@ -305,10 +305,6 @@ export default class Game extends CanvasComponent {
 		this.winned = true;
 		this.board.win();
 		this.hardResetCamera();
-		// last update
-		this.update();
-		// stop animation
-		this.renderer.setAnimationLoop(null);
 	}
 
 	lose() {
@@ -317,10 +313,6 @@ export default class Game extends CanvasComponent {
 		this.lost = true;
 		this.board.lose();
 		this.hardResetCamera();
-		// last update
-		this.update();
-		// stop animation
-		this.renderer.setAnimationLoop(null);
 	}
 
 	stop() {

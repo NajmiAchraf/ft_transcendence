@@ -59,29 +59,28 @@ export default class Ball {
 	}
 
 	ballSetup(_geometry: Geometry = "cube"): {
-		ball: THREE.Mesh, geometry: THREE.BoxGeometry | THREE.SphereGeometry
-			, material: THREE.Material
+		ball: THREE.Mesh,
+		geometry: THREE.BoxGeometry | THREE.SphereGeometry,
+		material: THREE.Material
 	} {
-		if (_geometry === "sphere") {
-			let geometry = new THREE.SphereGeometry(this.radius / 2)
-			let material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
-			// let material = new THREE.MeshStandardMaterial({ color: 0x50f2f0 })
-			let ball = new THREE.Mesh(geometry, material)
-			ball.position.set(this.x, this.y, this.z)
-			this.game.scene.add(ball)
-			return { ball, geometry, material }
-		}
-		let geometry = new THREE.BoxGeometry(this.radius, this.radius, this.radius)
-		let material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
-		// let material = new THREE.MeshStandardMaterial({ color: 0x50f2f0 })
-		let ball = new THREE.Mesh(geometry, material)
+		let geometry: THREE.BoxGeometry | THREE.SphereGeometry
+		if (_geometry === "sphere")
+			geometry = new THREE.SphereGeometry(this.radius / 2)
+		else
+			geometry = new THREE.BoxGeometry(this.radius, this.radius, this.radius)
+
+		const material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
+
+		const ball = new THREE.Mesh(geometry, material)
 		ball.position.set(this.x, this.y, this.z)
+
 		this.game.scene.add(ball)
+
 		return { ball, geometry, material }
 	}
 
 	update() {
-		this.ball.position.set(this.x, this.y, this.z)
+		this.ball.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.3)
 	}
 
 	dispose() {

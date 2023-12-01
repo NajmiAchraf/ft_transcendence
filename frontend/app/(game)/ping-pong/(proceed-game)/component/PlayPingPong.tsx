@@ -76,13 +76,13 @@ function PlayPingPong() {
 					<img src="/img3.png" alt="player-right" />
 				</div>
 				<div className="player p-left game-font">
-					<h3>name</h3>
+					<h3>{propsContext.props.player2Name}</h3>
 				</div>
 				<div className="mid-sec game-font">
 					<h3>{currentTime}</h3>
 				</div>
 				<div className="player p-right game-font">
-					<h3>name</h3>
+					<h3>{propsContext.props.player1Name}</h3>
 				</div>
 				<div className="player p-left">
 					<img src="/img3.png" alt="player-left" />

@@ -118,13 +118,18 @@ export default class Room {
 
 		const [player1, player2] = pair;
 
+
 		this.pingPongGateway.server.to(player1[1]).emit("dataPlayer", {
 			side: "right",
+			player1Name: player1[0],
+			player2Name: player2[0],
 			room: idRoom,
 		});
 
 		this.pingPongGateway.server.to(player2[1]).emit("dataPlayer", {
 			side: "left",
+			player1Name: player1[0],
+			player2Name: player2[0],
 			room: idRoom,
 		});
 

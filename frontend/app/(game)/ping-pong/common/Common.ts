@@ -25,6 +25,8 @@ export type Props = {
 	mirror: boolean,
 	mode: Mode,
 	playerType: PlayerType,
+	player1Name: string,
+	player2Name: string,
 	invite: boolean,
 	readyPlay: boolean,
 	startPlay: boolean,

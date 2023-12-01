@@ -86,6 +86,8 @@ function Service(setInGame: (inGame: boolean) => void): void {
 	const handleDataPlayer = (data: any) => {
 		console.log('dataPlayer: ', data);
 		dataPlayer = data;
+		propsContext.props.player1Name = data.player1Name;
+		propsContext.props.player2Name = data.player2Name;
 	};
 
 	const handleAllowToPlay = (data: any) => {

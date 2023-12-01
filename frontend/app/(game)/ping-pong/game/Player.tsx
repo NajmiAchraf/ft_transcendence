@@ -71,7 +71,6 @@ class Paddle {
 
 		this.onOtherPlayerUpdate = (data: any) => {
 			this.y = data.y;
-			this.paddle.position.set(this.x, this.y, this.z)
 		};
 
 		// Define a variable to store the mouse position
@@ -86,26 +85,27 @@ class Paddle {
 			this.game.getSocket().on("otherPlayerUpdate", this.onOtherPlayerUpdate);
 	}
 
-	paddleSetup(_geometry: Geometry): { paddle: THREE.Mesh, geometry: THREE.BoxGeometry | THREE.CapsuleGeometry, material: THREE.Material } {
-		if (_geometry === "cube") {
-			let geometry = new THREE.BoxGeometry(this.width, this.height, this.depth)
-			let material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
-			let paddle = new THREE.Mesh(geometry, material)
-			paddle.position.set(this.x, this.y, this.z)
-			this.game.scene.add(paddle)
-
-			return { paddle, geometry, material }
-		} else if (_geometry === "sphere") {
+	paddleSetup(_geometry: Geometry = "cube"): {
+		paddle: THREE.Mesh,
+		geometry: THREE.BoxGeometry | THREE.CapsuleGeometry,
+		material: THREE.Material
+	} {
+		let geometry: THREE.BoxGeometry | THREE.CapsuleGeometry
+		if (_geometry === "sphere") {
 			const radius = this.width / 2;
-			let geometry = new THREE.CapsuleGeometry(radius, this.height - radius * 2, 16, 32);
-			let material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-			let paddle = new THREE.Mesh(geometry, material);
-			paddle.position.set(this.x, this.y, this.z)
-			this.game.scene.add(paddle)
-
-			return { paddle, geometry, material }
+			geometry = new THREE.CapsuleGeometry(radius, this.height - radius * 2, 16, 32);
 		}
-		throw new Error("Invalid geometry");
+		else
+			geometry = new THREE.BoxGeometry(this.width, this.height, this.depth)
+
+		const material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
+
+		const paddle = new THREE.Mesh(geometry, material)
+		paddle.position.set(this.x, this.y, this.z)
+
+		this.game.scene.add(paddle)
+
+		return { paddle, geometry, material }
 	}
 
 	paddle_position(event: MouseEvent): void {
@@ -138,7 +138,10 @@ class Paddle {
 	}
 
 	update(): void {
-		this.paddle.position.set(this.x, this.y, this.z)
+		if (this.game.getDataPlayer().side === this.side || this.game.getDataPlayer().player2Name !== "bot")
+			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.3)
+		else if (this.game.getDataPlayer().player2Name === "bot" && this.game.ball.x < -vars.width / 3)
+			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.3)
 	}
 
 	dispose(): void {
