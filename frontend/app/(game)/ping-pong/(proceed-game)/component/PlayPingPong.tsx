@@ -61,13 +61,6 @@ function PlayPingPong() {
 		}
 	};
 
-	const leavePair = () => {
-		if (propsContext.props.playerType === "player") {
-			console.log('leavePair');
-			webContext.socketGame.emit("leavePair");
-		}
-	};
-
 	return (
 		<div className="Parent" id="Parent">
 			<canvas ref={canvasRef} id="PingPong"></canvas>
@@ -99,11 +92,7 @@ function PlayPingPong() {
 			</div>
 
 			<div className="section3">
-				{propsContext.props.readyPlay ? (
-					<IonIcon icon={IonIcons.logOutOutline} onClick={leaveGame} />
-				) : (
-					<IonIcon icon={IonIcons.logOutOutline} onClick={leavePair} />
-				)}
+				<IonIcon icon={IonIcons.logOutOutline} onClick={leaveGame} />
 			</div>
 		</div >
 	);

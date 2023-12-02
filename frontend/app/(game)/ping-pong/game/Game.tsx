@@ -305,6 +305,7 @@ export default class Game extends CanvasComponent {
 		this.winned = true;
 		this.board.win();
 		this.hardResetCamera();
+		this.ball.reset();
 	}
 
 	lose() {
@@ -313,6 +314,7 @@ export default class Game extends CanvasComponent {
 		this.lost = true;
 		this.board.lose();
 		this.hardResetCamera();
+		this.ball.reset();
 	}
 
 	stop() {

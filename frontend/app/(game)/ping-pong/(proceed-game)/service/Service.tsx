@@ -4,13 +4,13 @@ import { useEffect } from 'react';
 
 import Game from '@/app/(game)/ping-pong/game/Game';
 
-import { PlayStates } from '@/app/(game)/ping-pong/common/Common';
+import { GameStates, PlayStates } from '@/app/(game)/ping-pong/common/Common';
 
 import { useCanvasContext } from '@/app/(game)/ping-pong/context/CanvasContext';
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 
-function Service(setInGame: (inGame: boolean) => void): void {
+function Service(setGameState: (setGameState: GameStates) => void): void {
 	const canvasContext = useCanvasContext();
 	const propsContext = usePropsContext();
 	const webSocketContext = useWebSocketContext();
@@ -91,23 +91,28 @@ function Service(setInGame: (inGame: boolean) => void): void {
 	};
 
 	const handleAllowToPlay = (data: any) => {
-		setInGame(true);
+		setGameState("play");
 		console.log('allowToPlay: ', data);
 	};
 
+	const handleAllowToWait = (data: any) => {
+		setGameState("wait");
+		console.log('allowToWait: ', data);
+	};
+
 	const handleDenyToPlay = (data: any) => {
-		setInGame(false);
+		setGameState("settings");
 		console.log('denyToPlay: ', data);
 	};
 
 	const handleLeaveRoom = (data: any) => {
 		stopGame();
-		setInGame(false);
+		setGameState("settings");
 		console.log('leaveRoom: ', data);
 	};
 
 	const handleLeaveQueue = (data: any) => {
-		setInGame(false);
+		setGameState("settings");
 		console.log('leaveQueue: ', data);
 	};
 
@@ -139,6 +144,7 @@ function Service(setInGame: (inGame: boolean) => void): void {
 		webSocketGame.on('connect', handleConnect);
 		webSocketGame.on('dataPlayer', handleDataPlayer);
 		webSocketGame.on('allowToPlay', handleAllowToPlay);
+		webSocketGame.on('allowToWait', handleAllowToWait);
 		webSocketGame.on('denyToPlay', handleDenyToPlay);
 		webSocketGame.on('leaveRoom', handleLeaveRoom);
 		webSocketGame.on('leaveQueue', handleLeaveQueue);

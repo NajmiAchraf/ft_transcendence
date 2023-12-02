@@ -83,6 +83,12 @@ export default class Ball {
 		this.ball.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.3)
 	}
 
+	reset() {
+		this.x = 0;
+		this.y = 0;
+		this.velocityX = vars.speed_init / 2;
+	}
+
 	dispose() {
 		this.game.scene.remove(this.ball)
 		this.geometry.dispose()

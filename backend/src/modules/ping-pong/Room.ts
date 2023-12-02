@@ -146,10 +146,13 @@ export default class Room {
 
 		const pair = this.pair.addPlayer(playerID, clientID);
 		// emit to client that he is in pair
-		this.pingPongGateway.server.to(clientID).emit("allowToPlay", { message: "You are in pair" });
+		this.pingPongGateway.server.to(clientID).emit("allowToWait", { message: "You are in pair" });
 
 		if (pair) {
 			this.createGame(pair, "player", "player", "medium");
+
+			this.pingPongGateway.server.to([pair[0][1], pair[1][1]]).emit("allowToPlay", { message: "You are in room" });
+
 			return this.idRoom.toString();
 		}
 
@@ -163,10 +166,11 @@ export default class Room {
 		}
 
 		const pair: PairType = [[playerID, clientID], ['bot', 'bot']];
-		// emit to client that he is in pair
-		this.pingPongGateway.server.to(clientID).emit("allowToPlay", { message: "You are in pair" });
 
 		this.createGame(pair, "player", "bot", mode);
+
+		// emit to client that he is in pair
+		this.pingPongGateway.server.to(clientID).emit("allowToPlay", { message: "You are in room" });
 
 		return this.idRoom.toString();
 	}
@@ -241,7 +245,7 @@ export default class Room {
 			console.log("this.room[room]: " + this.room[room][loser])
 			console.log("loser: " + loser + " roomID: " + roomID);
 
-			this.pingPongGateway.server.to(roomID[1 - loser]).emit("roomDestruction");
+			this.pingPongGateway.server.to(roomID[loser]).emit("roomDestruction");
 
 			this.endGame(room, loser, true);
 
