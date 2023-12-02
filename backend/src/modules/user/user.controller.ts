@@ -126,6 +126,15 @@ export class UserController {
 	}
 
 	@BlockPublic()
+	@Post('settingsAvatar')
+	@UseInterceptors(FileInterceptor('avatar', multerConfig))
+	async updateSettingsAvatar(@Body() body: any, @Req() req: Request, @UploadedFile() file: avatarDto) {
+		body.avatar = file.path;
+		const userId = req.user['sub'];
+		return this.userService.updateSettingsAvatar(body, userId);
+	}
+
+	@BlockPublic()
 	@Get('2factorQr')
 	async getTwoFactorQr(@Req() req: Request, @Res() res: Response) {
 		const userId = req.user['sub'];

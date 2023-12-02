@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdditionalInfo } from './dto';
 import { UserHelperService } from './user_helper.service';
 import { GlobalHelperService } from 'src/common/services/global_helper.service';
+import * as path from 'path';
 
 @Injectable()
 export class UserService {
@@ -20,7 +21,7 @@ export class UserService {
 		});
 
 		if (entry.nickname !== null) {
-			throw new BadRequestException('Additional infos already exists');
+			throw new ForbiddenException('Additional infos already exists');
 		}
 		const user = await this.prismaService.user.findUnique({
 			where: {
@@ -28,7 +29,7 @@ export class UserService {
 			},
 		});
 		if (user) {
-			throw new BadRequestException('Nickname already exists');
+			throw new ForbiddenException('Nickname already exists');
 		}
 		return await this.prismaService.user.update({
 			where: {
@@ -38,7 +39,7 @@ export class UserService {
 				nickname: additionalInfos.nickname,
 				fullname: additionalInfos.fullname,
 				gender: additionalInfos.gender,
-				avatar: additionalInfos.avatar,
+				avatar: path.join(process.env.API_URL, additionalInfos.avatar),
 			}
 		});
 	}
@@ -161,7 +162,14 @@ export class UserService {
 		});
 
 		const channelList = channels.map((entry) => {
-			return { id: entry.channel.id, name: entry.channel.channel_name, avatar: entry.channel.avatar, privacy: entry.channel.privacy, members_count: entry.channel.members_count, isJoined: false };
+			return {
+				id: entry.channel.id,
+				name: entry.channel.channel_name,
+				avatar: entry.channel.avatar,
+				privacy: entry.channel.privacy,
+				members_count: entry.channel.members_count,
+				isJoined: false
+			};
 		});
 
 		let filteredChannelList = [];
@@ -269,6 +277,61 @@ export class UserService {
 			data: {
 				visibility: body.visibility,
 				avatar: body.avatar,
+				nickname: body.nickname,
+			},
+		});
+
+		if (body.two_factor_auth === false) {
+			await this.prismaService.user.update({
+				where: {
+					id: userId,
+				},
+				data: {
+					two_factor_auth: false,
+					is_two_factor_authenticated: false,
+				}
+			});
+		}
+
+		// deleting sensitive data
+		delete updatedUser.two_factor_secret;
+		delete updatedUser.password;
+		delete updatedUser.refresh_token;
+
+		// ! the front end must check the 2factor in the response, in order to decide.
+		return { updatedUser, two_factor_auth: body.two_factor_auth };
+	}
+
+	async updateSettingsAvatar(body: any, userId: number) {
+		// checking if user exists
+		let user = await this.prismaService.user.findUnique({
+			where: {
+				id: userId,
+			},
+		});
+		if (!user) {
+			throw new NotFoundException('User not found');
+		}
+
+		// checking if nickname already exists
+		user = await this.prismaService.user.findUnique({
+			where: {
+				nickname: body.nickname,
+			},
+		});
+
+		if (user && user.id !== userId) {
+			throw new BadRequestException('Nickname already exists');
+		}
+
+		// updating user
+		const updatedUser = await this.prismaService.user.update({
+			where: {
+				id: userId,
+			},
+			data: {
+				visibility: body.visibility,
+				avatar: path.join(process.env.API_URL, body.avatar),
 				nickname: body.nickname,
 			},
 		});

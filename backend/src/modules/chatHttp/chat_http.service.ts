@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { GlobalHelperService } from 'src/common/services/global_helper.service';
 import { ChatBlockCheckGuard } from 'src/common/guards';
 import { CreateChannelDto } from './dto';
+import * as path from 'path';
 
 @Injectable()
 export class ChatHttpService {
@@ -83,7 +84,7 @@ export class ChatHttpService {
 			const channel = await this.prsimaService.channel.create({
 				data: {
 					channel_name: body.channelName,
-					avatar: body.avatar,
+					avatar: path.join(process.env.API_URL, body.avatar),
 					privacy: body.privacy,
 					members_count: 1,
 				}

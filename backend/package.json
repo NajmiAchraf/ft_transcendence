@@ -26,6 +26,7 @@
     "@nestjs/passport": "^10.0.2",
     "@nestjs/platform-express": "^10.2.10",
     "@nestjs/platform-socket.io": "^10.2.8",
+    "@nestjs/serve-static": "^4.0.0",
     "@nestjs/websockets": "^10.2.8",
     "@prisma/client": "^5.5.2",
     "@types/passport-google-oauth20": "^2.0.13",
