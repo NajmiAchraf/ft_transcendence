@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Req, Get, UseGuards, Res, UseInterceptors, UploadedFile } from '@nestjs/common';
-import { AdditionalInfo } from './dto';
+import { AdditionalInfo, SettingsDto } from './dto';
 import { UserService } from './user.service';
 import { Request, Response } from 'express';
 import { BlockCheckGuard } from 'src/common/guards';
@@ -120,7 +120,7 @@ export class UserController {
 
 	@BlockPublic()
 	@Post('settings')
-	async updateSettings(@Body() body: any, @Req() req: Request) {
+	async updateSettings(@Body() body: SettingsDto, @Req() req: Request) {
 		const userId = req.user['sub'];
 		return this.userService.updateSettings(body, userId);
 	}
@@ -128,7 +128,7 @@ export class UserController {
 	@BlockPublic()
 	@Post('settingsAvatar')
 	@UseInterceptors(FileInterceptor('avatar', multerConfig))
-	async updateSettingsAvatar(@Body() body: any, @Req() req: Request, @UploadedFile() file: avatarDto) {
+	async updateSettingsAvatar(@Body() body: SettingsDto, @Req() req: Request, @UploadedFile() file: avatarDto) {
 		body.avatar = file.path;
 		const userId = req.user['sub'];
 		return this.userService.updateSettingsAvatar(body, userId);
