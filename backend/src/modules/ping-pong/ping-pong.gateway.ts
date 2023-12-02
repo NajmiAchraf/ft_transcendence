@@ -58,8 +58,12 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		const userId = this.socketService.getUserId(client.id, 'ping-pong');
 
 		console.log('DELETE CONNECTION: ' + client.id + ' ' + userId);
-		if (this.rooms.deletePlayerRoom(userId.toString())) { }
-		else if (this.rooms.deletePlayerPair(client.id)) { }
+		if (this.rooms.deletePlayerRoom(userId.toString())) {
+			this.server.to(client.id).emit("leaveRoom");
+		}
+		else if (this.rooms.deletePlayerPair(client.id)) {
+			this.server.to(client.id).emit("leaveQueue");
+		}
 		else console.log("Player not found in room or pair");
 
 		// delete connection

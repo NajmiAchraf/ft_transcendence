@@ -14,7 +14,7 @@ export default class Ball {
 
 	scale: number;
 
-	radius: number;
+	diameter: number;
 
 	x: number;
 	y: number;
@@ -53,7 +53,7 @@ export default class Ball {
 		else
 			throw new Error("Invalid mode");
 
-		this.radius = ((vars.width + vars.height) / 2) / this.scale;
+		this.diameter = ((vars.width + vars.height) / 2) / this.scale;
 
 		this.speed_factor = vars.speed_init / 10;
 		this.speed = vars.speed_init;
@@ -63,7 +63,7 @@ export default class Ball {
 
 		this.x = 0;
 		this.y = 0;
-		this.z = vars.z + vars.depth / 2 + this.radius / 2;
+		this.z = vars.z + vars.depth / 2 + this.diameter / 2;
 
 	}
 
@@ -97,10 +97,10 @@ export default class Ball {
 	}
 
 	set_coordinations_ball(): void {
-		this.top = this.y + this.radius / 2 + this.velocityY;
-		this.bottom = this.y - this.radius / 2 + this.velocityY;
-		this.right = this.x + this.radius / 2 + this.velocityX;
-		this.left = this.x - this.radius / 2 + this.velocityX;
+		this.top = this.y + this.diameter / 2 + this.velocityY;
+		this.bottom = this.y - this.diameter / 2 + this.velocityY;
+		this.right = this.x + this.diameter / 2 + this.velocityX;
+		this.left = this.x - this.diameter / 2 + this.velocityX;
 	}
 
 	set_coordinations_paddle(paddle: Paddle): void {

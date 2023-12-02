@@ -18,7 +18,7 @@ export default class Ball {
 
 	scale: number;
 
-	radius: number;
+	diameter: number;
 
 	x: number;
 	y: number;
@@ -35,12 +35,12 @@ export default class Ball {
 
 		this.scale = vars.scale_width;
 
-		this.radius = ((vars.width + vars.height) / 2) / this.scale;
+		this.diameter = ((vars.width + vars.height) / 2) / this.scale;
 
 		this.velocityX = vars.speed_init / 2;
 		this.x = 0;
 		this.y = 0;
-		this.z = vars.z + vars.depth / 2 + this.radius / 2 + vars.z_glass;
+		this.z = vars.z + vars.depth / 2 + this.diameter / 2 + vars.z_glass;
 
 		const { ball, geometry, material } = this.ballSetup(_geometry)
 		this.ball = ball
@@ -65,9 +65,9 @@ export default class Ball {
 	} {
 		let geometry: THREE.BoxGeometry | THREE.SphereGeometry
 		if (_geometry === "sphere")
-			geometry = new THREE.SphereGeometry(this.radius / 2)
+			geometry = new THREE.SphereGeometry(this.diameter / 2)
 		else
-			geometry = new THREE.BoxGeometry(this.radius, this.radius, this.radius)
+			geometry = new THREE.BoxGeometry(this.diameter, this.diameter, this.diameter)
 
 		const material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
 

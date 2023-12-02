@@ -37,6 +37,7 @@ export function getDefaultProps(): Props {
 		startPlay: false,
 		inGame: false,
 		endGame: false,
+		devMode: false,
 	};
 
 	return defaultProps;
@@ -56,6 +57,7 @@ function PropsContextProvider({ children }: { children: React.ReactNode }) {
 		startPlay: false,
 		inGame: false,
 		endGame: false,
+		devMode: false,
 	});
 
 	const contextValue: IPropsContext = {

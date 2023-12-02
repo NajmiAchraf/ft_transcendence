@@ -33,5 +33,6 @@ export type Props = {
 	startPlay: boolean,
 	inGame: boolean,
 	endGame: boolean,
+	devMode: boolean,
 }
 

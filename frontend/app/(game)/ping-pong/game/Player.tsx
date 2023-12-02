@@ -2,6 +2,7 @@
 
 import * as THREE from 'three'
 
+import Ball from '@/app/(game)/ping-pong/game/Ball'
 import Game from '@/app/(game)/ping-pong/game/Game'
 import { vars, Geometry, Side } from '@/app/(game)/ping-pong/common/Common'
 
@@ -92,8 +93,8 @@ class Paddle {
 	} {
 		let geometry: THREE.BoxGeometry | THREE.CapsuleGeometry
 		if (_geometry === "sphere") {
-			const radius = this.width / 2;
-			geometry = new THREE.CapsuleGeometry(radius, this.height - radius * 2, 16, 32);
+			const diameter = this.width / 2;
+			geometry = new THREE.CapsuleGeometry(diameter, this.height - diameter * 2, 16, 32);
 		}
 		else
 			geometry = new THREE.BoxGeometry(this.width, this.height, this.depth)
@@ -155,12 +156,57 @@ class Paddle {
 	}
 }
 
+class Bot extends Paddle {
+	ball: Ball;
+	velocityX: number;
+	contact: number;
+
+	constructor(game: Game, side: Side, _geometry: Geometry) {
+		super(game, side, _geometry);
+
+		this.ball = game.ball;
+		this.velocityX = this.ball.velocityX;
+		this.contact = 0;
+
+		if (this.game.getDataPlayer().side === this.side)
+			this.canvas.removeEventListener("mousemove", this.onPaddlePositionHandler as EventListener);
+	}
+
+	auto_paddle_position(): void {
+		const position = this.ball.y + this.contact;
+
+		if (position + this.height / 2 > vars.height / 2) {
+			this.y = vars.height / 2 - this.height / 2;
+		} else if (position - this.height / 2 < -vars.height / 2) {
+			this.y = -vars.height / 2 + this.height / 2;
+		} else {
+			this.y = position;
+		}
+
+		this.game.getSocket().emit("playerUpdate", {
+			y: this.y
+		});
+	}
+
+	update(): void {
+		if (this.game.getDataPlayer().side === this.side && this.game.ball.x > vars.width / 3) {
+			this.auto_paddle_position();
+			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.3)
+		}
+		else if (this.game.getDataPlayer().side !== this.side && this.game.ball.x < -vars.width / 3)
+			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.3)
+	}
+}
+
 export default class Player {
 	paddle: Paddle;
 	score: number;
 
-	constructor(game: Game, side: Side, geometry: Geometry) {
-		this.paddle = new Paddle(game, side, geometry);
+	constructor(game: Game, side: Side, geometry: Geometry, devMode: boolean) {
+		if (devMode)
+			this.paddle = new Bot(game, side, geometry);
+		else
+			this.paddle = new Paddle(game, side, geometry);
 		this.score = 0;
 	}
 

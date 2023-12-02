@@ -12,10 +12,16 @@ function SettingPingPong() {
 
 	const [isButtonClicked, setButtonClicked] = useState(false);
 
+	const [devMode, setDevMode] = useState(propsContext.props.devMode);
 	const [mode, setMode] = useState(propsContext.props.mode);
 	const [mirror, setMirror] = useState(propsContext.props.mirror);
 	const [geometry, setGeometry] = useState(propsContext.props.geometry);
 
+
+	const changeDevMode = () => {
+		propsContext.props.devMode = !propsContext.props.devMode
+		setDevMode(propsContext.props.devMode)
+	}
 
 	const changeMode = () => {
 		if (propsContext.props.mode === "easy") {
@@ -61,6 +67,9 @@ function SettingPingPong() {
 
 	return (
 		<div className="Settings" id="Settings">
+			{/* change dev mode on(true) off(false) */}
+			<button id="Button" onClick={changeDevMode}>DevMode {devMode ? "on" : "off"}</button>
+
 			{propsContext.props.playerType === "bot" && (
 				/* change mode three modes easy medium hard */
 				<button id="Button" onClick={changeMode}>Mode {mode}</button>

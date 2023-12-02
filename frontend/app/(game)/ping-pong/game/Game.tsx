@@ -164,8 +164,8 @@ export default class Game extends CanvasComponent {
 
 		this.board = new Board(this, vars.width, vars.height, vars.depth, getProps().geometry, getProps().mirror)
 		this.ball = new Ball(this, getProps().geometry)
-		this.player1 = new Player(this, "right", getProps().geometry)
-		this.player2 = new Player(this, "left", getProps().geometry)
+		this.player1 = new Player(this, "right", getProps().geometry, getProps().devMode)
+		this.player2 = new Player(this, "left", getProps().geometry, getProps().devMode)
 
 		console.log("readyToPlay");
 		this.getSocket().on("drawGoal", () => {
