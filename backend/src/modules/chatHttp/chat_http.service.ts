@@ -76,7 +76,7 @@ export class ChatHttpService {
 			throw new ForbiddenException('Invalid privacy');
 		}
 
-		if (body.privacy === 'protected' && body.password !== undefined) {
+		if (body.privacy === 'protected' && body.password === undefined) {
 			throw new ForbiddenException('Password must be provided for protected channels');
 		}
 
@@ -373,6 +373,7 @@ export class ChatHttpService {
 				}
 			}
 		});
+		return { status: 'success' };
 	}
 
 	async leaveChannel(userId: number, channelId: number) {

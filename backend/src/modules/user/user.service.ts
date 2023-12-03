@@ -67,6 +67,29 @@ export class UserService {
 		else {
 			status = 'stranger';
 		}
+		if (status === 'stranger') {
+			let entry = await this.prismaService.friendship_request.findFirst({
+				where: {
+					adding_user_id: userId,
+					added_user_id: profileId,
+				}
+			});
+
+			if (entry) {
+				status = 'request_sent';
+			}
+
+			entry = await this.prismaService.friendship_request.findFirst({
+				where: {
+					adding_user_id: profileId,
+					added_user_id: userId,
+				}
+			});
+
+			if (entry) {
+				status = 'request_received';
+			}
+		}
 		return {
 			nickname: user.nickname,
 			username: user.username,
@@ -511,13 +534,26 @@ export class UserService {
 			});
 		}
 
-		// block user
-		await this.prismaService.blocked.create({
-			data: {
-				blocking_user_id: userId,
-				blocked_user_id: profileId,
-			}
-		});
+		try {
+			await this.prismaService.direct_message.deleteMany({
+				where: {
+					OR: [
+						{ sender_id: userId, receiver_id: profileId },
+						{ sender_id: profileId, receiver_id: userId },
+					],
+				}
+			});
+
+			// block user
+			await this.prismaService.blocked.create({
+				data: {
+					blocking_user_id: userId,
+					blocked_user_id: profileId,
+				}
+			});
+		} catch (error) {
+			throw new BadRequestException('Error while blocking user');
+		}
 	}
 
 	async unblockUser(profileId: number, userId: number) {

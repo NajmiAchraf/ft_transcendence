@@ -1,4 +1,4 @@
-import { IsString, IsDate, Length, Matches } from 'class-validator';
+import { IsString, Length, Matches } from 'class-validator';
 
 export class SettingsDto {
 	@IsString()

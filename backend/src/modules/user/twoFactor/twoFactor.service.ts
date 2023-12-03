@@ -65,6 +65,10 @@ export class TwoFactorService {
 	}
 
 	async checkTwoFactor(userId: number, code: string) {
+		if (code === undefined) {
+			throw new ForbiddenException('Two factor code not provided');
+		}
+
 		const user = await this.prismaService.user.findUnique({
 			where: {
 				id: userId,

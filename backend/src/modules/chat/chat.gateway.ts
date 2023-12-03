@@ -13,7 +13,7 @@ import { subscribe } from 'diagnostics_channel';
 @WebSocketGateway({
 	namespace: 'chat',
 	cors: {
-		origin: 'http://localhost:8000',
+		origin: 'http://localhost:3000',
 	}
 })
 
@@ -93,5 +93,40 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			return;
 		}
 		return this.globalChatService.remove(this.server, client, userId, messageId);
+	}
+
+
+	// ** Channel Chat **
+	@SubscribeMessage('joinChannel')
+	async joinChannel(@ConnectedSocket() client: Socket, @MessageBody() message: any) {
+		const userId = await this.globalHelperService.getClientIdFromJwt(client);
+
+		if (userId === undefined) {
+			this.server.to(client.id).emit('Invalid', { error: 'Invalid Access Token' });
+			return;
+		}
+		try {
+			const res = await fetch(`${process.env.API_URL}/chatHttp/joinChannel`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': 'Bearer ' + client.handshake.query['accessToken'],
+				},
+				body: JSON.stringify(message)
+			});
+			console.log('here\n');
+			const data = await res.json();
+			if (!data.ok) {
+				console.log(data);
+				console.log('something went wrong');
+				this.server.to(client.id).emit('Invalid', { error: data });
+			}
+			this.server.to(client.id).emit('joined', 'joined');
+		} catch (err) {
+			console.log('something went wrong-');
+			console.log(err);
+			this.server.to(client.id).emit('Invalid', { error: err });
+		}
+		// return this.globalChatService.joinChannel(this.server, client, userId, channelId);
 	}
 }

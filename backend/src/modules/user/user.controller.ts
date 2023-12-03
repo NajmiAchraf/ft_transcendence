@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Req, Get, UseGuards, Res, UseInterceptors, UploadedFile } from '@nestjs/common';
-import { AdditionalInfo, SettingsDto } from './dto';
+import { AdditionalInfo, SettingsDto, ProfileId, TwoFactorDto, FriendRequestResponseDto } from './dto';
 import { UserService } from './user.service';
 import { Request, Response } from 'express';
 import { BlockCheckGuard } from 'src/common/guards';
@@ -26,13 +26,13 @@ export class UserController {
 
 	@UseGuards(VisibilityCheckGuard)
 	@Post('pf_infos')
-	async getProfileInfos(@Body() body: any) {
+	async getProfileInfos(@Body() body: ProfileId) {
 		const profileId = +body.profileId;
 		return this.userService.getProfileInfos(profileId);
 	}
 
-	@Post('personal_infos') // ! POST request
-	async getPersonalInfos(@Body() body: any, @Req() req: Request) {
+	@Post('personal_infos')
+	async getPersonalInfos(@Body() body: ProfileId, @Req() req: Request) {
 		const profileId = +body.profileId;
 		const userId = req.user['sub'];
 		return this.userService.getPersonalInfos(userId, profileId);
@@ -40,14 +40,14 @@ export class UserController {
 
 	@UseGuards(VisibilityCheckGuard)
 	@Post('friends_list')
-	async getFriendList(@Body() body: any, @Req() req: Request) {
+	async getFriendList(@Body() body: ProfileId, @Req() req: Request) {
 		const profileId = +body.profileId;
 		const userId = req.user['sub'];
 		return this.userService.getFriendList(userId, profileId);
 	}
 
-	@Post('send_friend_requests')
-	async sendFriendRequest(@Body() body: any, @Req() req: Request) {
+	@Post('send_friend_request')
+	async sendFriendRequest(@Body() body: ProfileId, @Req() req: Request) {
 		const profileId = +body.profileId;
 
 		// * send friendship requests to the user (profileId)
@@ -55,7 +55,7 @@ export class UserController {
 	}
 
 	@Post('respond_to_friend_request')
-	async respondToFriendRequest(@Body() body: any, @Req() req: Request) {
+	async respondToFriendRequest(@Body() body: FriendRequestResponseDto, @Req() req: Request) {
 		const profileId = +body.profileId;
 		const friendRequestResponse = body.friendRequestResponse;
 
@@ -64,7 +64,7 @@ export class UserController {
 	}
 
 	@Post('remove_friend')
-	async removeFriend(@Body() body: any, @Req() req: Request) {
+	async removeFriend(@Body() body: ProfileId, @Req() req: Request) {
 		const profileId = +body.profileId;
 
 		// * remove the user (profileId) from the friend list
@@ -72,7 +72,7 @@ export class UserController {
 	}
 
 	@Post('block_user')
-	async blockUser(@Body() body: any, @Req() req: Request) {
+	async blockUser(@Body() body: ProfileId, @Req() req: Request) {
 		const profileId = +body.profileId;
 
 		// * block the user (profileId)
@@ -80,7 +80,7 @@ export class UserController {
 	}
 
 	@Post('unblock_user')
-	async unblockUser(@Body() body: any, @Req() req: Request) {
+	async unblockUser(@Body() body: ProfileId, @Req() req: Request) {
 		const profileId = +body.profileId;
 
 		// * unblock the user (profileId)
@@ -89,14 +89,14 @@ export class UserController {
 
 	@UseGuards(VisibilityCheckGuard)
 	@Post('achievements')
-	async getAchievements(@Body() body: any) {
+	async getAchievements(@Body() body: ProfileId) {
 		const profileId = +body.profileId;
 		return this.userService.getAchievements(profileId);
 	}
 
 	@UseGuards(VisibilityCheckGuard)
 	@Post('channels')
-	async getChannels(@Body() body: any, @Req() req: Request) {
+	async getChannels(@Body() body: ProfileId, @Req() req: Request) {
 		const profileId = +body.profileId;
 		const userId = req.user['sub'];
 		return this.userService.getChannels(profileId, userId);
@@ -104,7 +104,7 @@ export class UserController {
 
 	@UseGuards(VisibilityCheckGuard)
 	@Post('match_history')
-	async getMatchHistory(@Body() body: any, @Req() req: Request) {
+	async getMatchHistory(@Body() body: ProfileId, @Req() req: Request) {
 		const profileId = +body.profileId;
 		const userId = req.user['sub'];
 		return this.userService.getMatchHistory(userId, profileId);
@@ -136,15 +136,15 @@ export class UserController {
 
 	@BlockPublic()
 	@Get('2factorQr')
-	async getTwoFactorQr(@Req() req: Request, @Res() res: Response) {
+	async getTwoFactorQr(@Req() req: Request) {
 		const userId = req.user['sub'];
 		const username = req.user['username'];
-		res.json(await this.twoFactorService.getTwoFactorQr(userId, username));
+		return await this.twoFactorService.getTwoFactorQr(userId, username);
 	}
 
 	@BlockPublic()
 	@Post('enable2factor')
-	async enableTwoFactor(@Body() body: any, @Req() req: Request) {
+	async enableTwoFactor(@Body() body: TwoFactorDto, @Req() req: Request) {
 		const userId = req.user['sub'];
 		const { code } = body;
 		return await this.twoFactorService.enableTwoFactor(userId, code);
@@ -153,7 +153,7 @@ export class UserController {
 	@BlockPublic()
 	@TwoFactorPublic()
 	@Post('check2factor')
-	async checkTwoFactor(@Body() body: any, @Req() req: Request) {
+	async checkTwoFactor(@Body() body: TwoFactorDto, @Req() req: Request) {
 		const userId = req.user['sub'];
 		const { code } = body;
 		return await this.twoFactorService.checkTwoFactor(userId, code);

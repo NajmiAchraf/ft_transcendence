@@ -10,7 +10,8 @@ export class BannedUserGuard implements CanActivate {
 
 	async canActivate(context: ExecutionContext) {
 		const request = context.switchToHttp().getRequest();
-		if (request.user['sub'] === undefined || request.body.channelId === undefined) {
+		console.log(request.body);
+		if (request.user['sub'] === undefined || request.body['channelId'] === undefined) {
 			return false;
 		}
 

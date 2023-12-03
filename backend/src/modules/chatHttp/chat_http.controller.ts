@@ -5,7 +5,10 @@ import { ChatBlockCheckGuard, BannedMemberGuard, BannedUserGuard } from 'src/com
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerConfig } from 'src/common/confs/multer.config';
 import { avatarDto } from 'src/common/dtos/avatar.dto';
-import { CreateChannelDto } from './dto';
+import { ChannelIdDto, CreateChannelDto, ProfileChannelIdDto } from './dto';
+import { ProfileId } from '../user/dto';
+import { Profile } from 'passport';
+import { ChannelPasswordDto } from './dto/channel_password.dto';
 
 @Controller('chatHttp')
 export class ChatHttpController {
@@ -13,7 +16,7 @@ export class ChatHttpController {
 
 	@UseGuards(ChatBlockCheckGuard)
 	@Post('last_dm')
-	async getLastDM(@Body() body: any, @Req() req: Request) {
+	async getLastDM(@Body() body: ProfileId, @Req() req: Request) {
 		const profileId = +body.profileId;
 		const userId = req.user['sub'];
 		return this.chatHttpService.getLastDM(userId, profileId);
@@ -21,7 +24,7 @@ export class ChatHttpController {
 
 	@UseGuards(ChatBlockCheckGuard)
 	@Post('dm_history')
-	async getDMHistory(@Body() body: any, @Req() req: Request) {
+	async getDMHistory(@Body() body: ProfileId, @Req() req: Request) {
 		const profileId = +body.profileId;
 		const userId = req.user['sub'];
 		return this.chatHttpService.getDMHistory(userId, profileId);
@@ -43,73 +46,79 @@ export class ChatHttpController {
 	@UseGuards(BannedMemberGuard)
 	@UseGuards(ChatBlockCheckGuard)
 	@Post('addChannelMember')
-	async addChannelMember(@Req() req: Request, @Body() body: any) {
+	async addChannelMember(@Req() req: Request, @Body() body: ProfileChannelIdDto) {
 		const userId = req.user['sub'];
 		const channelId = +body.channelId;
 		const memberId = +body.profileId;
 		return this.chatHttpService.addChannelMember(userId, channelId, memberId);
 	}
 
+	@UseGuards(BannedMemberGuard)
 	@UseGuards(ChatBlockCheckGuard)
 	@Post('addChannelAdmin')
-	async addChannelAdmin(@Req() req: Request, @Body() body: any) {
+	async addChannelAdmin(@Req() req: Request, @Body() body: ProfileChannelIdDto) {
 		const userId = req.user['sub'];
 		const channelId = +body.channelId;
 		const memberId = +body.profileId;
 		return this.chatHttpService.addChannelAdmin(userId, channelId, memberId);
 	}
 
-	// ! banned_guard
 	@UseGuards(BannedUserGuard)
 	@Post('joinChannel')
-	async joinChannel(@Req() req: Request, @Body() body: any) {
+	async joinChannel(@Req() req: Request, @Body() body: ChannelPasswordDto) {
 		const userId = req.user['sub'];
 		const channelId = +body.channelId;
 		const password = body.password;
 		return this.chatHttpService.joinChannel(userId, channelId, password);
 	}
 
+	@UseGuards(BannedUserGuard)
 	@Post('leaveChannel')
-	async leaveChannel(@Req() req: Request, @Body() body: any) {
+	async leaveChannel(@Req() req: Request, @Body() body: ChannelIdDto) {
 		const userId = req.user['sub'];
 		const channelId = +body.channelId;
 		return this.chatHttpService.leaveChannel(userId, channelId);
 	}
 
+	@UseGuards(BannedMemberGuard)
 	@Post('kickChannelMember')
-	async kickChannelMember(@Req() req: Request, @Body() body: any) {
+	async kickChannelMember(@Req() req: Request, @Body() body: ProfileChannelIdDto) {
 		const userId = req.user['sub'];
 		const channelId = +body.channelId;
-		const memberId = +body.memberId;
+		const memberId = +body.profileId;
 		return this.chatHttpService.kickChannelMember(userId, channelId, memberId);
 	}
 
+	@UseGuards(BannedMemberGuard)
 	@Post('banChannelMember')
-	async banChannelMember(@Req() req: Request, @Body() body: any) {
+	async banChannelMember(@Req() req: Request, @Body() body: ProfileChannelIdDto) {
 		const userId = req.user['sub'];
 		const channelId = +body.channelId;
-		const memberId = +body.memberId;
+		const memberId = +body.profileId;
 		return this.chatHttpService.banChannelMember(userId, channelId, memberId);
 	}
 
+	@UseGuards(BannedMemberGuard)
 	@Post('muteChannelMember')
-	async muteChannelMember(@Req() req: Request, @Body() body: any) {
+	async muteChannelMember(@Req() req: Request, @Body() body: ProfileChannelIdDto) {
 		const userId = req.user['sub'];
 		const channelId = +body.channelId;
-		const memberId = +body.memberId;
+		const memberId = +body.profileId;
 		return this.chatHttpService.muteChannelMember(userId, channelId, memberId);
 	}
 
+	@UseGuards(BannedUserGuard)
 	@Post('changeChannelPassword')
-	async changeChannelPassword(@Req() req: Request, @Body() body: any) {
+	async changeChannelPassword(@Req() req: Request, @Body() body: ChannelPasswordDto) {
 		const userId = req.user['sub'];
 		const channelId = +body.channelId;
 		const password = body.password;
 		return this.chatHttpService.changeChannelPassword(userId, channelId, password);
 	}
 
+	@UseGuards(BannedUserGuard)
 	@Post('removeChannelPassword')
-	async removeChannelPassword(@Req() req: Request, @Body() body: any) {
+	async removeChannelPassword(@Req() req: Request, @Body() body: ChannelIdDto) {
 		const userId = req.user['sub'];
 		const channelId = +body.channelId;
 		return this.chatHttpService.removeChannelPassword(userId, channelId);

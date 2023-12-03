@@ -1,4 +1,4 @@
-import { IsDefined, IsNotEmpty, IsObject, IsString } from "class-validator";
+import { IsDefined, IsNotEmpty, IsObject, IsString, Length } from "class-validator";
 
 export class avatarDto {
 	@IsDefined()
@@ -7,6 +7,7 @@ export class avatarDto {
 
 	@IsDefined()
 	@IsString()
+	@Length(1, 255)
 	path: string;
 
 	@IsDefined()

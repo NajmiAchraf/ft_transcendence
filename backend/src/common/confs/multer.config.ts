@@ -23,7 +23,7 @@ export const multerConfig = {
 		filename: (req, file, cb) => {
 			const timestamp = Date.now();
 			const randomString = Math.random().toString(36).substring(7);
-			const filename = `${timestamp}-${randomString}-${file.originalname}`;
+			const filename = `${timestamp}-${randomString}.${extname(file.originalname)}`;
 			cb(null, filename);
 		},
 	}),
