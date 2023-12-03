@@ -1,10 +1,10 @@
 import { Server } from 'socket.io';
 
-import Player from "./Player";
-import Ball from "./Ball";
+import Player from "src/modules/ping-pong/component/Player";
+import Ball from "src/modules/ping-pong/component/Ball";
 
-import { Mode, PlayerType } from "../types/Common";
-import Room from '../Room';
+import { Mode, PlayerType } from "src/modules/ping-pong/common/Common";
+import Room from 'src/modules/ping-pong/Room';
 
 export default class Game {
 	player1: Player

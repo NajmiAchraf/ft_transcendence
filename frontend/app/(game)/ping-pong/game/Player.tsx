@@ -157,30 +157,31 @@ class Paddle {
 }
 
 class Bot extends Paddle {
-	ball: Ball;
-	velocityX: number;
-	contact: number;
+	position: number;
+	onBall: (data: any) => void;
 
 	constructor(game: Game, side: Side, _geometry: Geometry) {
 		super(game, side, _geometry);
 
-		this.ball = game.ball;
-		this.velocityX = this.ball.velocityX;
-		this.contact = 0;
+		this.position = 0;
 
-		if (this.game.getDataPlayer().side === this.side)
+		this.onBall = (data: any) => {
+			this.position = data.y;
+		};
+
+		if (this.game.getDataPlayer().side === this.side) {
 			this.canvas.removeEventListener("mousemove", this.onPaddlePositionHandler as EventListener);
+			this.game.getSocket().on("ball", this.onBall);
+		}
 	}
 
 	auto_paddle_position(): void {
-		const position = this.ball.y + this.contact;
-
-		if (position + this.height / 2 > vars.height / 2) {
+		if (this.position + this.height / 2 > vars.height / 2) {
 			this.y = vars.height / 2 - this.height / 2;
-		} else if (position - this.height / 2 < -vars.height / 2) {
+		} else if (this.position - this.height / 2 < -vars.height / 2) {
 			this.y = -vars.height / 2 + this.height / 2;
 		} else {
-			this.y = position;
+			this.y = this.position;
 		}
 
 		this.game.getSocket().emit("playerUpdate", {
@@ -189,12 +190,20 @@ class Bot extends Paddle {
 	}
 
 	update(): void {
-		if (this.game.getDataPlayer().side === this.side && this.game.ball.x > vars.width / 3) {
+		if (this.game.getDataPlayer().side === this.side)
 			this.auto_paddle_position();
-			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.3)
-		}
+
+		if (this.game.getDataPlayer().side === this.side && this.game.ball.x > vars.width / 3)
+			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.5)
+
 		else if (this.game.getDataPlayer().side !== this.side && this.game.ball.x < -vars.width / 3)
-			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.3)
+			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.5)
+	}
+
+	dispose(): void {
+		super.dispose();
+		if (this.game.getDataPlayer().side === this.side)
+			this.game.getSocket().off("ball", this.onBall);
 	}
 }
 

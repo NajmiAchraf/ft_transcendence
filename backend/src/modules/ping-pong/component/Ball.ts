@@ -1,9 +1,9 @@
 import { Server } from "socket.io";
 
-import Game from "./Game";
-import Player, { Paddle } from "./Player";
+import Game from "src/modules/ping-pong/component/Game";
+import Player, { Paddle } from "src/modules/ping-pong/component/Player";
 
-import { vars, Mode } from "../types/Common";
+import { vars, Mode } from "src/modules/ping-pong/common/Common";
 
 export default class Ball {
 	game: Game;
@@ -173,7 +173,7 @@ export default class Ball {
 	}
 
 	speed_algorithm(): void {
-		if (this.speed < vars.width / 50) {
+		if (this.speed < vars.width / 60) {
 			if (this.hits > this.mode) {
 				this.speed += this.speed_factor;
 				this.hits = 0;

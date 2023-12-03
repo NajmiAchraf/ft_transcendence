@@ -1,9 +1,6 @@
-import Game from "./logic/Game";
-import { GameResultType, Mode, PlayerType } from './types/Common';
-import PingPongGateway from "./ping-pong.gateway";
-import { PrismaService } from "../prisma/prisma.service";
-import e from "express";
-import { PingPongService } from "./ping-pong.service";
+import { GameResultType, Mode, PlayerType } from 'src/modules/ping-pong/common/Common';
+import Game from "src/modules/ping-pong/component/Game";
+import PingPongGateway from "src/modules/ping-pong/ping-pong.gateway";
 
 // PairType = [[playerID, clientID], [playerID, clientID]]
 type PairType = [[string, string], [string, string]];

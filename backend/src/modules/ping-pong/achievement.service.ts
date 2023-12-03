@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service";
-import { GameResultType } from "./types/Common";
+
+import { GameResultType } from "src/modules/ping-pong/common/Common";
+
+import { PrismaService } from "src/modules/prisma/prisma.service";
 
 @Injectable()
 export class AchievementService {

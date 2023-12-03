@@ -80,7 +80,7 @@ export default class Ball {
 	}
 
 	update() {
-		this.ball.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.3)
+		this.ball.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.5)
 	}
 
 	reset() {

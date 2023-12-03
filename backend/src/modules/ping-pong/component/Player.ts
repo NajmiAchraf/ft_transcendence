@@ -1,7 +1,7 @@
-import Ball from "./Ball";
-import Game from "./Game";
+import Ball from "src/modules/ping-pong/component/Ball";
+import Game from "src/modules/ping-pong/component/Game";
 
-import { vars, Mode, PlayerType, Side } from "../types/Common";
+import { Mode, PlayerType, Side, vars } from "src/modules/ping-pong/common/Common";
 
 export class Paddle {
 	side: Side;
@@ -100,14 +100,15 @@ class Bot extends Paddle {
 
 	contact_algorithm(): void {
 		const ball_diameter = this.ball.diameter;
+		const random = Math.random();
 		if (this.mode === "easy")
-			this.contact = Math.random() * ((this.height / 2 + ball_diameter / 2) * 1.2);
+			this.contact = random * ((this.height / 2 + ball_diameter / 2) * 1.3);
 		else if (this.mode === "medium")
-			this.contact = Math.random() * ((this.height / 2 + ball_diameter / 2) * 1.1);
+			this.contact = random * ((this.height / 2 + ball_diameter / 2) * 1.2);
 		else if (this.mode === "hard")
-			this.contact = Math.random() * ((this.height / 2 + ball_diameter / 2) * 1);
+			this.contact = random * ((this.height / 2 + ball_diameter / 2) * 1.1);
 		// positive or negative
-		if (Math.random() > 0.5)
+		if (random > 0.5)
 			this.contact = -this.contact;
 	}
 
@@ -156,5 +157,4 @@ export default class Player {
 	destroy(): void {
 		this.paddle.destroy();
 	}
-
 }

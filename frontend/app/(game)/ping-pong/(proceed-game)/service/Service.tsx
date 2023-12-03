@@ -105,6 +105,10 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 		console.log('denyToPlay: ', data);
 	};
 
+	const handleError = (data: any) => {
+		console.log('error: ', data.error);
+	}
+
 	const handleLeaveRoom = (data: any) => {
 		stopGame();
 		setGameState("settings");
@@ -146,6 +150,7 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 		webSocketGame.on('allowToPlay', handleAllowToPlay);
 		webSocketGame.on('allowToWait', handleAllowToWait);
 		webSocketGame.on('denyToPlay', handleDenyToPlay);
+		webSocketGame.on('error', handleError);
 		webSocketGame.on('leaveRoom', handleLeaveRoom);
 		webSocketGame.on('leaveQueue', handleLeaveQueue);
 		webSocketGame.on('roomConstruction', handleRoomConstruction);
@@ -161,6 +166,7 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 			webSocketGame.off('dataPlayer', handleDataPlayer);
 			webSocketGame.off('allowToPlay', handleAllowToPlay);
 			webSocketGame.off('denyToPlay', handleDenyToPlay);
+			webSocketGame.off('error', handleError);
 			webSocketGame.off('leaveRoom', handleLeaveRoom);
 			webSocketGame.off('leaveQueue', handleLeaveQueue);
 			webSocketGame.off('roomConstruction', handleRoomConstruction);

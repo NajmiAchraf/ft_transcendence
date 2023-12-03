@@ -27,7 +27,7 @@ function WebSocketContextProvider({ children }: { children: React.ReactNode }) {
 		transports: ['websocket'],
 		query: {
 			// accessToken: localStorage.getItem('accessToken'),
-			accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsInVzZXJuYW1lIjoibm5ham1pIiwiaWF0IjoxNzAxNDc1NjQ2LCJleHAiOjE3MDE1NjIwNDZ9._JQxm-H38kS5O3YjM6ZvZ9zLXdu2DIL7-xikqeefEss",
+			accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsInVzZXJuYW1lIjoic25ham1pIiwiaWF0IjoxNzAxNTY1Njg2LCJleHAiOjE3MDE2NTIwODZ9.i0o1w_rFUp94D8hcwyQpISpJ0E1KrhGPHb22y2paKMs",
 		}
 	});
 
