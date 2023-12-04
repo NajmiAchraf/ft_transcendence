@@ -244,7 +244,7 @@ class EndGame {
 class Border {
 	boarder: THREE.Mesh[] = [];
 	geometry: THREE.BoxGeometry[] = [];
-	material: THREE.MeshBasicMaterial[] = [];
+	material: THREE.ShaderMaterial[] = [];
 
 	board: Board;
 	game: Game;
@@ -260,9 +260,73 @@ class Border {
 		this.depth = vars.depth;
 	}
 
-	private setupBoxBorder(x: number, y: number, width: number, height: number, color: number) {
-		const geometry = new THREE.BoxGeometry(width, height, this.depth + vars.z + 2);
-		const material = new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide });
+	private createVerticalBorderShaderMaterial(colors: number[]) {
+		const [color1, color2] = colors.map(color => new THREE.Color(color));
+
+		return (new THREE.ShaderMaterial({
+			uniforms: {
+				color1: { value: color1 },
+				color2: { value: color2 }
+			},
+			vertexShader: `
+			  varying vec2 vUv;
+		  
+			  void main() {
+				vUv = uv;
+				gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+			  }
+			`,
+			fragmentShader: `
+			  uniform vec3 color1;
+			  uniform vec3 color2;
+			
+			  varying vec2 vUv;
+			  
+			  void main() {
+				
+				gl_FragColor = vec4(mix(color1, color2, vUv.y), 1.0);
+			  }
+			`,
+			wireframe: false
+		}));
+	}
+
+	private createHorizontalBorderShaderMaterial(colors: number[]) {
+		const [color1, color2] = colors.map(color => new THREE.Color(color));
+
+		return new THREE.ShaderMaterial({
+			uniforms: {
+				color1: { value: color1 },
+				color2: { value: color2 }
+			},
+			vertexShader: `
+				varying vec2 vUv;
+	
+				void main() {
+					vUv = uv;
+					gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+				}
+			`,
+			fragmentShader: `
+				uniform vec3 color1;
+				uniform vec3 color2;
+				varying vec2 vUv;
+	
+				void main() {
+					gl_FragColor = vec4(mix(color1, color2, vUv.x), 1.0);
+				}
+			`,
+			wireframe: false
+		});
+
+	}
+
+	private setupBoxBorder(x: number, y: number, width: number, height: number, color1: number, color2: number, horizontal: boolean) {
+		const geometry = new THREE.BoxGeometry(width, height, this.depth + vars.z + 2, 1, 1, 1);
+		if (horizontal)
+			var material = this.createHorizontalBorderShaderMaterial([color1, color2]);
+		else
+			var material = this.createVerticalBorderShaderMaterial([color1, color2]);
 		const border = new THREE.Mesh(geometry, material);
 		this.game.scene.add(border);
 		border.position.set(x, y, vars.depth / 2 + this.depth / 2 + vars.z_glass);
@@ -272,69 +336,56 @@ class Border {
 		this.boarder.push(border);
 	}
 
-	private setupCapsuleBorder(x: number, y: number, width: number, height: number, color: number, horizontal: boolean) {
-		const geometry = new THREE.CapsuleGeometry(height, width - height * 2, 16, 32);
-		const material = new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide });
-		const border = new THREE.Mesh(geometry, material);
-		this.game.scene.add(border);
-		border.position.set(x, y, vars.depth / 2 + this.depth / 2 + vars.z_glass);
-		// rotate
-		if (horizontal)
-			border.rotateZ(Math.PI / 2);
-	}
-
-	private boxSetup() {
-		const colors = [0xd5563c, 0x52397a]
+	private setup() {
+		const colors = [0xD75433, 0x5921CB]
 		const height = this.height / 50;
 
-		this.setupBoxBorder(-this.width / 2 + this.width / (colors.length * 2) - height, this.height / 2 + height / 2, this.width / colors.length, height, colors[0]);
-		this.setupBoxBorder(this.width / 2 - this.width / (colors.length * 2) + height, this.height / 2 + height / 2, this.width / colors.length, height, colors[colors.length - 1]);
-		this.setupBoxBorder(-this.width / 2 + this.width / (colors.length * 2) - height, -this.height / 2 - height / 2, this.width / colors.length, height, colors[colors.length - 1]);
-		this.setupBoxBorder(this.width / 2 - this.width / (colors.length * 2) + height, -this.height / 2 - height / 2, this.width / colors.length, height, colors[0]);
 		// draw horizontal borders each color in part of the board
-		for (let i = 0; i < colors.length; i++) {
-			this.setupBoxBorder(-this.width / 2 + i * this.width / colors.length + this.width / (colors.length * 2), this.height / 2 + height / 2, this.width / colors.length, height, colors[i]);
-		}
-		for (let i = 0; i < colors.length; i++) {
-			this.setupBoxBorder(-this.width / 2 + i * this.width / colors.length + this.width / (colors.length * 2), -this.height / 2 - height / 2, this.width / colors.length, height, colors[colors.length - i - 1]);
-		}
+		this.setupBoxBorder(
+			0,
+			this.height / 2 + height / 2,
+			this.width + height * 2,
+			height,
+			colors[1],
+			colors[0],
+			true
+		);
+
+		this.setupBoxBorder(
+			0,
+			-this.height / 2 - height / 2,
+			this.width + height * 2,
+			height,
+			colors[0],
+			colors[1],
+			true
+		);
+
 		// draw vertical borders each color in part of the board
-		for (let i = 0; i < colors.length; i++) {
-			this.setupBoxBorder(-this.width / 2 - height / 2, this.height / 2 - i * this.height / colors.length - this.height / (colors.length * 2), height, this.height / colors.length, colors[i]);
-		}
-		for (let i = 0; i < colors.length; i++) {
-			this.setupBoxBorder(this.width / 2 + height / 2, this.height / 2 - i * this.height / colors.length - this.height / (colors.length * 2), height, this.height / colors.length, colors[colors.length - i - 1]);
-		}
+		this.setupBoxBorder(
+			-this.width / 2 - height / 2,
+			0,
+			height,
+			this.height + height * 2,
+			colors[0],
+			colors[1],
+			false
+		);
+
+		this.setupBoxBorder(
+			this.width / 2 + height / 2,
+			0,
+			height,
+			this.height + height * 2,
+			colors[1],
+			colors[0],
+			false
+		);
 
 	}
 
-	private capsuleSetup() {
-		const colors = [0xd5563c, 0x52397a]
-		const height = this.height / 100;
-
-		// draw vertical borders each color in part of the board
-		for (let i = 0; i < colors.length; i++) {
-			this.setupCapsuleBorder(-this.width / 2 - height / 2, this.height / 2 - i * this.height / colors.length - this.height / (colors.length * 2), this.height / colors.length, height, colors[i], false);
-		}
-		for (let i = 0; i < colors.length; i++) {
-			this.setupCapsuleBorder(this.width / 2 + height / 2, this.height / 2 - i * this.height / colors.length - this.height / (colors.length * 2), this.height / colors.length, height, colors[colors.length - i - 1], false);
-		}
-		// draw horizontal borders each color in part of the board
-		for (let i = 0; i < colors.length; i++) {
-			this.setupCapsuleBorder(-this.width / 2 + i * this.width / colors.length + this.width / (colors.length * 2), this.height / 2 + height / 2, this.width / colors.length, height, colors[i], true);
-		}
-		for (let i = 0; i < colors.length; i++) {
-			this.setupCapsuleBorder(-this.width / 2 + i * this.width / colors.length + this.width / (colors.length * 2), -this.height / 2 - height / 2, this.width / colors.length, height, colors[colors.length - i - 1], true);
-		}
-	}
-
-	borderSetup(geometry: Geometry) {
-		if (geometry === "cube")
-			this.boxSetup();
-		else if (geometry === "sphere")
-			this.capsuleSetup();
-		else
-			throw new Error("Invalid geometry");
+	borderSetup() {
+		this.setup();
 	}
 
 	disposeBorder() {
@@ -390,7 +441,7 @@ export default class Board {
 		else
 			this.table.tableSetup();
 		this.net.setup(1, 30);
-		this.border.borderSetup(this.geometry);
+		this.border.borderSetup();
 	}
 
 	updateScores(player1Score: number, player2Score: number) {
