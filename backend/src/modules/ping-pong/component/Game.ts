@@ -33,7 +33,7 @@ export default class Game {
 	readyCanvas0: () => void;
 	readyCanvas1: () => void;
 
-	constructor(room: Room, pair: [string, string], playerType1: PlayerType, playerType2: PlayerType, mode: Mode) {
+	constructor(room: Room, pair: [string, string], playerType1: PlayerType, playerType2: PlayerType, mode: Mode, idRoom: string) {
 		this.room = room;
 		this.server = this.room.pingPongGateway.server;
 		this.pair = pair;
@@ -57,10 +57,16 @@ export default class Game {
 			}
 		}
 		this.readyCanvas0 = () => {
-			this.server.to(this.pair[0]).emit("roomConstruction");
+			let msg = "room created and waiting for player 2";
+			if (this.ready_player === 2 || playerType2 === 'bot')
+				msg = "room created and start play";
+			this.server.to(this.pair[0]).emit("roomConstruction", { message: msg, room: idRoom });
 		}
 		this.readyCanvas1 = () => {
-			this.server.to(this.pair[1]).emit("roomConstruction");
+			let msg = "room created and waiting for player 1";
+			if (this.ready_player === 2)
+				msg = "room created and start play";
+			this.server.to(this.pair[1]).emit("roomConstruction", { message: msg, room: idRoom });
 		}
 
 		this.listener0 = this.server.sockets.sockets.get(this.pair[0]);

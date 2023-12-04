@@ -130,8 +130,7 @@ export default class Room {
 			room: idRoom,
 		});
 
-		this.game[idRoom] = new Game(this, [player1[1], player2[1]], player1Type, player2Type, mode);
-
+		this.game[idRoom] = new Game(this, [player1[1], player2[1]], player1Type, player2Type, mode, idRoom);
 	}
 
 	//TODO: Add invitation system across the socket beside the pair
@@ -242,7 +241,7 @@ export default class Room {
 			console.log("this.room[room]: " + this.room[room][loser])
 			console.log("loser: " + loser + " roomID: " + roomID);
 
-			this.pingPongGateway.server.to(roomID[loser]).emit("roomDestruction");
+			this.pingPongGateway.server.to(roomID[loser]).emit("roomDestruction", { message: "Room deleted", room: room });
 
 			this.endGame(room, loser, true);
 

@@ -91,18 +91,18 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 	};
 
 	const handleAllowToPlay = (data: any) => {
-		setGameState("play");
 		console.log('allowToPlay: ', data);
+		setGameState("play");
 	};
 
 	const handleAllowToWait = (data: any) => {
-		setGameState("wait");
 		console.log('allowToWait: ', data);
+		setGameState("wait");
 	};
 
 	const handleDenyToPlay = (data: any) => {
-		setGameState("settings");
 		console.log('denyToPlay: ', data);
+		setGameState("settings");
 	};
 
 	const handleError = (data: any) => {
@@ -110,17 +110,18 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 	}
 
 	const handleLeaveRoom = (data: any) => {
+		console.log('leaveRoom: ', data);
 		stopGame();
 		setGameState("settings");
-		console.log('leaveRoom: ', data);
 	};
 
 	const handleLeaveQueue = (data: any) => {
-		setGameState("settings");
 		console.log('leaveQueue: ', data);
+		setGameState("settings");
 	};
 
-	const handleRoomConstruction = () => {
+	const handleRoomConstruction = (data: any) => {
+		console.log('roomConstruction: ', data);
 		initGame();
 	};
 
@@ -129,9 +130,10 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 		runGame();
 	};
 
-	const handleRoomDestruction = (roomDestruction: string) => {
-		console.log('roomDestruction: ', roomDestruction);
+	const handleRoomDestruction = (data: any) => {
+		console.log('roomDestruction: ', data);
 		stopGame();
+		setGameState("settings");
 	};
 
 	const handleYouWin = (data: any) => {
