@@ -2,7 +2,6 @@
 
 import * as THREE from 'three'
 
-import Ball from '@/app/(game)/ping-pong/game/Ball'
 import Game from '@/app/(game)/ping-pong/game/Game'
 import { vars, Geometry, Side } from '@/app/(game)/ping-pong/common/Common'
 
@@ -139,10 +138,13 @@ class Paddle {
 	}
 
 	update(): void {
-		if (this.game.getDataPlayer().side === this.side || this.game.getDataPlayer().player2Name !== "bot")
-			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.3)
-		else if (this.game.getDataPlayer().player2Name === "bot" && this.game.ball.x < -vars.width / 3)
-			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.3)
+		const { getDataPlayer, ball } = this.game;
+		const isMe = getDataPlayer().side === this.side;
+		const isBot = getDataPlayer().player2Name === "bot";
+
+		if (isMe || !isBot || (isBot && ball.x < -vars.width / 4 && ball.velocityX < 0)) {
+			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.4);
+		}
 	}
 
 	dispose(): void {
@@ -157,16 +159,20 @@ class Paddle {
 }
 
 class Bot extends Paddle {
-	position: number;
+	velocityX: number = 0;
+	old_velocityX: number = 0;
+
+	contact: number = 0;
+	positionY: number = 0;
+
 	onBall: (data: any) => void;
 
 	constructor(game: Game, side: Side, _geometry: Geometry) {
 		super(game, side, _geometry);
 
-		this.position = 0;
-
 		this.onBall = (data: any) => {
-			this.position = data.y;
+			this.positionY = data.y;
+			this.velocityX = data.velocityX;
 		};
 
 		if (this.game.getDataPlayer().side === this.side) {
@@ -175,13 +181,32 @@ class Bot extends Paddle {
 		}
 	}
 
+	contact_algorithm(): void {
+		const random = Math.random();
+
+		// mode strong
+		this.contact = random * (this.height / 2 * 1);
+
+		// positive or negative
+		if (random > 0.5)
+			this.contact = -this.contact;
+	}
+
 	auto_paddle_position(): void {
-		if (this.position + this.height / 2 > vars.height / 2) {
+
+		if (this.old_velocityX !== this.velocityX) {
+			this.old_velocityX = this.velocityX;
+			this.contact_algorithm();
+		}
+
+		const position = this.positionY + this.contact;
+
+		if (position + this.height / 2 > vars.height / 2) {
 			this.y = vars.height / 2 - this.height / 2;
-		} else if (this.position - this.height / 2 < -vars.height / 2) {
+		} else if (position - this.height / 2 < -vars.height / 2) {
 			this.y = -vars.height / 2 + this.height / 2;
 		} else {
-			this.y = this.position;
+			this.y = position;
 		}
 
 		this.game.getSocket().emit("playerUpdate", {
@@ -190,14 +215,20 @@ class Bot extends Paddle {
 	}
 
 	update(): void {
-		if (this.game.getDataPlayer().side === this.side)
+		const { getDataPlayer, ball } = this.game;
+		const { side } = getDataPlayer();
+		const isMe = side === this.side;
+
+		if (isMe) {
 			this.auto_paddle_position();
+		}
 
-		if (this.game.getDataPlayer().side === this.side && this.game.ball.x > vars.width / 3)
-			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.5)
-
-		else if (this.game.getDataPlayer().side !== this.side && this.game.ball.x < -vars.width / 3)
-			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.5)
+		if (
+			(isMe && ball.x > vars.width / 4 && ball.velocityX > 0) ||
+			(!isMe && ball.x < -vars.width / 4 && ball.velocityX < 0)
+		) {
+			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.4);
+		}
 	}
 
 	dispose(): void {
