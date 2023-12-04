@@ -131,11 +131,9 @@ export class AuthController {
         }
 
         if (entry.nickname)
-            res.redirect('http://www.google.com')
-        // res.redirect('http://localhost:3000/profile') // ! set redirect url in .env
+            res.redirect('http://localhost:3000/home')
         else
-            res.redirect('http://www.github.com')
-        // res.redirect('http://localhost:3000/complete_infos');
+            res.redirect('http://localhost:3000/complete_infos')
     }
 
     @AtPublic()

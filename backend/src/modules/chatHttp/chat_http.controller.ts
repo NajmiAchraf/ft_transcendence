@@ -44,6 +44,14 @@ export class ChatHttpController {
 		return this.chatHttpService.findAllGlobalChat(userId);
 	}
 
+	@UseGuards(BannedUserGuard)
+	@Post('findChannelChat')
+	async findChannelChat(@Req() req: Request, @Body() body: ChannelIdDto) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		return this.chatHttpService.findChannelChat(userId, channelId);
+	}
+
 	@Post('createChannel')
 	@UseInterceptors(FileInterceptor('avatar', multerConfig))
 	async createChannel(@Body() body: CreateChannelDto, @UploadedFile() file: avatarDto, @Req() req: Request) {

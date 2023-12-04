@@ -10,7 +10,7 @@ export class ConnectionService {
 
 	async socketConnect(client: Socket, userId: number) {
 		// insert new connection
-		this.socketService.insert(client.id, userId);
+		this.socketService.insertChat(client, userId);
 
 		// update user status to online
 		await this.prismaService.user.update({

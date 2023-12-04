@@ -3,7 +3,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AdditionalInfo } from './dto';
 import { UserHelperService } from './user_helper.service';
 import { GlobalHelperService } from 'src/common/services/global_helper.service';
-import * as path from 'path';
 
 @Injectable()
 export class UserService {
@@ -402,7 +401,6 @@ export class UserService {
 	}
 
 	async sendFriendRequest(profileId: number, userId: number) {
-		// ! should we check if profileId is equal to userId?
 
 		if (profileId === userId) {
 			throw new BadRequestException('You cannot send a friend request to yourself');

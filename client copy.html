@@ -15,19 +15,15 @@
   <br>
   <div id="channelBlock"></div>
   <button onclick="joinChannel()">join channel</button>
-  <br>
   <input type="text" id="channelInput" placeholder="Type a message...">
   <br>
   <button onclick="sendChannelMessage()">Send</button>
-  <br>
-  <br>
-  <br>
   <br>
   <button onclick="kickUser2()">Send</button>
 
   
   <script>
-    const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoib2toaWFycnJyciIsImlhdCI6MTcwMTcwMjg5MSwiZXhwIjoxNzAxNzg5MjkxfQ.PF-3xKrZsaoH_dJu01GcVxeBaCDQkrF5ltlX37rZmSQ';
+    const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsInVzZXJuYW1lIjoib2JlZG5hb3UiLCJpYXQiOjE3MDE3MDM4NjYsImV4cCI6MTcwMTc5MDI2Nn0.S9_7GcMAl9TyoKSVseujjzwsB7qUA9oBS_0-M2vQqvk';
     
     const channelBlock = document.getElementById('channelBlock');
     
@@ -117,16 +113,15 @@
         console.log(`${message.nickname} joined channel ...`);
       });
 
-
-      socket.on('channelCreateChat', async (message) => {
-        console.log(message);
-        // await getAllChannelChat(1);
-        channelBlock.innerHTML += `<p>[id: ${message.sender_id}, nickname: ${message.nickname}] ${message.message_text} : ${message.create_at}</p>`;
-
-        console.log("channelCreateChat received")
-        });
-
-
+      
+      
+            socket.on('channelCreateChat', async (message) => {
+              console.log(message);
+              // await getAllChannelChat(1);
+              channelBlock.innerHTML += `<p>[id: ${message.sender_id}, nickname: ${message.nickname}] ${message.message_text} : ${message.create_at}</p>`;
+      
+              console.log("channelCreateChat received")
+              });
 
       socket.on('createChannelMessage', (message) => {
         channelBlock.innerHTML += `<p>[id: ${message.sender_id}, nickname: ${message.nickname}] ${message.message_text} : ${message.create_at}</p>`;
@@ -145,3 +140,4 @@
   </script>
 </body>
 </html>
+

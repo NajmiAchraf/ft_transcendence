@@ -81,4 +81,5 @@ export class GlobalHelperService {
 	join(host: string, path: string) {
 		return `${host}/${path}`;
 	}
+
 }

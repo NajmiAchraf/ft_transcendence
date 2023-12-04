@@ -55,18 +55,61 @@ export class ChatHttpService {
 
 		const messages = entries.map(entry => {
 			return {
-				messageId: entry.id,
-				senderId: entry.sender_id,
-				senderNickname: entry.globalm_sender.nickname,
-				message: entry.message_text,
-				senderStatus: entry.globalm_sender.status,
-				createdAt: entry.created_at,
+				sender_id: entry.sender_id,
+				nickname: entry.globalm_sender.nickname,
+				message_text: entry.message_text,
+				avatar: entry.globalm_sender.avatar,
+				status: entry.globalm_sender.status,
+				created_at: entry.created_at,
 			}
 		});
 
 		// filter messages that the user is blocked by the sender or the sender is blocked by the user
 		const filteredMessagesPromises = messages.filter(async (message) => {
-			return !(await this.globalHelperService.isBlocked(userId, message.senderId) || await this.globalHelperService.isBlocked(message.senderId, userId));
+			return !(await this.globalHelperService.isBlocked(userId, message.sender_id) || await this.globalHelperService.isBlocked(message.sender_id, userId));
+		});
+
+		return await Promise.all(filteredMessagesPromises);
+	}
+
+	async findChannelChat(userId: number, channelId: number) {
+		const entry = await this.prsimaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		const entries = await this.prsimaService.channels_message.findMany({
+			where: {
+				channel_id: channelId,
+			},
+			include: {
+				cm_sender: true,
+			},
+			orderBy: {
+				created_at: 'desc',
+			},
+		});
+
+		const messages = entries.map(entry => {
+			return {
+				sender_id: entry.sender_id,
+				nickname: entry.cm_sender.nickname,
+				message_text: entry.message_text,
+				avatar: entry.cm_sender.avatar,
+				status: entry.cm_sender.status,
+				created_at: entry.created_at,
+			}
+		});
+
+		// filter messages that the user is blocked by the sender or the sender is blocked by the user
+		const filteredMessagesPromises = messages.filter(async (message) => {
+			return !(await this.globalHelperService.isBlocked(userId, message.sender_id) || await this.globalHelperService.isBlocked(message.sender_id, userId));
 		});
 
 		return await Promise.all(filteredMessagesPromises);
@@ -345,6 +388,10 @@ export class ChatHttpService {
 			}
 		});
 
+		if (!channel) {
+			throw new ForbiddenException('channel does not exist');
+		}
+
 		// you can join a private channel only if you are invited
 		if (channel.privacy === 'private') {
 			throw new ForbiddenException('Channel is private');
@@ -389,32 +436,36 @@ export class ChatHttpService {
 			throw new ForbiddenException('You are not in the channel');
 		}
 
-		// check if the user is the owner
-		if (entry.user_role === 'owner') {
-			const [admin] = await this.prsimaService.user_channel.findMany({
-				where: {
-					channel_id: channelId,
-					user_role: 'admin',
-				},
-				take: 1,
-				orderBy: {
-					created_at: 'asc',
-				}
-			});
+		const entries = await this.prsimaService.user_channel.findMany({});
 
-			if (!admin) {
-				throw new ForbiddenException('No admin replace the owner');
+		if (entries.length > 1) {
+			// check if the user is the owner
+			if (entry.user_role === 'owner') {
+				const [admin] = await this.prsimaService.user_channel.findMany({
+					where: {
+						channel_id: channelId,
+						user_role: 'admin',
+					},
+					take: 1,
+					orderBy: {
+						created_at: 'asc',
+					}
+				});
+
+				if (!admin) {
+					throw new ForbiddenException('No admin replace the owner');
+				}
+
+				// set the first admin as the owner
+				await this.prsimaService.user_channel.update({
+					where: {
+						id: admin.id,
+					},
+					data: {
+						user_role: 'owner',
+					}
+				});
 			}
-
-			// set the first admin as the owner
-			await this.prsimaService.user_channel.update({
-				where: {
-					id: admin.id,
-				},
-				data: {
-					user_role: 'owner',
-				}
-			});
 		}
 
 		// delete user from channel
@@ -435,6 +486,15 @@ export class ChatHttpService {
 				}
 			}
 		});
+
+		if (entries.length === 1) {
+			// delete channel
+			await this.prsimaService.channel.delete({
+				where: {
+					id: channelId,
+				}
+			});
+		}
 	}
 
 	async kickChannelMember(userId: number, channelId: number, memberId: number) {
@@ -448,6 +508,10 @@ export class ChatHttpService {
 				user_id: userId,
 			},
 		});
+
+		if (!kickerEntry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
 
 		if (kickerEntry.user_role !== 'owner' && kickerEntry.user_role !== 'admin') {
 			throw new ForbiddenException('Only admins and owners can kick members');
@@ -513,6 +577,10 @@ export class ChatHttpService {
 				user_id: userId,
 			},
 		});
+
+		if (!muterEntry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
 
 		if (muterEntry.user_role !== 'owner' && muterEntry.user_role !== 'admin') {
 			throw new ForbiddenException('Only admins and owners can mute members');

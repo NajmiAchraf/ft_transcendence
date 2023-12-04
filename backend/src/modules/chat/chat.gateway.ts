@@ -1,5 +1,5 @@
 import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, ConnectedSocket } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { Namespace, Server, Socket } from 'socket.io';
 import { GlobalChatService } from './global_chat.service';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -21,7 +21,7 @@ import { DmService } from './dm.service';
 
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer()
-	server: Server;
+	server: Namespace;
 
 	constructor(private readonly globalChatService: GlobalChatService,
 		private readonly prismaService: PrismaService,
@@ -48,16 +48,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	// ** Global Chat **
 	@SubscribeMessage('GlobalCreate')
 	async create(@ConnectedSocket() client: Socket, @MessageBody() message: string) {
-		console.log(`createChat emmited by ${client.id}: message: ${message}`);
 		const userId = await this.globalHelperService.getClientIdFromJwt(client);
 
 		if (userId === undefined) {
 			this.server.to(client.id).emit('Invalid', { error: 'Invalid Access Token' });
 			return;
 		}
-		console.log('here+++');
-		const namespace = this.server.of('/chat');
-		console.log(namespace.sockets);
+
 		return this.globalChatService.create(this.server, client, message);
 	}
 
@@ -68,7 +65,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	// ** Channel Chat **
 	@SubscribeMessage('joinChannel')
-	async joinChannel(@ConnectedSocket() client: Socket, @MessageBody() message: ChannelPasswordDto) {
+	async joinChannel(@ConnectedSocket() client: Socket, @MessageBody() message: any) {
 		const userId = await this.globalHelperService.getClientIdFromJwt(client);
 
 		if (userId === undefined) {
@@ -79,7 +76,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	@SubscribeMessage('addChannelMember')
-	async addChannelMember(@ConnectedSocket() client: Socket, @MessageBody() message: ProfileChannelIdDto) {
+	async addChannelMember(@ConnectedSocket() client: Socket, @MessageBody() message: any) {
 		const userId = await this.globalHelperService.getClientIdFromJwt(client);
 
 		if (userId === undefined) {
@@ -90,7 +87,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	@SubscribeMessage('addChannelAdmin')
-	async addChannelAdmin(@ConnectedSocket() client: Socket, @MessageBody() message: ProfileChannelIdDto) {
+	async addChannelAdmin(@ConnectedSocket() client: Socket, @MessageBody() message: any) {
 		const userId = await this.globalHelperService.getClientIdFromJwt(client);
 
 		if (userId === undefined) {
@@ -111,6 +108,52 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		return this.channelChatService.channelCreateChat(this.server, client, message);
 	}
 
+	@SubscribeMessage('leaveChannel')
+	async leaveChannel(@ConnectedSocket() client: Socket, @MessageBody() message: any) {
+		const userId = await this.globalHelperService.getClientIdFromJwt(client);
+
+		if (userId === undefined) {
+			this.server.to(client.id).emit('Invalid', { error: 'Invalid Access Token' });
+			return;
+		}
+		return this.channelChatService.leaveChannel(this.server, client, message);
+	}
+
+	@SubscribeMessage('kickChannelMember')
+	async kickChannelMember(@ConnectedSocket() client: Socket, @MessageBody() message: any) {
+		const userId = await this.globalHelperService.getClientIdFromJwt(client);
+
+		if (userId === undefined) {
+			this.server.to(client.id).emit('Invalid', { error: 'Invalid Access Token' });
+			return;
+		}
+		return this.channelChatService.kickChannelMember(this.server, client, message);
+	}
+
+	@SubscribeMessage('banChannelMember')
+	async banChannelMember(@ConnectedSocket() client: Socket, @MessageBody() message: any) {
+		const userId = await this.globalHelperService.getClientIdFromJwt(client);
+
+		if (userId === undefined) {
+			this.server.to(client.id).emit('Invalid', { error: 'Invalid Access Token' });
+			return;
+		}
+		return this.channelChatService.banChannelMember(this.server, client, message);
+	}
+
+	@SubscribeMessage('channelCreate')
+	async channelCreate(@ConnectedSocket() client: Socket, @MessageBody() message: any) {
+		const userId = await this.globalHelperService.getClientIdFromJwt(client);
+		if (userId === undefined) {
+			this.server.to(client.id).emit('Invalid', { error: 'Invalid Access Token' });
+			return;
+		}
+
+		return this.channelChatService.createChannel(this.server, client, message);
+	}
+
+
+
 	// ** Direct Chat **
 	@SubscribeMessage('directCreateChat')
 	async directCreateChat(@ConnectedSocket() client: Socket, @MessageBody() message: any) {
@@ -122,4 +165,5 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 		return this.dmService.directCreateChat(this.server, client, message);
 	}
+
 }

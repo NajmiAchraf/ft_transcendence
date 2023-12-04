@@ -49,7 +49,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		}
 
 		// insert new connection
-		this.socketService.insert(client.id, userId, 'ping-pong');
+		this.socketService.insert(client.id, userId);
 
 		console.log('NEW CONNECTION: ' + client.id + ' ' + userId);
 	}
@@ -70,11 +70,11 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 	}
 
 	afterInit(server: Server) {
-		console.log("Server initialized");
+		// console.log("Server initialized");
 	}
 
 	onModuleInit() {
-		console.log("Module connected");
+		// console.log("Module connected");
 	}
 
 	@SubscribeMessage("joinGame")
