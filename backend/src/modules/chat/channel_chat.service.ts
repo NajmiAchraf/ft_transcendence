@@ -249,6 +249,7 @@ export class ChannelChatService {
 				},
 				body: JSON.stringify(message)
 			});
+			// ?
 			if (!res.ok) {
 				console.log('something went wrong');
 				const data = await res.json();
