@@ -77,4 +77,8 @@ export class GlobalHelperService {
 		}
 		return argon2.verify(hash, data);
 	}
+
+	join(host: string, path: string) {
+		return `${host}/${path}`;
+	}
 }

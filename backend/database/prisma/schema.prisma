@@ -50,6 +50,7 @@ model user {
     blocking_user blocked[] @relation(name: "blocking_user")
     banned_user banned[] @relation(name: "banned_user")
     muted_user muted[] @relation(name: "muted_user")
+    notification_user notification[] @relation(name: "notification_user")
 }
 
 model channel {
@@ -168,6 +169,14 @@ model muted {
   muted_user     user     @relation(name: "muted_user", fields: [muted_user_id], references: [id])
   channel_id Int
   muting_channel     channel     @relation(name: "muting_channel", fields: [channel_id], references: [id])
+  created_at DateTime @default(now())
+}
+
+model notification {
+  id        Int      @id @default(autoincrement())
+  user_id Int
+  user     user     @relation(name: "notification_user", fields: [user_id], references: [id])
+  notification_text String
   created_at DateTime @default(now())
 }
 

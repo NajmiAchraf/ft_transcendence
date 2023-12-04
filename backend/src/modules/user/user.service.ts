@@ -39,7 +39,7 @@ export class UserService {
 				nickname: additionalInfos.nickname,
 				fullname: additionalInfos.fullname,
 				gender: additionalInfos.gender,
-				avatar: path.join(process.env.API_URL, additionalInfos.avatar),
+				avatar: this.globalHelperService.join(process.env.API_URL, additionalInfos.avatar),
 			}
 		});
 	}
@@ -347,14 +347,16 @@ export class UserService {
 			throw new BadRequestException('Nickname already exists');
 		}
 
+		console.log(this.globalHelperService.join(process.env.API_URL, body.avatar));
+
 		// updating user
 		const updatedUser = await this.prismaService.user.update({
 			where: {
 				id: userId,
 			},
-			data: {
+			data: { // http:/
 				visibility: body.visibility,
-				avatar: path.join(process.env.API_URL, body.avatar),
+				avatar: this.globalHelperService.join(process.env.API_URL, body.avatar),
 				nickname: body.nickname,
 			},
 		});

@@ -59,6 +59,7 @@ export class ChatHttpService {
 				senderId: entry.sender_id,
 				senderNickname: entry.globalm_sender.nickname,
 				message: entry.message_text,
+				senderStatus: entry.globalm_sender.status,
 				createdAt: entry.created_at,
 			}
 		});
@@ -84,7 +85,7 @@ export class ChatHttpService {
 			const channel = await this.prsimaService.channel.create({
 				data: {
 					channel_name: body.channelName,
-					avatar: path.join(process.env.API_URL, body.avatar),
+					avatar: this.globalHelperService.join(process.env.API_URL, body.avatar),
 					privacy: body.privacy,
 					members_count: 1,
 				}
@@ -373,7 +374,6 @@ export class ChatHttpService {
 				}
 			}
 		});
-		return { status: 'success' };
 	}
 
 	async leaveChannel(userId: number, channelId: number) {
@@ -541,6 +541,64 @@ export class ChatHttpService {
 			data: {
 				channel_id: channelId,
 				muted_user_id: memberId,
+			}
+		});
+	}
+
+	async createChannelMessage(userId: number, channelId: number, message: string) {
+		const entry = await this.prsimaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		// check if the user is muted
+		const BanEntry = await this.prsimaService.muted.findFirst({
+			where: {
+				channel_id: channelId,
+				muted_user_id: userId,
+			},
+		});
+
+		if (BanEntry) {
+			if (Date.now() - BanEntry.created_at.getTime() < 1000 * 60 * 2) {
+				throw new ForbiddenException('You are muted');
+			}
+			// delete the banned entry
+			await this.prsimaService.muted.delete({
+				where: {
+					id: BanEntry.id,
+				},
+			});
+		}
+
+		// created the message
+		await this.prsimaService.channels_message.create({
+			data: {
+				message_text: message,
+				sender_id: userId,
+				channel_id: channelId,
+			}
+		});
+	}
+
+	async createDM(userId: number, receiverId: number, message: string) {
+		// check if the users are friends
+		if (!await this.globalHelperService.areFriends(userId, receiverId)) {
+			throw new ForbiddenException('You can only send messages to friends');
+		}
+
+		// create the message
+		await this.prsimaService.direct_message.create({
+			data: {
+				message_text: message,
+				sender_id: userId,
+				receiver_id: receiverId,
 			}
 		});
 	}

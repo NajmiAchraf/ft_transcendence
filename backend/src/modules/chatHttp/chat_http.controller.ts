@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ChatHttpService } from './chat_http.service';
 import { Request } from 'express';
 import { ChatBlockCheckGuard, BannedMemberGuard, BannedUserGuard } from 'src/common/guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerConfig } from 'src/common/confs/multer.config';
 import { avatarDto } from 'src/common/dtos/avatar.dto';
-import { ChannelIdDto, CreateChannelDto, ProfileChannelIdDto } from './dto';
+import { ChannelIdDto, ChannelMessageDto, CreateChannelDto, DmDto, ProfileChannelIdDto } from './dto';
 import { ProfileId } from '../user/dto';
 import { Profile } from 'passport';
 import { ChannelPasswordDto } from './dto/channel_password.dto';
@@ -20,6 +20,14 @@ export class ChatHttpController {
 		const profileId = +body.profileId;
 		const userId = req.user['sub'];
 		return this.chatHttpService.getLastDM(userId, profileId);
+	}
+
+	@UseGuards(ChatBlockCheckGuard)
+	@Post('create_dm')
+	async createDM(@Req() req: Request, @Body() body: DmDto) {
+		const userId = req.user['sub'];
+		const receiverId = +body.receiverId;
+		return this.chatHttpService.createDM(userId, receiverId, body.message);
 	}
 
 	@UseGuards(ChatBlockCheckGuard)
@@ -41,6 +49,13 @@ export class ChatHttpController {
 	async createChannel(@Body() body: CreateChannelDto, @UploadedFile() file: avatarDto, @Req() req: Request) {
 		body.avatar = file.path;
 		return this.chatHttpService.createChannel(body, req.user['sub']);
+	}
+
+	@Post('createChannelMessage')
+	@UseGuards(BannedUserGuard)
+	async createChannelMessage(@Req() req: Request, @Body() body: ChannelMessageDto) {
+		const userId = req.user['sub'];
+		return this.chatHttpService.createChannelMessage(userId, +body.channelId, body.message);
 	}
 
 	@UseGuards(BannedMemberGuard)

@@ -13,34 +13,62 @@
   <br>
   <br>
   <br>
+  <div id="channelBlock"></div>
   <button onclick="joinChannel()">join channel</button>
+  <input type="text" id="channelInput" placeholder="Type a message...">
+  <br>
+  <button onclick="sendChannelMessage()">Send</button>
 
   <script>
+    const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoib2toaWFycnJyciIsImlhdCI6MTcwMTYzMDQ2NiwiZXhwIjoxNzAxNzE2ODY2fQ.gFsJdK5dz23PIiF2KYOZw3qAmygqjNVsELIMTeFkx5I';
+    
+    const channelBlock = document.getElementById('channelBlock');
+
+
+    
     const socket = io('http://localhost:3001/chat', {
 		query: {
-			accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQsInVzZXJuYW1lIjoidXNlcjEyMyIsImlhdCI6MTcwMTU0Mzg3OSwiZXhwIjoxNzAxNjMwMjc5fQ.dfR3xyAlsTLJsL-1yPt25TbvzPw2OweGhfHolt5nn80',
+			accessToken: accessToken,
 		}
 	});
 
-  socket.on('createChat', (message) => {
+    socket.on('createChat', (message) => {
       const chatDiv = document.getElementById('chat');
       chatDiv.innerHTML += `<p>[id: ${message.senderId}, nickname: ${message.senderNickname}] ${message.message} : ${message.createdAt}</p>`;
     });
+
+
     socket.on('error', (message) => {
       console.log(message.error);
     });
 
+
     socket.on('joined', (message) => {
-      console.log("you have joined the channel");
+      channelBlock.innerHTML += `<p>${message.nickname} joined channel ...</p>`;
+      console.log(`${message.nickname} joined channel ...`);
     });
+
+
+    socket.on('createChannelMessage', (message) => {
+      channelBlock.innerHTML += `<p>[id: ${message.senderId}, nickname: ${message.senderNickname}] ${message.message} : ${message.createdAt}</p>`;
+    });
+
+
 
     function sendMessage() {
 		console.log('sendMessage');
       const messageInput = document.getElementById('messageInput');
       const message = messageInput.value;
-      socket.emit('createChat', {id: 1, message});
-	  console.log(`blah : ${message}`);
+      socket.emit('GlobalCreate', message);
       messageInput.value = '';
+    }
+
+
+    function sendChannelMessage() {
+		console.log('send channel message');
+      const channelInput = document.getElementById('channelInput');
+      const message = channelInput.value;
+      socket.emit('channelCreateChat', {channelId: 1, message});
     }
 
     function joinChannel() {

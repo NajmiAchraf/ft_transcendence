@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { MessageDto } from './dto/message.dto';
 import { Server, Socket } from 'socket.io';
 import { PrismaService } from '../prisma/prisma.service';
 import { SocketService } from 'src/common/services/socket.service';
@@ -35,6 +34,7 @@ export class GlobalChatService {
 
     // server.emit('createChat', message);
     // Get all connected sockets
+    console.log(server.of('/chat').sockets);
     const connectedSockets = Object.values(server.sockets.sockets);
 
     const filteredSocketsPromises = connectedSockets.filter(async (socket) => {
@@ -54,84 +54,6 @@ export class GlobalChatService {
 
   }
 
-  async findAll(server: Server, client: Socket) {
-    const userId = this.socketService.getUserId(client.id);
-
-    const entries = await this.prismaService.global_chat.findMany({
-      include: {
-        globalm_sender: true,
-      },
-      orderBy: {
-        created_at: 'desc',
-      },
-    });
-
-    const messages = entries.map(entry => {
-      return {
-        messageId: entry.id,
-        senderId: entry.sender_id,
-        senderNickname: entry.globalm_sender.nickname,
-        avatar: entry.globalm_sender.avatar,
-        senderStatus: entry.globalm_sender.status,
-        message: entry.message_text,
-        createdAt: entry.created_at,
-      };
-    });
-
-    const filteredMessagesPromises = messages.filter(async (message) => {
-      return !(await this.globalHelperService.isBlocked(userId, message.senderId) ||
-        await this.globalHelperService.isBlocked(message.senderId, userId));
-    });
-
-    const filteredMessages = await Promise.all(filteredMessagesPromises);
-
-    server.to(client.id).emit('findAll', filteredMessages);
-  }
-
-  async update(server: Server, client: Socket, userId: number, messageDto: MessageDto) {
-    const entry = await this.prismaService.global_chat.findUnique({
-      where: {
-        id: messageDto.messageId,
-        sender_id: userId,
-      },
-    });
-    if (!entry) {
-      server.to(client.id).emit('error', { error: 'You are not allowed to update this message' });
-    }
-    await this.prismaService.global_chat.update({
-      where: {
-        id: messageDto.messageId,
-      },
-      data: {
-        message_text: messageDto.message,
-      }
-    });
-    // broadcast to all clients
-    server.emit('updateGlobalChat', messageDto);
-  }
-
-  async remove(server: Server, client: Socket, userId: number, messageId: number) {
-    const entry = await this.prismaService.global_chat.findUnique({
-      where: {
-        id: messageId,
-        sender_id: userId,
-      },
-    });
-    if (!entry) {
-      server.to(client.id).emit('error', { error: 'You are not allowed to delete this message' });
-      return;
-    }
-    // broadcast to all clients
-    server.emit('removeGlobalChat', messageId);
-
-    // delete message
-    await this.prismaService.global_chat.delete({
-      where: {
-        id: messageId,
-      },
-    });
-  }
-
   async getUsers() {
     const entries = await this.prismaService.user.findMany({
       where: {
@@ -145,30 +67,5 @@ export class GlobalChatService {
       }
     });
     return entries;
-  }
-
-  async socketDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
-
-    // delete connection
-    const userId = this.socketService.delete(client.id);
-
-    console.log('UserID: ' + userId);
-    if (userId === undefined) {
-      return;
-    }
-    // check if user has other socket_id
-    const sockets = this.socketService.getSockets(userId);
-
-    if (sockets.length === 0) {
-      await this.prismaService.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          status: 'offline',
-        }
-      });
-    }
   }
 }
