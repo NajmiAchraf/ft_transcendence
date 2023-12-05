@@ -1,4 +1,4 @@
-import { Server } from "socket.io";
+import { Namespace } from "socket.io";
 
 import Game from "src/modules/ping-pong/component/Game";
 import Player, { Paddle } from "src/modules/ping-pong/component/Player";
@@ -7,7 +7,7 @@ import { vars, Mode } from "src/modules/ping-pong/common/Common";
 
 export default class Ball {
 	game: Game;
-	server: Server;
+	server: Namespace;
 
 	player1: Player;
 	player2: Player;
