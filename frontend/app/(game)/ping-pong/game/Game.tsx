@@ -25,6 +25,7 @@ class CanvasComponent {
 	bloomPass: UnrealBloomPass;
 
 	moving_camera: boolean = false;
+	onWindowResize: () => void;
 
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas
@@ -32,8 +33,7 @@ class CanvasComponent {
 		this.scene = this.sceneSetup()
 		this.camera = this.cameraSetup(75, this.canvas.clientWidth / this.canvas.clientHeight, 0.1, 5000, new THREE.Vector3(0, 0, vars.height))
 
-		// resize for PerspectiveCamera
-		window.addEventListener('resize', () => {
+		this.onWindowResize = () => {
 			if (screen.orientation?.type === 'landscape-primary' || screen.orientation?.type === 'landscape-secondary') {
 				this.canvas.style.width = window.innerWidth + 'px';
 				this.canvas.style.height = window.innerHeight + 'px';
@@ -44,7 +44,10 @@ class CanvasComponent {
 			this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
 			this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
 			this.camera.updateProjectionMatrix();
-		});
+		}
+
+		// resize for PerspectiveCamera
+		window.addEventListener('resize', this.onWindowResize);
 
 		// Create an effect composer
 		this.composer = new EffectComposer(this.renderer);
@@ -103,7 +106,30 @@ class CanvasComponent {
 		// this.renderer.render(this.scene, this.camera)
 	}
 
+	dispose() {
+		window.removeEventListener('resize', this.onWindowResize);
 
+		while (this.scene.children.length > 0) {
+			this.scene.remove(this.scene.children[0]);
+		}
+
+		// stop animation
+		this.renderer.setAnimationLoop(null);
+		// clear the scene
+		this.scene.clear();
+		// clear the canvas
+		this.renderer.clear();
+		// composer dispose
+		this.composer.dispose();
+		// remove the canvas render
+		this.renderer.dispose();
+		// remove the renderPass to the composer
+		this.renderPass.dispose();
+		// remove the bloomPass to the composer
+		this.bloomPass.dispose();
+		// remove the canvas render
+		this.renderer.dispose();
+	}
 }
 
 export default class Game extends CanvasComponent {
@@ -115,10 +141,16 @@ export default class Game extends CanvasComponent {
 	// service: SocketService;
 	getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>;
 	getDataPlayer: () => any;
-	room: string | undefined = undefined;
+	room: string;
 	idPlayer: string | undefined = undefined;
 
 	duration: number = 1500;
+
+	// boolean to check done
+	running: boolean = false;
+	stopped: boolean = false;
+	lost: boolean = false;
+	winned: boolean = false;
 
 	constructor(getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>, getProps: () => Props, getCanvas: () => Canvas, getDataPlayer: () => any) {
 		if (!getCanvas())
@@ -128,11 +160,14 @@ export default class Game extends CanvasComponent {
 		// this.service = service;
 		this.getSocket = getSocket;
 		this.getDataPlayer = getDataPlayer;
+		this.room = getDataPlayer().room;
+
 		this.board = new Board(this, vars.width, vars.height, vars.depth, getProps().geometry, getProps().mirror)
 		this.ball = new Ball(this, getProps().geometry)
-		this.player1 = new Player(this, "right", getProps().geometry)
-		this.player2 = new Player(this, "left", getProps().geometry)
+		this.player1 = new Player(this, "right", getProps().geometry, getProps().devMode)
+		this.player2 = new Player(this, "left", getProps().geometry, getProps().devMode)
 
+		console.log("readyToPlay");
 		this.getSocket().on("drawGoal", () => {
 			// move the camera to the winner side after a goal and back to the center
 			if (this.ball.velocityX < 0)
@@ -141,6 +176,8 @@ export default class Game extends CanvasComponent {
 				this.moveCameraSeries("right");
 
 		});
+
+		this.getSocket().emit("readyToPlay");
 	}
 
 	// entry point for the game camera move from pi/3 to pi/2
@@ -253,6 +290,9 @@ export default class Game extends CanvasComponent {
 	}
 
 	run() {
+		if (this.running)
+			return;
+		this.running = true;
 		this.animate();
 		this.renderer.setAnimationLoop(() => {
 			this.update()
@@ -260,39 +300,31 @@ export default class Game extends CanvasComponent {
 	}
 
 	win() {
+		if (this.winned)
+			return;
+		this.winned = true;
 		this.board.win();
 		this.hardResetCamera();
-		// last update
-		this.update();
-		// stop animation
-		this.renderer.setAnimationLoop(null);
+		this.ball.reset();
 	}
 
 	lose() {
+		if (this.lost)
+			return;
+		this.lost = true;
 		this.board.lose();
 		this.hardResetCamera();
-		// last update
-		this.update();
-		// stop animation
-		this.renderer.setAnimationLoop(null);
+		this.ball.reset();
 	}
 
 	stop() {
-		// stop animation
-		this.renderer.setAnimationLoop(null);
-		// clear the scene
-		this.scene.clear();
-		// clear the canvas
-		this.renderer.clear();
-		// composer dispose
-		this.composer.dispose();
-		// remove the canvas render
-		this.renderer.dispose();
-		// remove the renderPass to the composer
-		this.renderPass.dispose();
-		// remove the bloomPass to the composer
-		this.bloomPass.dispose();
-		// remove the canvas render
-		this.renderer.dispose();
+		if (this.stopped)
+			return;
+		this.stopped = true;
+		this.board.dispose();
+		this.ball.dispose();
+		this.player1.dispose();
+		this.player2.dispose();
+		this.dispose();
 	}
 }

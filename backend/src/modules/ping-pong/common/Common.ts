@@ -1,12 +1,10 @@
-'use client';
-
-export type Canvas = HTMLCanvasElement | null;
 export type Side = "left" | "right";
 export type Mode = "easy" | "medium" | "hard";
 export type Geometry = "cube" | "sphere";
 export type PlayerType = "player" | "bot";
 export type PlayStates = 'readyPlay' | 'startPlay' | 'endPlay';
 export type GameStates = 'settings' | 'wait' | 'play';
+
 
 export let vars = {
 	speed_init: 600 / 150, //! depend on width
@@ -21,18 +19,11 @@ export let vars = {
 	font_height: 2,
 }
 
-export type Props = {
-	geometry: Geometry,
-	mirror: boolean,
-	mode: Mode,
-	playerType: PlayerType,
-	player1Name: string,
-	player2Name: string,
-	invite: boolean,
-	readyPlay: boolean,
-	startPlay: boolean,
-	inGame: boolean,
-	endGame: boolean,
-	devMode: boolean,
+export type GameResultType = {
+	readonly winnerId: number;
+	readonly loserId: number;
+	readonly winnerScore: number;
+	readonly loserScore: number;
+	readonly startTime: Date;
+	readonly endTime: Date;
 }
-

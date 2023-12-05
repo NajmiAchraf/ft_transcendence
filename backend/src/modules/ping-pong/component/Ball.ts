@@ -1,20 +1,20 @@
-import { Namespace } from "socket.io";
+import { Server } from "socket.io";
 
-import Game from "./Game";
-import Player, { Paddle } from "./Player";
+import Game from "src/modules/ping-pong/component/Game";
+import Player, { Paddle } from "src/modules/ping-pong/component/Player";
 
-import { vars, Mode } from "../types/Common";
+import { vars, Mode } from "src/modules/ping-pong/common/Common";
 
 export default class Ball {
 	game: Game;
-	server: Namespace;
+	server: Server;
 
 	player1: Player;
 	player2: Player;
 
 	scale: number;
 
-	radius: number;
+	diameter: number;
 
 	x: number;
 	y: number;
@@ -34,7 +34,7 @@ export default class Ball {
 	left: number = 0;
 	right: number = 0;
 
-	play_ball: boolean = true;
+	play_ball: boolean = false;
 
 	constructor(game: Game, mode: Mode) {
 		this.game = game;
@@ -53,7 +53,7 @@ export default class Ball {
 		else
 			throw new Error("Invalid mode");
 
-		this.radius = ((vars.width + vars.height) / 2) / this.scale;
+		this.diameter = ((vars.width + vars.height) / 2) / this.scale;
 
 		this.speed_factor = vars.speed_init / 10;
 		this.speed = vars.speed_init;
@@ -63,7 +63,7 @@ export default class Ball {
 
 		this.x = 0;
 		this.y = 0;
-		this.z = vars.z + vars.depth / 2 + this.radius / 2;
+		this.z = vars.z + vars.depth / 2 + this.diameter / 2;
 
 	}
 
@@ -97,10 +97,10 @@ export default class Ball {
 	}
 
 	set_coordinations_ball(): void {
-		this.top = this.y + this.radius / 2 + this.velocityY;
-		this.bottom = this.y - this.radius / 2 + this.velocityY;
-		this.right = this.x + this.radius / 2 + this.velocityX;
-		this.left = this.x - this.radius / 2 + this.velocityX;
+		this.top = this.y + this.diameter / 2 + this.velocityY;
+		this.bottom = this.y - this.diameter / 2 + this.velocityY;
+		this.right = this.x + this.diameter / 2 + this.velocityX;
+		this.left = this.x - this.diameter / 2 + this.velocityX;
 	}
 
 	set_coordinations_paddle(paddle: Paddle): void {
@@ -173,7 +173,7 @@ export default class Ball {
 	}
 
 	speed_algorithm(): void {
-		if (this.speed < vars.width / 50) {
+		if (this.speed < vars.width / 60) {
 			if (this.hits > this.mode) {
 				this.speed += this.speed_factor;
 				this.hits = 0;
@@ -203,7 +203,7 @@ export default class Ball {
 	}
 
 	send() {
-		this.server.to(this.game.queue).emit("ball", {
+		this.server.to(this.game.pair).emit("ball", {
 			x: this.x,
 			y: this.y,
 			velocityX: this.velocityX,

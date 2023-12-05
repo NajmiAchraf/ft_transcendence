@@ -12,16 +12,12 @@ export class SocketService {
 		private readonly globalHelperService: GlobalHelperService) {
 	}
 
-	// inserts a new PingPong connection
-	insert(clientId: string, UserId: number) {
-		this.pingPongSockets.set(clientId, UserId);
-		return UserId;
-	}
-
-	// inserts a new chat connection
-	insertChat(client: Socket, UserId: number) {
-		this.chatSockets.set(client.id, UserId);
-		return UserId;
+	insert(clientId: string, userId: number, namespace: string = 'chat') {
+		if (namespace === 'chat')
+			this.chatSockets.set(clientId, userId);
+		else
+			this.pingPongSockets.set(clientId, userId);
+		return userId;
 	}
 
 	// deletes a connection

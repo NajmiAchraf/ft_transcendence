@@ -1,9 +1,6 @@
-import Game from "./logic/Game";
-import { GameResultType, Mode, PlayerType } from './types/Common';
-import PingPongGateway from "./ping-pong.gateway";
-import { PrismaService } from "../prisma/prisma.service";
-import e from "express";
-import { PingPongService } from "./ping-pong.service";
+import { GameResultType, Mode, PlayerType } from 'src/modules/ping-pong/common/Common';
+import Game from "src/modules/ping-pong/component/Game";
+import PingPongGateway from "src/modules/ping-pong/ping-pong.gateway";
 
 // PairType = [[playerID, clientID], [playerID, clientID]]
 type PairType = [[string, string], [string, string]];
@@ -15,9 +12,9 @@ class Pair {
 	private fetchPair(playerID: string): string | undefined {
 		// find the room where the player is in just the PlayerID without the clientID
 		for (const key in this.pair) {
-			console.log("key " + key);
+			// console.log("key " + key);
 			for (const player of this.pair[key]) {
-				console.log("player :" + player + ' ===? ' + playerID);
+				// console.log("player :" + player + ' ===? ' + playerID);
 				if (player === playerID)
 					return key;
 			}
@@ -61,7 +58,7 @@ class Pair {
 export default class Room {
 	room: { [key: string]: PairType } = {};
 	game: { [key: string]: Game } = {};
-	idRoom: number = -1;
+	idRoom: number = 1;
 	pair: Pair = new Pair();
 	pingPongGateway: PingPongGateway;
 
@@ -69,7 +66,7 @@ export default class Room {
 		pingPongGateway: PingPongGateway,
 	) {
 		this.pingPongGateway = pingPongGateway;
-		console.log("this.pingPongGateway.server " + this.pingPongGateway.server);
+		// console.log("this.pingPongGateway.server " + this.pingPongGateway.server);
 	}
 
 	getRoom(room: string): PairType {
@@ -77,11 +74,13 @@ export default class Room {
 	}
 
 	private fetchRoom(playerID: string): string | undefined {
+		if (this.room === undefined)
+			return undefined;
 		// find the room where the player is in just the PlayerID without the clientID
 		for (const key in this.room) {
 			// console.log("key " + key);
 			for (const player of this.room[key]) {
-				// console.log("player :" + player[0] + ' ===? ' + playerID);
+				// console.log("player :" + player[0] + ' ===? ' + playerID); 
 				if (player[0] === playerID)
 					return key;
 			}
@@ -116,24 +115,22 @@ export default class Room {
 
 		const [player1, player2] = pair;
 
-		this.game[idRoom] = new Game(this, [player1[1], player2[1]], player1Type, player2Type, mode);
 
-		setTimeout(() => {
-			this.pingPongGateway.server.to(player1[1]).emit("dataPlayer", {
-				side: "right",
-			});
+		this.pingPongGateway.server.to(player1[1]).emit("dataPlayer", {
+			side: "right",
+			player1Name: player1[0],
+			player2Name: player2[0],
+			room: idRoom,
+		});
 
-			this.pingPongGateway.server.to(player2[1]).emit("dataPlayer", {
-				side: "left",
-			});
+		this.pingPongGateway.server.to(player2[1]).emit("dataPlayer", {
+			side: "left",
+			player1Name: player1[0],
+			player2Name: player2[0],
+			room: idRoom,
+		});
 
-			this.pingPongGateway.server.to([player1[1], player2[1]]).emit("idRoomConstruction", idRoom);
-
-			// this.game[idRoom].run() 
-			setTimeout(() => {
-				this.game[idRoom].run()
-			}, 2000);
-		}, 1000);
+		this.game[idRoom] = new Game(this, [player1[1], player2[1]], player1Type, player2Type, mode, idRoom);
 	}
 
 	//TODO: Add invitation system across the socket beside the pair
@@ -145,10 +142,13 @@ export default class Room {
 
 		const pair = this.pair.addPlayer(playerID, clientID);
 		// emit to client that he is in pair
-		this.pingPongGateway.server.to(clientID).emit("allowToPlay", { message: "You are in pair" });
+		this.pingPongGateway.server.to(clientID).emit("allowToWait", { message: "You are in pair" });
 
 		if (pair) {
 			this.createGame(pair, "player", "player", "medium");
+
+			this.pingPongGateway.server.to([pair[0][1], pair[1][1]]).emit("allowToPlay", { message: "You are in room" });
+
 			return this.idRoom.toString();
 		}
 
@@ -162,10 +162,11 @@ export default class Room {
 		}
 
 		const pair: PairType = [[playerID, clientID], ['bot', 'bot']];
-		// emit to client that he is in pair
-		this.pingPongGateway.server.to(clientID).emit("allowToPlay", { message: "You are in pair" });
 
 		this.createGame(pair, "player", "bot", mode);
+
+		// emit to client that he is in pair
+		this.pingPongGateway.server.to(clientID).emit("allowToPlay", { message: "You are in room" });
 
 		return this.idRoom.toString();
 	}
@@ -204,7 +205,6 @@ export default class Room {
 
 		console.log("start: " + start + " end: " + end);
 
-
 		//! Set the state of the game {win or lose} {time} {score} {mode} {playerType}
 
 		const gameResult: GameResultType = {
@@ -217,13 +217,15 @@ export default class Room {
 		};
 		this.pingPongGateway.pingPongService.postGameLogic(gameResult);
 
+		// Delete and free the New Game allocated in the memory
+		if (this.game[room] instanceof Game) {
+			this.game[room].destroy();
+			delete this.game[room];
+		}
 
-
-
-		// Delete the game
-		delete this.game[room];
 		// Delete the room
 		delete this.room[room];
+		this.room[room] = [['', ''], ['', '']];
 	}
 
 	deletePlayerRoom(playerID: string): boolean {
@@ -234,8 +236,12 @@ export default class Room {
 			const loser = this.room[room].findIndex((player) => player[0] === playerID);
 			const roomID = this.room[room].map((player) => player[1]);
 
-			console.log('all: ' + this.room + ' ' + this.room[room] + ' ' + roomID + ' ' + loser);
-			this.pingPongGateway.server.to(roomID[1 - loser]).emit("idRoomDestruction");
+			// console.log('all: ' + this.room + ' ' + this.room[room] + ' ' + roomID + ' ' + loser);
+			console.log("this.room: " + this.room[room])
+			console.log("this.room[room]: " + this.room[room][loser])
+			console.log("loser: " + loser + " roomID: " + roomID);
+
+			this.pingPongGateway.server.to(roomID[loser]).emit("roomDestruction", { message: "Room deleted", room: room });
 
 			this.endGame(room, loser, true);
 

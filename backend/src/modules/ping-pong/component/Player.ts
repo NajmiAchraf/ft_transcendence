@@ -1,7 +1,7 @@
-import Ball from "./Ball";
-import Game from "./Game";
+import Ball from "src/modules/ping-pong/component/Ball";
+import Game from "src/modules/ping-pong/component/Game";
 
-import { vars, Mode, PlayerType, Side } from "../types/Common";
+import { Mode, PlayerType, Side, vars } from "src/modules/ping-pong/common/Common";
 
 export class Paddle {
 	side: Side;
@@ -28,6 +28,9 @@ export class Paddle {
 	myID: string;
 	otherID: string;
 
+	listener: any;
+	playerUpdate: (data: { y: number }) => void;
+
 	constructor(game: Game, side: Side, playerType: PlayerType, myID: string, otherID: string) {
 		this.side = side;
 
@@ -52,17 +55,13 @@ export class Paddle {
 		this.y = 0;
 		this.z = vars.z + vars.depth / 2 + this.depth / 2;
 
-		console.log("myID : ", this.myID);
-		if (this.myID !== 'bot') {
-			// get the player coordinates with the id in namespace ping-pong
-			// const player = this.game.room.pingPongGateway.server.of('/ping-pong')
-			// const player = this.game.room.pingPongGateway.server._nsps.get('/ping-pong').sockets.get(this.myID);
-			const player = this.game.server.sockets.get(this.myID);
-			// console.log('pingPongNamespace: ', pingPongNamespace);
+		this.playerUpdate = (data: { y: number }) => {
+			this.y = data.y;
+		}
 
-			player.on("playerUpdate", (data: { y: number }) => {
-				this.y = data.y;
-			});
+		if (this.myID !== 'bot') {
+			this.listener = this.game.server.sockets.sockets.get(this.myID);
+			this.listener.on("playerUpdate", this.playerUpdate);
 		}
 
 	}
@@ -73,6 +72,12 @@ export class Paddle {
 			this.game.server.to(this.otherID).emit("otherPlayerUpdate", {
 				y: this.y,
 			});
+	}
+
+	destroy(): void {
+		if (this.myID !== 'bot') {
+			this.listener.off("playerUpdate", this.playerUpdate);
+		}
 	}
 }
 
@@ -94,14 +99,16 @@ class Bot extends Paddle {
 	}
 
 	contact_algorithm(): void {
+		const ball_diameter = this.ball.diameter;
+		const random = Math.random();
 		if (this.mode === "easy")
-			this.contact = Math.random() * (this.height / 2 * 1.5) - this.height / 2 * 0.25;
+			this.contact = random * ((this.height / 2 + ball_diameter / 2) * 1.3);
 		else if (this.mode === "medium")
-			this.contact = Math.random() * (this.height / 2 * 1.1) - this.height / 2 * 0.05;
+			this.contact = random * ((this.height / 2 + ball_diameter / 2) * 1.2);
 		else if (this.mode === "hard")
-			this.contact = Math.random() * this.height / 2 * 0.5 + this.height / 2 * 0.25;
+			this.contact = random * ((this.height / 2 + ball_diameter / 2) * 1.1);
 		// positive or negative
-		if (Math.random() > 0.5)
+		if (random > 0.5)
 			this.contact = -this.contact;
 	}
 
@@ -144,7 +151,10 @@ export default class Player {
 	}
 
 	update(): void {
-		// if (this.paddle instanceof Bot)
 		this.paddle.update();
+	}
+
+	destroy(): void {
+		this.paddle.destroy();
 	}
 }

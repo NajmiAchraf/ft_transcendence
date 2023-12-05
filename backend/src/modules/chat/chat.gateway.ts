@@ -1,14 +1,12 @@
 import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, ConnectedSocket } from '@nestjs/websockets';
-import { Namespace, Server, Socket } from 'socket.io';
+import { Namespace, Socket } from 'socket.io';
 import { GlobalChatService } from './global_chat.service';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GlobalHelperService } from 'src/common/services/global_helper.service';
 import { SocketService } from 'src/common/services/socket.service';
 import { ConnectionService } from './connection.service';
-import { ProfileChannelIdDto } from '../chatHttp/dto';
 import { ChannelChatService } from './channel_chat.service';
-import { ChannelPasswordDto } from '../chatHttp/dto/channel_password.dto';
 import { DmService } from './dm.service';
 
 @Injectable()

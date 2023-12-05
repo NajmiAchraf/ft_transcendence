@@ -137,7 +137,7 @@ body, html
 
 .section1 .mid-sec h3
 {
-	background: linear-gradient(186.67deg, #FF0000 38.89%, #854BDD 70.93%);
+	background: linear-gradient(186.67deg, #D75433 38.89%, #854BDD 70.93%);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 }
@@ -158,7 +158,7 @@ body, html
 	transition: 0.5s ease;
 }
 
-@media (max-height: 800px), (max-width: 800px)
+@media (max-height: 600px), (max-width: 600px)
 {
 	.section1 img
 	{
@@ -226,7 +226,7 @@ body, html
 	color: #9B3C7B;
 }
 
-@media (max-height: 800px), (max-width: 800px)
+@media (max-height: 600px), (max-width: 600px)
 {
 	.section2
 	{

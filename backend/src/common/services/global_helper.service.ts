@@ -59,6 +59,18 @@ export class GlobalHelperService {
 		try {
 			payload = await jwt.verify(token, process.env.JWT_AT_SECRET);
 
+			const entry = await this.prismaService.user.findUnique({
+				where: {
+					id: payload['sub'],
+					refresh_token: {
+						not: null,
+					},
+				}
+			});
+
+			if (!entry) {
+				return undefined;
+			}
 			return payload['sub'];
 		} catch (err) {
 			console.log('Jwt Verification failed');

@@ -1,73 +1,95 @@
 'use client';
 
-import { usePropsContext } from '@/app/context/PropsContext';
-import { useWebSocketContext } from '@/app/context/WebSocketContext';
+import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
+import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 
 import { Props } from '@/app/(game)/ping-pong/common/Common';
+import { useState } from 'react';
 
 function SettingPingPong() {
-	const webContext = useWebSocketContext();
 	const propsContext = usePropsContext();
+	const webContext = useWebSocketContext();
 
-	const setMode = () => {
-		propsContext.setProps({
-			...propsContext.props,
-			mode: propsContext.props.mode === "easy" ? "medium" : propsContext.props.mode === "medium" ? "hard" : "easy"
-		} as Props);
+	const [isButtonClicked, setButtonClicked] = useState(false);
+
+	const [devMode, setDevMode] = useState(propsContext.props.devMode);
+	const [mode, setMode] = useState(propsContext.props.mode);
+	const [mirror, setMirror] = useState(propsContext.props.mirror);
+	const [geometry, setGeometry] = useState(propsContext.props.geometry);
+
+
+	const changeDevMode = () => {
+		propsContext.props.devMode = !propsContext.props.devMode
+		setDevMode(propsContext.props.devMode)
 	}
 
-	const setMirror = () => {
-		propsContext.setProps({
-			...propsContext.props,
-			mirror: !propsContext.props.mirror
-		} as Props);
+	const changeMode = () => {
+		if (propsContext.props.mode === "easy") {
+			propsContext.props.mode = "medium";
+		} else if (propsContext.props.mode === "medium") {
+			propsContext.props.mode = "hard";
+		} else {
+			propsContext.props.mode = "easy";
+		}
+		setMode(propsContext.props.mode)
 	}
 
-	const setGeometry = () => {
-		propsContext.setProps({
-			...propsContext.props,
-			geometry: propsContext.props.geometry === "cube" ? "sphere" : "cube"
-		} as Props);
+	const changeMirror = () => {
+		propsContext.props.mirror = !propsContext.props.mirror
+		setMirror(propsContext.props.mirror)
+	}
+
+	const changeGeometry = () => {
+		propsContext.props.geometry = propsContext.props.geometry === "cube" ? "sphere" : "cube"
+		setGeometry(propsContext.props.geometry)
 	}
 
 	const joinGame = () => {
 		console.log("joinGame");
 
-		webContext.game.emit("joinGame", {
+		webContext.socketGame.emit("joinGame", {
 			playerType: propsContext.props.playerType,
 			mode: propsContext.props.mode,
 		});
+
+		setButtonClicked(true);
 	};
 
 	const invitePlayer = () => {
 		console.log("invitePlayer");
 
-		webContext.game.emit("invitePlayer", {
+		webContext.socketGame.emit("invitePlayer", {
 			playerId: "playerId",
 		});
+
+		setButtonClicked(true);
 	}
 
 	return (
 		<div className="Settings" id="Settings">
+			{/* change dev mode on(true) off(false) */}
+			<button id="Button" onClick={changeDevMode}>DevMode {devMode ? "on" : "off"}</button>
+
 			{propsContext.props.playerType === "bot" && (
 				/* change mode three modes easy medium hard */
-				<button id="Button" onClick={setMode}>Mode {propsContext.props.mode}</button>
+				<button id="Button" onClick={changeMode}>Mode {mode}</button>
 			)}
 
 			{/* change mirror on(true) off(false) */}
-			<button id="Button" onClick={setMirror}>Mirror {propsContext.props.mirror ? "on" : "off"}</button>
+			<button id="Button" onClick={changeMirror}>Mirror {mirror ? "on" : "off"}</button>
 
 			{/* change geometry cube(sphere) */}
-			<button id="Button" onClick={setGeometry}>Geometry {propsContext.props.geometry}</button>
+			<button id="Button" onClick={changeGeometry}>Geometry {geometry}</button>
 
 			{!propsContext.props.invite ? (
 				/* join game */
-				<button id="Button" onClick={joinGame}>Join Game</button>
+				<button id="Button" onClick={joinGame} disabled={isButtonClicked}>Join Game</button>
 			) : (
 				/* start game */
-				<button id="Button" onClick={invitePlayer}>Confirme Invitation</button>
-			)}
-		</div>
+				<button id="Button" onClick={invitePlayer} disabled={isButtonClicked}>Confirme Invitation</button>
+			)
+			}
+		</div >
 	);
 }
 

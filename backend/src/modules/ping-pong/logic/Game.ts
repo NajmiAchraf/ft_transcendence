@@ -1,4 +1,4 @@
-import { Server } from 'socket.io';
+import { Namespace } from 'socket.io';
 
 import Player from "./Player";
 import Ball from "./Ball";
@@ -12,7 +12,7 @@ export default class Game {
 	ball: Ball
 
 	room: Room
-	server: Server
+	server: Namespace
 	queue: [string, string]
 
 	interval: NodeJS.Timeout = null;

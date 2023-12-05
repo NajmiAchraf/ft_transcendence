@@ -7,19 +7,22 @@ import {
 	WebSocketServer,
 	ConnectedSocket,
 } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
 
-import Room from "./Room";
-import { Mode, PlayerType } from './types/Common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Namespace, Server, Socket } from 'socket.io';
+
+import Room from "src/modules/ping-pong/Room";
+import { PingPongService } from 'src/modules/ping-pong/ping-pong.service';
+import { Mode, PlayerType } from 'src/modules/ping-pong/common/Common';
+
+import { PrismaService } from 'src/modules/prisma/prisma.service';
+
 import { GlobalHelperService } from 'src/common/services/global_helper.service';
 import { SocketService } from 'src/common/services/socket.service';
-import { PingPongService } from './ping-pong.service';
 
 // namespace for websocket events (client -> server)
 @WebSocketGateway(
 	{
-		// namespace: 'ping-pong',
+		namespace: 'ping-pong',
 		transports: ['websocket'],
 		cors: {
 			origin: 'http://localhost:3000',
@@ -29,7 +32,7 @@ import { PingPongService } from './ping-pong.service';
 export default class PingPongGateway implements OnGatewayInit, OnGatewayConnection {
 
 	@WebSocketServer()
-	server: Server;
+	server: Namespace;
 	rooms: Room;
 
 	constructor(readonly pingPongService: PingPongService,
@@ -44,12 +47,13 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 
 		if (userId === undefined) {
 			this.server.to(client.id).emit('error', { error: 'Invalid Access Token' });
+			//! route to authentication page
 			client.disconnect();
 			return;
 		}
 
 		// insert new connection
-		this.socketService.insert(client.id, userId);
+		this.socketService.insert(client.id, userId, 'ping-pong');
 
 		console.log('NEW CONNECTION: ' + client.id + ' ' + userId);
 	}
@@ -57,12 +61,20 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 	async handleDisconnect(client: Socket) {
 		const userId = this.socketService.getUserId(client.id, 'ping-pong');
 
-		if (userId === undefined)
+		if (userId === undefined) {
+			this.server.to(client.id).emit('error', { error: 'Invalid Access Token' });
+			//! route to authentication page
 			return;
+		}
+
 		console.log('DELETE CONNECTION: ' + client.id + ' ' + userId);
-		if (this.rooms.deletePlayerRoom(userId.toString())) { }
-		else if (this.rooms.deletePlayerPair(client.id)) { }
-		else console.log("Player not found in room or queue");
+		if (!this.rooms.deletePlayerRoom(userId.toString())) {
+			this.server.to(client.id).emit("leaveRoom");
+		}
+		else if (this.rooms.deletePlayerPair(client.id)) {
+			this.server.to(client.id).emit("leaveQueue");
+		}
+		else console.log("Player not found in room or pair");
 
 		// delete connection
 		await this.quitGame(client);
@@ -70,11 +82,11 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 	}
 
 	afterInit(server: Server) {
-		// console.log("Server initialized");
+		console.log("Server initialized");
 	}
 
 	onModuleInit() {
-		// console.log("Module connected");
+		console.log("Module connected");
 	}
 
 	@SubscribeMessage("joinGame")
@@ -136,6 +148,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 
 		if (userId === undefined) {
 			this.server.to(client.id).emit('error', { error: 'Invalid Access Token' });
+			//! route to authentication page
 			return undefined;
 		}
 
@@ -159,7 +172,9 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		if (userId === undefined)
 			return;
 
-		this.rooms.deletePlayerRoom(userId.toString());
+		if (!this.rooms.deletePlayerRoom(userId.toString())) {
+			this.server.to(client.id).emit("leaveRoom");
+		}
 	}
 
 	@SubscribeMessage("leavePair")
@@ -170,7 +185,9 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		if (userId === undefined)
 			return;
 
-		this.rooms.deletePlayerPair(userId.toString());
+		if (this.rooms.deletePlayerPair(client.id)) {
+			this.server.to(client.id).emit("leaveQueue");
+		}
 	}
 
 	@SubscribeMessage("invitePlayer")
