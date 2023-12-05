@@ -12,9 +12,9 @@ class Pair {
 	private fetchPair(playerID: string): string | undefined {
 		// find the room where the player is in just the PlayerID without the clientID
 		for (const key in this.pair) {
-			console.log("key " + key);
+			// console.log("key " + key);
 			for (const player of this.pair[key]) {
-				console.log("player :" + player + ' ===? ' + playerID);
+				// console.log("player :" + player + ' ===? ' + playerID);
 				if (player === playerID)
 					return key;
 			}

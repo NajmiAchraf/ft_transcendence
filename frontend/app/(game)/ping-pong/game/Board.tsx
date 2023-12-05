@@ -260,48 +260,20 @@ class Border {
 		this.depth = vars.depth;
 	}
 
-	private createVerticalBorderShaderMaterial(colors: number[]) {
-		const [color1, color2] = colors.map(color => new THREE.Color(color));
-
-		return (new THREE.ShaderMaterial({
-			uniforms: {
-				color1: { value: color1 },
-				color2: { value: color2 }
-			},
-			vertexShader: `
-			  varying vec2 vUv;
-		  
-			  void main() {
-				vUv = uv;
-				gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-			  }
-			`,
-			fragmentShader: `
-			  uniform vec3 color1;
-			  uniform vec3 color2;
-			
-			  varying vec2 vUv;
-			  
-			  void main() {
-				
-				gl_FragColor = vec4(mix(color1, color2, vUv.y), 1.0);
-			  }
-			`,
-			wireframe: false
-		}));
-	}
-
-	private createHorizontalBorderShaderMaterial(colors: number[]) {
-		const [color1, color2] = colors.map(color => new THREE.Color(color));
+	private createBorderShaderMaterial(colors: number[], isHorizontal: boolean) {
+		const [color1, color2, color3, color4] = colors.map(color => new THREE.Color(color));
 
 		return new THREE.ShaderMaterial({
 			uniforms: {
 				color1: { value: color1 },
-				color2: { value: color2 }
+				color2: { value: color2 },
+				color3: { value: color3 },
+				color4: { value: color4 },
+				isHorizontal: { value: isHorizontal }
 			},
 			vertexShader: `
 				varying vec2 vUv;
-	
+
 				void main() {
 					vUv = uv;
 					gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
@@ -310,23 +282,26 @@ class Border {
 			fragmentShader: `
 				uniform vec3 color1;
 				uniform vec3 color2;
+				uniform vec3 color3;
+				uniform vec3 color4;
+				uniform bool isHorizontal;
 				varying vec2 vUv;
-	
+
 				void main() {
-					gl_FragColor = vec4(mix(color1, color2, vUv.x), 1.0);
+					float factor = isHorizontal ? vUv.x : vUv.y;
+					vec3 color = mix(color1, color2, factor);
+					color = mix(color, color3, factor);
+					color = mix(color, color4, factor);
+					gl_FragColor = vec4(color, 1.0);
 				}
 			`,
 			wireframe: false
 		});
-
 	}
 
-	private setupBoxBorder(x: number, y: number, width: number, height: number, color1: number, color2: number, horizontal: boolean) {
+	private setupBoxBorder(x: number, y: number, width: number, height: number, colors: number[], isHorizontal: boolean) {
 		const geometry = new THREE.BoxGeometry(width, height, this.depth + vars.z + 2, 1, 1, 1);
-		if (horizontal)
-			var material = this.createHorizontalBorderShaderMaterial([color1, color2]);
-		else
-			var material = this.createVerticalBorderShaderMaterial([color1, color2]);
+		var material = this.createBorderShaderMaterial(colors, isHorizontal);
 		const border = new THREE.Mesh(geometry, material);
 		this.game.scene.add(border);
 		border.position.set(x, y, vars.depth / 2 + this.depth / 2 + vars.z_glass);
@@ -337,17 +312,17 @@ class Border {
 	}
 
 	private setup() {
-		const colors = [0xD75433, 0x5921CB]
+		const orange_blue = [0xD75433, 0xAD4366, 0x833298, 0x5921CB]
+		const blue_orange = [0x5921CB, 0x833298, 0xAD4366, 0xD75433]
 		const height = this.height / 50;
 
-		// draw horizontal borders each color in part of the board
+		// draw horizontal borders
 		this.setupBoxBorder(
 			0,
 			this.height / 2 + height / 2,
 			this.width + height * 2,
 			height,
-			colors[1],
-			colors[0],
+			blue_orange,
 			true
 		);
 
@@ -356,19 +331,17 @@ class Border {
 			-this.height / 2 - height / 2,
 			this.width + height * 2,
 			height,
-			colors[0],
-			colors[1],
+			orange_blue,
 			true
 		);
 
-		// draw vertical borders each color in part of the board
+		// draw vertical borders
 		this.setupBoxBorder(
 			-this.width / 2 - height / 2,
 			0,
 			height,
 			this.height + height * 2,
-			colors[0],
-			colors[1],
+			orange_blue,
 			false
 		);
 
@@ -377,8 +350,7 @@ class Border {
 			0,
 			height,
 			this.height + height * 2,
-			colors[1],
-			colors[0],
+			blue_orange,
 			false
 		);
 
