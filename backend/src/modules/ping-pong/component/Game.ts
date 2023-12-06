@@ -1,4 +1,4 @@
-import { Server } from 'socket.io';
+import { Namespace } from 'socket.io';
 
 import Player from "src/modules/ping-pong/component/Player";
 import Ball from "src/modules/ping-pong/component/Ball";
@@ -12,7 +12,7 @@ export default class Game {
 	ball: Ball
 
 	room: Room
-	server: Server
+	server: Namespace
 	pair: [string, string]
 
 	interval: NodeJS.Timeout = null;
@@ -69,8 +69,8 @@ export default class Game {
 			this.server.to(this.pair[1]).emit("roomConstruction", { message: msg, room: idRoom });
 		}
 
-		this.listener0 = this.server.sockets.sockets.get(this.pair[0]);
-		this.listener1 = this.server.sockets.sockets.get(this.pair[1]);
+		this.listener0 = this.server.sockets.get(this.pair[0]);
+		this.listener1 = this.server.sockets.get(this.pair[1]);
 		this.listener0.on("readyToPlay", this.readyToPlay0);
 		this.listener0.on("readyCanvas", this.readyCanvas0);
 		if (this.listener1 !== undefined) {

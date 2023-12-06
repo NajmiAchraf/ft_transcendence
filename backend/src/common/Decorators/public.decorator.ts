@@ -8,3 +8,6 @@ export const BlockPublic = () => SetMetadata('isBlockPublic', true);
 
 // Set it a public route for friend check guard
 export const FriendPublic = () => SetMetadata('isFriendPublic', true);
+
+// Set it a public route for twoFactor
+export const TwoFactorPublic = () => SetMetadata('isTwoFactorPublic', true);

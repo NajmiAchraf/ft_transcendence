@@ -60,7 +60,7 @@ export class Paddle {
 		}
 
 		if (this.myID !== 'bot') {
-			this.listener = this.game.server.sockets.sockets.get(this.myID);
+			this.listener = this.game.server.sockets.get(this.myID);
 			this.listener.on("playerUpdate", this.playerUpdate);
 		}
 

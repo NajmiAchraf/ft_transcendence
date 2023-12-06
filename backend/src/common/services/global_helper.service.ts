@@ -3,12 +3,14 @@ import { authenticator } from "otplib";
 import { PrismaService } from "src/modules/prisma/prisma.service";
 import { Socket } from "socket.io";
 import * as jwt from 'jsonwebtoken';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class GlobalHelperService {
 	constructor(private readonly prismaService: PrismaService) { }
 
 	async isBlocked(checkedId: number, blockingId: number): Promise<boolean> {
+		console.log(`checkedId: ${checkedId}, blockingId: ${blockingId}`);
 		// checking if user is blocked
 		const entry = await this.prismaService.blocked.findFirst({
 			where: {
@@ -57,10 +59,39 @@ export class GlobalHelperService {
 		try {
 			payload = await jwt.verify(token, process.env.JWT_AT_SECRET);
 
+			const entry = await this.prismaService.user.findUnique({
+				where: {
+					id: payload['sub'],
+					refresh_token: {
+						not: null,
+					},
+				}
+			});
+
+			if (!entry) {
+				return undefined;
+			}
 			return payload['sub'];
 		} catch (err) {
 			console.log('Jwt Verification failed');
 			return undefined;
 		}
 	}
+
+	// helper function to hash data
+	async hashData(data: string) {
+		return argon2.hash(data);
+	}
+
+	async verifyHash(hash: string, data: string) {
+		if (hash === undefined || data === undefined) {
+			return false;
+		}
+		return argon2.verify(hash, data);
+	}
+
+	join(host: string, path: string) {
+		return `${host}/${path}`;
+	}
+
 }

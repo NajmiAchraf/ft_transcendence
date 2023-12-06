@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Req, Post } from '@nestjs/common';
 import { HomeService } from './home.service';
 import { Request } from 'express';
+import { SearchDto } from './dto';
 
 @Controller('home')
 export class HomeController {
@@ -25,7 +26,7 @@ export class HomeController {
 	}
 
 	@Post('search')
-	async search(@Req() req: Request, @Body() body: any) {
+	async search(@Req() req: Request, @Body() body: SearchDto) {
 		const userId = req.user['sub'];
 		return await this.homeService.search(userId, body['pattern']);
 	}

@@ -8,7 +8,7 @@ import {
 	ConnectedSocket,
 } from '@nestjs/websockets';
 
-import { Server, Socket } from 'socket.io';
+import { Namespace, Server, Socket } from 'socket.io';
 
 import Room from "src/modules/ping-pong/Room";
 import { PingPongService } from 'src/modules/ping-pong/ping-pong.service';
@@ -22,7 +22,7 @@ import { SocketService } from 'src/common/services/socket.service';
 // namespace for websocket events (client -> server)
 @WebSocketGateway(
 	{
-		// namespace: 'ping-pong',
+		namespace: 'ping-pong',
 		transports: ['websocket'],
 		cors: {
 			origin: 'http://localhost:3000',
@@ -32,7 +32,7 @@ import { SocketService } from 'src/common/services/socket.service';
 export default class PingPongGateway implements OnGatewayInit, OnGatewayConnection {
 
 	@WebSocketServer()
-	server: Server;
+	server: Namespace;
 	rooms: Room;
 
 	constructor(readonly pingPongService: PingPongService,
