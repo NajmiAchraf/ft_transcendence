@@ -3,7 +3,6 @@
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 
-import { Props } from '@/app/(game)/ping-pong/common/Common';
 import { useState } from 'react';
 
 function SettingPingPong() {

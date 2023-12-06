@@ -34,12 +34,16 @@ class CanvasComponent {
 		this.camera = this.cameraSetup(75, this.canvas.clientWidth / this.canvas.clientHeight, 0.1, 5000, new THREE.Vector3(0, 0, vars.height))
 
 		this.onWindowResize = () => {
-			if (screen.orientation?.type === 'landscape-primary' || screen.orientation?.type === 'landscape-secondary') {
-				this.canvas.style.width = window.innerWidth + 'px';
-				this.canvas.style.height = window.innerHeight + 'px';
-			} else {
+			if (screen.orientation?.type === 'portrait-primary'
+				|| screen.orientation?.type === 'portrait-secondary'
+				|| window.innerWidth < window.innerHeight
+			) {
 				this.canvas.style.width = window.innerHeight + 'px';
 				this.canvas.style.height = window.innerWidth + 'px';
+			}
+			else {
+				this.canvas.style.width = window.innerWidth + 'px';
+				this.canvas.style.height = window.innerHeight + 'px';
 			}
 			this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
 			this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
