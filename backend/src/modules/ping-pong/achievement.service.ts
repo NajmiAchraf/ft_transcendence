@@ -29,9 +29,9 @@ export class AchievementService {
 		});
 	}
 
-	async PerfectTen(winnerId: number, loserScore: number) {
+	async PerfectTen(winnerId: number, loserScore: number, winnerScore: number) {
 
-		if (loserScore !== 0)
+		if (loserScore !== 0 || winnerScore !== 10)
 			return;
 
 		// check that the user has not already received the achievement
@@ -386,12 +386,11 @@ export class AchievementService {
 		});
 	}
 
-	// ! Testing that the achievements are working
 	async UpdateAchievements(gameResult: GameResultType) {
 		// update achievements
 		if (gameResult.winnerId !== undefined) {
 			await this.Novice(gameResult.winnerId);
-			await this.PerfectTen(gameResult.winnerId, gameResult.loserScore);
+			await this.PerfectTen(gameResult.winnerId, gameResult.loserScore, gameResult.winnerScore);
 			await this.PointCollector(gameResult.winnerId);
 			await this.EnduranceMaster(gameResult.winnerId, gameResult.startTime, gameResult.endTime);
 			await this.QuickFinisher(gameResult.winnerId, gameResult.startTime, gameResult.endTime);

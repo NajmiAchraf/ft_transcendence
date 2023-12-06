@@ -66,7 +66,7 @@ export default class Room {
 		pingPongGateway: PingPongGateway,
 	) {
 		this.pingPongGateway = pingPongGateway;
-		console.log("this.pingPongGateway.server " + this.pingPongGateway.server);
+		// console.log("this.pingPongGateway.server " + this.pingPongGateway.server);
 	}
 
 	getRoom(room: string): PairType {

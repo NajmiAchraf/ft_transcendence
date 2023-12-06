@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GlobalHelperService } from 'src/common/services/global_helper.service';
+import * as path from 'path';
 
 @Injectable()
 export class HomeService {
@@ -96,9 +97,13 @@ export class HomeService {
 				last_five_matches,
 			}
 		});
+		return Promise.all(players);
 	}
 
 	async search(userId: number, pattern: string) {
+		if (pattern === undefined) {
+			throw new ForbiddenException('Pattern not provided');
+		}
 		let users = await this.prismaService.user.findMany({
 			where: {
 				nickname: {

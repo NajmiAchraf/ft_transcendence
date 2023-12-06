@@ -4,15 +4,17 @@ import { SignUpDto, SignInDto } from '../dto';
 import * as argon2 from 'argon2';
 import { Tokens } from '../types';
 import { TokenService } from '../token/token.service';
+import { GlobalHelperService } from 'src/common/services/global_helper.service';
 
 @Injectable()
 export class AuthenticationService {
     constructor(
         private readonly prismaService: PrismaService,
-        private readonly tokenService: TokenService) { }
+        private readonly tokenService: TokenService,
+        private readonly globalHelperService: GlobalHelperService) { }
 
     async signupLocal(dto: SignUpDto): Promise<Tokens> {
-        const hash = await this.tokenService.hashData(dto.password);
+        const hash = await this.globalHelperService.hashData(dto.password);
         try {
             const newUser = await this.prismaService.user.create({
                 data: {
@@ -49,7 +51,20 @@ export class AuthenticationService {
         if (!user) {
             throw new ForbiddenException(error_message);
         }
-        const isPasswordValid = await argon2.verify(user.password, dto.password);
+
+        // set two factor authentication to false
+        if (user.two_factor_auth === true) {
+            await this.prismaService.user.update({
+                where: {
+                    id: user.id,
+                },
+                data: {
+                    is_two_factor_authenticated: false,
+                }
+            });
+        }
+
+        const isPasswordValid = await this.globalHelperService.verifyHash(user.password, dto.password);
 
         if (!isPasswordValid) {
             throw new ForbiddenException(error_message);

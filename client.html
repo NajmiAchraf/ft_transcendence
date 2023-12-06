@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Client</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+  <div id="chat"></div>
+  <input type="text" id="messageInput" placeholder="Type a message...">
+  <button onclick="sendMessage()">Send</button>
+  <br>
+  <br>
+  <br>
+  <div id="channelBlock"></div>
+  <button onclick="joinChannel()">join channel</button>
+  <br>
+  <input type="text" id="channelInput" placeholder="Type a message...">
+  <br>
+  <button onclick="sendChannelMessage()">Send</button>
+  <br>
+  <br>
+  <br>
+  <br>
+  <button onclick="kickUser2()">Send</button>
+
+  
+  <script>
+    const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoib2toaWFycnJyciIsImlhdCI6MTcwMTcwMjg5MSwiZXhwIjoxNzAxNzg5MjkxfQ.PF-3xKrZsaoH_dJu01GcVxeBaCDQkrF5ltlX37rZmSQ';
+    
+    const channelBlock = document.getElementById('channelBlock');
+    
+          async function getAllGlobalChat() {
+            const res = await fetch('http://localhost:3001/chatHttp/findAllGlobalChat', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+              }
+            });
+            const data = await res.json();
+            data.forEach((message) => {
+              const chatDiv = document.getElementById('chat');
+              chatDiv.innerHTML += `<p>[id: ${message.sender_id}, nickname: ${message.nickname}] ${message.message_text} : ${message.create_at}</p>`;
+            });
+          }
+          
+
+
+    function sendMessage() {
+    console.log('sendMessage');
+      const messageInput = document.getElementById('messageInput');
+      const message = messageInput.value;
+      socket.emit('GlobalCreate', message);
+      messageInput.value = '';
+    }
+
+    function kickUser2() {
+      console.log('kickUser2');
+      socket.emit('kickChannelMember', {profileId: 2, channelId: 1});
+    }
+
+    function sendChannelMessage() {
+    console.log('send channel message');
+      const channelInput = document.getElementById('channelInput');
+      const message = channelInput.value;
+      socket.emit('channelCreateChat', {channelId: 1, message});
+      channelInput.value = '';
+    }
+
+    function joinChannel() {
+      socket.emit('joinChannel', { channelId: 1});
+    }
+
+
+    async function getAllChannelChat(channelId) {
+      const res = await fetch('http://localhost:3001/chatHttp/findChannelChat', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({channelId}),
+      });
+      const data = await res.json();
+      data.forEach((message) => {
+        channelBlock.innerHTML += `<p>[id: ${message.sender_id}, nickname: ${message.nickname}] ${message.message_text} : ${message.create_at}</p>`;
+      });
+    }
+    
+    
+          
+      const socket = io('http://localhost:3001/chat', {
+      query: {
+        accessToken: accessToken,
+      }
+    });
+
+      socket.on('createChat', (message) => {
+        const chatDiv = document.getElementById('chat');
+        chatDiv.innerHTML += `<p>[id: ${message.sender_id}, nickname: ${message.nickname}] ${message.message_text} : ${message.create_at}</p>`;
+      });
+
+
+      socket.on('kickChannelMember', (message) => {
+        console.log(message);
+      });
+
+      socket.on('error', (message) => {
+        console.log(message.error);
+      });
+
+
+      socket.on('joined', async (message) => {
+        console.log(message);
+        // await getAllChannelChat(1);
+        channelBlock.innerHTML += `<p>${message.nickname} joined channel ...</p>`;
+        console.log(`${message.nickname} joined channel ...`);
+      });
+
+
+      socket.on('channelCreateChat', async (message) => {
+        console.log(message);
+        // await getAllChannelChat(1);
+        channelBlock.innerHTML += `<p>[id: ${message.sender_id}, nickname: ${message.nickname}] ${message.message_text} : ${message.create_at}</p>`;
+
+        console.log("channelCreateChat received")
+        });
+
+
+
+      socket.on('createChannelMessage', (message) => {
+        channelBlock.innerHTML += `<p>[id: ${message.sender_id}, nickname: ${message.nickname}] ${message.message_text} : ${message.create_at}</p>`;
+      });
+    
+  async function bootstrap() {
+
+
+      await getAllGlobalChat();
+
+
+    }
+  
+
+    bootstrap();
+  </script>
+</body>
+</html>
