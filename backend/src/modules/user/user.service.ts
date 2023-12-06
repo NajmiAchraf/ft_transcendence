@@ -297,13 +297,13 @@ export class UserService {
 				id: userId,
 			},
 			data: {
-				visibility: body.visibility,
+				visibility: body.privacy,
 				avatar: body.avatar,
 				nickname: body.nickname,
 			},
 		});
 
-		if (body.two_factor_auth === false) {
+		if (body.two_factor_auth === 'OFF') {
 			await this.prismaService.user.update({
 				where: {
 					id: userId,
@@ -354,13 +354,13 @@ export class UserService {
 				id: userId,
 			},
 			data: { // http:/
-				visibility: body.visibility,
+				visibility: body.privacy,
 				avatar: this.globalHelperService.join(process.env.API_URL, body.avatar),
 				nickname: body.nickname,
 			},
 		});
 
-		if (body.two_factor_auth === false) {
+		if (body.two_factor_auth === 'OFF') {
 			await this.prismaService.user.update({
 				where: {
 					id: userId,
@@ -377,7 +377,6 @@ export class UserService {
 		delete updatedUser.password;
 		delete updatedUser.refresh_token;
 
-		// ! the front end must check the 2factor in the response, in order to decide.
 		return { updatedUser, two_factor_auth: body.two_factor_auth };
 	}
 
@@ -393,7 +392,7 @@ export class UserService {
 
 		return {
 			username: user.username,
-			visibility: user.visibility,
+			privacy: user.visibility,
 			avatar: user.avatar,
 			nickname: user.nickname,
 			two_factor_auth: user.two_factor_auth,

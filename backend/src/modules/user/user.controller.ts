@@ -20,7 +20,7 @@ export class UserController {
 	@UseInterceptors(FileInterceptor('avatar', multerConfig))
 	async addMoreInfos(@Body() additionalInfos: AdditionalInfo, @UploadedFile() file: avatarDto, @Req() req: Request) {
 		additionalInfos.avatar = file.path;
-		console.log(file);
+		// console.log(file);
 		return this.userService.AddMoreInfos(additionalInfos, req.user['sub']);
 	}
 
@@ -110,7 +110,6 @@ export class UserController {
 		return this.userService.getMatchHistory(userId, profileId);
 	}
 
-	// ! userID must be sent in the body
 	@BlockPublic()
 	@Get('defaultSettings')
 	async getDefaultSettings(@Req() req: Request) {
