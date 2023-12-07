@@ -54,6 +54,14 @@ export class UserController {
 		return this.userService.sendFriendRequest(profileId, req.user['sub']);
 	}
 
+	@Post('cancel_friend_request')
+	async cancelFriendRequest(@Body() body: ProfileId, @Req() req: Request) {
+		const profileId = +body.profileId;
+
+		// * cancel friendship requests to the user (profileId)
+		return this.userService.cancelFriendRequest(profileId, req.user['sub']);
+	}
+
 	@Post('respond_to_friend_request')
 	async respondToFriendRequest(@Body() body: FriendRequestResponseDto, @Req() req: Request) {
 		const profileId = +body.profileId;

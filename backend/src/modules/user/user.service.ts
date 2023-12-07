@@ -399,10 +399,34 @@ export class UserService {
 		};
 	}
 
+	async cancelFriendRequest(profileId: number, userId: number) {
+		const entry = await this.prismaService.friendship_request.findFirst({
+			where: {
+				adding_user_id: userId,
+				added_user_id: profileId,
+			}
+		});
+
+		if (!entry) {
+			throw new BadRequestException('Friendship request not found');
+		}
+
+		await this.prismaService.friendship_request.delete({
+			where: {
+				id: entry.id,
+			}
+		});
+	}
+
 	async sendFriendRequest(profileId: number, userId: number) {
 
 		if (profileId === userId) {
 			throw new BadRequestException('You cannot send a friend request to yourself');
+		}
+
+		// check if the user has already blocked the profile
+		if (await this.globalHelperService.isBlocked(profileId, userId)) {
+			throw new BadRequestException('You cannot send a friend request to this user');
 		}
 
 		const entry = await this.prismaService.friendship_request.findFirst({
