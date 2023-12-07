@@ -407,8 +407,10 @@ export class UserService {
 
 		const entry = await this.prismaService.friendship_request.findFirst({
 			where: {
-				adding_user_id: userId,
-				added_user_id: profileId,
+				OR: [
+					{ adding_user_id: userId, added_user_id: profileId },
+					{ adding_user_id: profileId, added_user_id: userId },
+				],
 			}
 		});
 
@@ -529,6 +531,25 @@ export class UserService {
 			await this.prismaService.friends.delete({
 				where: {
 					id: friendship.id,
+				}
+			});
+		}
+
+		// delete friend request if any 
+
+		const friendshipRequest = await this.prismaService.friendship_request.findFirst({
+			where: {
+				OR: [
+					{ adding_user_id: userId, added_user_id: profileId },
+					{ adding_user_id: profileId, added_user_id: userId },
+				],
+			}
+		});
+
+		if (friendshipRequest) {
+			await this.prismaService.friendship_request.delete({
+				where: {
+					id: friendshipRequest.id,
 				}
 			});
 		}
