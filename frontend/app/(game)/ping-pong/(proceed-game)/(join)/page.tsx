@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 
 import Service from '@/app/(game)/ping-pong/(proceed-game)/service/Service';
+import { useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext';
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { GameStates } from '@/app/(game)/ping-pong/common/Common';
 import '@/app/(game)/ping-pong.css'
@@ -13,18 +14,23 @@ const SettingPingPong = dynamic(() => import('@/app/(game)/ping-pong/(proceed-ga
 const WaitPingPong = dynamic(() => import('@/app/(game)/ping-pong/(proceed-game)/component/WaitPingPong'), { ssr: false });
 
 const Join = () => {
+	const optionsContext = useOptionsContext();
 	const propsContext = usePropsContext();
 	const [gameState, setGameState] = useState<GameStates>("settings");
 
-	propsContext.props = {
-		...propsContext.props,
-		playerType: "player",
+	optionsContext.options = {
+		...optionsContext.options,
 		invite: false,
 		readyPlay: false,
 		startPlay: false,
 		endGame: false,
 		inGame: false,
-	}
+	};
+
+	propsContext.props = {
+		...propsContext.props,
+		playerType: "player",
+	};
 
 	// run service for socket and game
 	Service(setGameState);

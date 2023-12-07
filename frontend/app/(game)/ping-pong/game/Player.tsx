@@ -3,7 +3,7 @@
 import * as THREE from 'three'
 
 import Game from '@/app/(game)/ping-pong/game/Game'
-import { vars, Geometry, Side } from '@/app/(game)/ping-pong/common/Common'
+import { vars, Geometry, Side, DevMode } from '@/app/(game)/ping-pong/common/Common'
 
 class Paddle {
 	side: Side;
@@ -242,8 +242,8 @@ export default class Player {
 	paddle: Paddle;
 	score: number;
 
-	constructor(game: Game, side: Side, geometry: Geometry, devMode: boolean) {
-		if (devMode)
+	constructor(game: Game, side: Side, geometry: Geometry, devMode: DevMode) {
+		if (devMode === "all" || devMode === "paddle-bot")
 			this.paddle = new Bot(game, side, geometry);
 		else
 			this.paddle = new Paddle(game, side, geometry);

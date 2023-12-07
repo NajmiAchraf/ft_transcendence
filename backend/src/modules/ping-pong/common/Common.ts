@@ -5,9 +5,8 @@ export type PlayerType = "player" | "bot";
 export type PlayStates = 'readyPlay' | 'startPlay' | 'endPlay';
 export type GameStates = 'settings' | 'wait' | 'play';
 
-
 export let vars = {
-	speed_init: 600 / 150, //! depend on width
+	speed_init: 600 / 120, //! depend on width
 	width: 600,
 	height: 400,
 	depth: 4,

@@ -8,8 +8,76 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import Game from '@/app/(game)/ping-pong/game/Game'
 import { vars, Geometry } from '@/app/(game)/ping-pong/common/Common'
 
+const reflectorShader = {
+	// name: 'reflector',
+
+	// defines: {
+	// 	'DISTANCE_ATTENUATION': true,
+	// 	'FRESNEL': true
+	// },
+
+	uniforms: {
+
+		'color': {
+			value: null
+		},
+
+		'tDiffuse': {
+			value: null
+		},
+
+		'textureMatrix': {
+			value: null
+		}
+
+
+
+	},
+
+	vertexShader: [
+		'uniform mat4 textureMatrix;',
+		'varying vec4 vUv;',
+
+		'void main() {',
+
+		'	vUv = textureMatrix * vec4( position, 1.0 );',
+
+		'	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
+
+		'}'
+	].join('\n'),
+
+	fragmentShader: [
+		'uniform vec3 color;',
+		'uniform float opacity;',
+		'uniform sampler2D tDiffuse;',
+		'varying vec4 vUv;',
+
+		'float blendOverlay( float base, float blend ) {',
+
+		'	return( base < 0.5 ? ( 2.0 * base * blend ) : ( 1.0 - 2.0 * ( 1.0 - base ) * ( 1.0 - blend ) ) );',
+
+		'}',
+
+		'vec3 blendOverlay( vec3 base, vec3 blend ) {',
+
+		'	return vec3( blendOverlay( base.r, blend.r ), blendOverlay( base.g, blend.g ), blendOverlay( base.b, blend.b ) );',
+
+		'}',
+
+		'void main() {',
+
+		'	vec4 base = texture2DProj( tDiffuse, vUv );',
+		'	gl_FragColor = vec4( blendOverlay( base.rgb, color ), opacity );',
+
+		'}'
+	].join('\n')
+
+};
+
 class Table {
 	table: THREE.Mesh | null = null;
+	glass: Reflector | null = null;
 	mirror: Reflector | null = null;
 	geometry: THREE.BoxGeometry | null = null;
 	material: THREE.MeshPhysicalMaterial | null = null;
@@ -17,6 +85,8 @@ class Table {
 	board: Board;
 	game: Game;
 	canvas: HTMLCanvasElement;
+	scene: THREE.Scene;
+
 	width: number;
 	height: number;
 	depth: number;
@@ -25,6 +95,8 @@ class Table {
 		this.board = board;
 		this.game = board.game;
 		this.canvas = this.game.canvas;
+		this.scene = this.game.scene;
+
 		this.width = width;
 		this.height = height;
 		this.depth = depth;
@@ -45,42 +117,84 @@ class Table {
 			side: THREE.DoubleSide,
 		});
 		this.table = new THREE.Mesh(this.geometry, this.material);
-		this.game.scene.add(this.table);
+		this.scene.add(this.table);
 		this.table.position.set(this.board.x, this.board.y, vars.z);
 	}
 
 	mirrorSetup(z: number = 0) {
 		vars.z += z;
 
-		this.geometry = new THREE.BoxGeometry(this.width, this.height, this.depth)
+		this.geometry = new THREE.BoxGeometry(this.width, this.height, this.depth);
 
-		this.mirror = new Reflector(this.geometry, {
-			color: 0x000000,
-			textureWidth: this.canvas.clientWidth * window.devicePixelRatio,
-			textureHeight: this.canvas.clientHeight * window.devicePixelRatio,
-			clipBias: 0.003,
-			multisample: 10,
+		const color = new THREE.Color(0x000000);
+		const textureWidth = this.canvas.clientWidth * window.devicePixelRatio;
+		const textureHeight = this.canvas.clientHeight * window.devicePixelRatio;
+		const clipBias = 0.003;
+		const multisample = 4;
+		const opacity = 0.9;
+
+		const renderTarget = new THREE.WebGLRenderTarget(textureWidth, textureHeight, { samples: multisample });
+
+		var textureMatrix = new THREE.Matrix4();
+		var shader = reflectorShader;
+		var material = new THREE.ShaderMaterial({
+			uniforms: THREE.UniformsUtils.merge([
+				{
+					opacity: {
+						value: opacity
+					}
+				},
+				shader.uniforms
+			]),
+			fragmentShader: shader.fragmentShader,
+			vertexShader: shader.vertexShader
 		});
 
-		this.game.scene.add(this.mirror);
-		this.mirror.position.set(this.board.x, this.board.y, vars.z)
+		material.uniforms["tDiffuse"].value = renderTarget.texture;
+		material.uniforms["color"].value = color;
+		material.uniforms["textureMatrix"].value = textureMatrix;
+
+		const reflectorOptions = {
+			color: color,
+			textureWidth: textureWidth,
+			textureHeight: textureHeight,
+			clipBias: clipBias,
+		};
+
+		this.glass = new Reflector(this.geometry, reflectorOptions);
+		this.glass.material = material;
+		this.glass.material.transparent = true;
+
+		this.scene.add(this.glass);
+		this.glass.position.set(this.board.x, this.board.y, vars.z);
+
+		this.mirror = new Reflector(this.geometry, reflectorOptions);
+
+		this.scene.add(this.mirror);
+		this.mirror.position.set(this.board.x, this.board.y, vars.z - z);
 	}
 
 	disposeTable() {
 		if (this.table) {
 			this.geometry?.dispose();
 			this.material?.dispose();
-			this.game.scene.remove(this.table);
+			this.scene.remove(this.table);
 		}
 	}
 
 	disposeMirror() {
+		this.geometry?.dispose();
 		if (this.mirror) {
-			this.geometry?.dispose();
 			this.mirror.dispose();
-			this.game.scene.remove(this.mirror);
+			this.scene.remove(this.mirror);
+		}
+		if (this.glass) {
+			this.glass.dispose();
+			this.scene.remove(this.glass);
 		}
 	}
+
+	update() { }
 }
 
 class Net {
@@ -436,6 +550,7 @@ export default class Board {
 
 	update(): void {
 		this.updateScores(this.game.player1.score, this.game.player2.score);
+		this.table.update();
 	}
 
 	dispose() {

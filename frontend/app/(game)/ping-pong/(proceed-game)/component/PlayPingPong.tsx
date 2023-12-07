@@ -4,14 +4,16 @@ import { useRef, useEffect, useState } from 'react'
 import * as IonIcons from 'ionicons/icons';
 import { IonIcon } from '@ionic/react';
 
+import { useCanvasContext } from '@/app/(game)/ping-pong/context/CanvasContext';
+import { useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext';
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
-import { useCanvasContext } from '@/app/(game)/ping-pong/context/CanvasContext';
 
 import { Text } from '@/app/(game)/ping-pong/game/Board';
 
 function PlayPingPong() {
 	const canvasContext = useCanvasContext();
+	const optionsContext = useOptionsContext();
 	const propsContext = usePropsContext();
 	const webContext = useWebSocketContext();
 
@@ -40,7 +42,7 @@ function PlayPingPong() {
 	}, []);
 
 	const interval = setInterval(() => {
-		if (propsContext.props.startPlay) {
+		if (optionsContext.options.startPlay) {
 			const time = (Date.now() - startTime.current) / 1000;
 			const hour = Math.floor(time / 3600);
 			const min = Math.floor(time / 60);
@@ -49,13 +51,13 @@ function PlayPingPong() {
 			setCurrentTime(`${hour === 0 ? '' : '0' + hour + ':'}${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec} `);
 		}
 
-		if (propsContext.props.endGame) {
+		if (optionsContext.options.endGame) {
 			clearInterval(interval);
 		}
 	}, 1000 / 60);
 
 	const leaveGame = () => {
-		if (propsContext.props.startPlay) {
+		if (optionsContext.options.startPlay) {
 			console.log('leaveGame');
 			webContext.socketGame.emit("leaveGame");
 		}
@@ -83,7 +85,7 @@ function PlayPingPong() {
 			</div>
 			<div className='section2'>
 				<div className='center-sec'>
-					{!propsContext.props.startPlay && (
+					{!optionsContext.options.startPlay && (
 						<div className="waiting">
 							<h3>wait</h3>
 						</div>

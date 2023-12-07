@@ -7,11 +7,13 @@ import Game from '@/app/(game)/ping-pong/game/Game';
 import { GameStates, PlayStates } from '@/app/(game)/ping-pong/common/Common';
 
 import { useCanvasContext } from '@/app/(game)/ping-pong/context/CanvasContext';
+import { useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext';
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 
 function Service(setGameState: (setGameState: GameStates) => void): void {
 	const canvasContext = useCanvasContext();
+	const optionsContext = useOptionsContext();
 	const propsContext = usePropsContext();
 	const webSocketContext = useWebSocketContext();
 	const webSocketGame = webSocketContext.socketGame;
@@ -22,13 +24,13 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 	let dataPlayer: any | undefined = undefined;
 
 	const updateGameStates = (readyPlay: boolean, startPlay: boolean, endGame: boolean) => {
-		propsContext.props.readyPlay = readyPlay;
-		propsContext.props.startPlay = startPlay;
-		propsContext.props.endGame = endGame;
+		optionsContext.options.readyPlay = readyPlay;
+		optionsContext.options.startPlay = startPlay;
+		optionsContext.options.endGame = endGame;
 	};
 
 	const initGame = () => {
-		console.log('initGame => readyPlay: ', propsContext.props.readyPlay, ' apply: ', playState);
+		console.log('initGame => readyPlay: ', optionsContext.options.readyPlay, ' apply: ', playState);
 		if (playState === "readyPlay") {
 			playState = "startPlay";
 
@@ -49,7 +51,7 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 	};
 
 	const runGame = () => {
-		console.log('runGame => startPlay: ', propsContext.props.startPlay, ' apply: ', playState);
+		console.log('runGame => startPlay: ', optionsContext.options.startPlay, ' apply: ', playState);
 		if (playState === "startPlay") {
 			playState = "endPlay";
 
@@ -60,7 +62,7 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 	};
 
 	const stopGame = () => {
-		console.log('stopGame => endGame: ', propsContext.props.endGame, ' apply: ', playState);
+		console.log('stopGame => endGame: ', optionsContext.options.endGame, ' apply: ', playState);
 		if (playState === "endPlay") {
 			playState = "readyPlay";
 
@@ -71,7 +73,7 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 	};
 
 	const winOrLoseGame = (win: boolean) => {
-		console.log("winOrLoseGame => endGame: ", propsContext.props.endGame);
+		console.log("winOrLoseGame => endGame: ", optionsContext.options.endGame);
 		if (playState === "endPlay") {
 			updateGameStates(true, true, true);
 

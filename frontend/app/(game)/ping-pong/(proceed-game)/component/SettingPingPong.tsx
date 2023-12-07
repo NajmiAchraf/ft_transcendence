@@ -1,11 +1,13 @@
 'use client';
 
+import { useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext';
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 
 import { useState } from 'react';
 
 function SettingPingPong() {
+	const optionsContext = useOptionsContext();
 	const propsContext = usePropsContext();
 	const webContext = useWebSocketContext();
 
@@ -13,12 +15,20 @@ function SettingPingPong() {
 
 	const [devMode, setDevMode] = useState(propsContext.props.devMode);
 	const [mode, setMode] = useState(propsContext.props.mode);
-	const [mirror, setMirror] = useState(propsContext.props.mirror);
+	const [refraction, setRefraction] = useState(propsContext.props.refraction);
 	const [geometry, setGeometry] = useState(propsContext.props.geometry);
 
 
 	const changeDevMode = () => {
-		propsContext.props.devMode = !propsContext.props.devMode
+		if (propsContext.props.devMode === 'none') {
+			propsContext.props.devMode = 'all';
+		} else if (propsContext.props.devMode === 'all') {
+			propsContext.props.devMode = 'camera';
+		} else if (propsContext.props.devMode === 'camera') {
+			propsContext.props.devMode = 'paddle-bot';
+		} else if (propsContext.props.devMode === 'paddle-bot') {
+			propsContext.props.devMode = 'none';
+		}
 		setDevMode(propsContext.props.devMode)
 	}
 
@@ -33,9 +43,9 @@ function SettingPingPong() {
 		setMode(propsContext.props.mode)
 	}
 
-	const changeMirror = () => {
-		propsContext.props.mirror = !propsContext.props.mirror
-		setMirror(propsContext.props.mirror)
+	const changeRefraction = () => {
+		propsContext.props.refraction = !propsContext.props.refraction
+		setRefraction(propsContext.props.refraction)
 	}
 
 	const changeGeometry = () => {
@@ -67,20 +77,20 @@ function SettingPingPong() {
 	return (
 		<div className="Settings" id="Settings">
 			{/* change dev mode on(true) off(false) */}
-			<button id="Button" onClick={changeDevMode}>DevMode {devMode ? "on" : "off"}</button>
+			<button id="Button" onClick={changeDevMode}>DevMode {devMode}</button>
 
 			{propsContext.props.playerType === "bot" && (
 				/* change mode three modes easy medium hard */
 				<button id="Button" onClick={changeMode}>Mode {mode}</button>
 			)}
 
-			{/* change mirror on(true) off(false) */}
-			<button id="Button" onClick={changeMirror}>Mirror {mirror ? "on" : "off"}</button>
+			{/* change refraction on(true) off(false) */}
+			<button id="Button" onClick={changeRefraction}>Refraction {refraction ? "on" : "off"}</button>
 
 			{/* change geometry cube(sphere) */}
 			<button id="Button" onClick={changeGeometry}>Geometry {geometry}</button>
 
-			{!propsContext.props.invite ? (
+			{!optionsContext.options.invite ? (
 				/* join game */
 				<button id="Button" onClick={joinGame} disabled={isButtonClicked}>Join Game</button>
 			) : (

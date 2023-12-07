@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { Props } from "../common/Common";
+import { createContext, useContext, useState } from "react";
+import { Props } from "@/app/(game)/ping-pong/common/Common";
 
 export interface IPropsContext {
 	props: Props;
@@ -26,18 +26,13 @@ export function usePropsContext() {
 export function getDefaultProps(): Props {
 
 	const defaultProps: Props = {
+		devMode: 'none',
 		geometry: "cube",
-		mirror: false,
+		refraction: true,
 		mode: "medium",
 		playerType: "player",
 		player1Name: "name",
 		player2Name: "name",
-		invite: false,
-		readyPlay: false,
-		startPlay: false,
-		inGame: false,
-		endGame: false,
-		devMode: false,
 	};
 
 	return defaultProps;
@@ -46,18 +41,13 @@ export function getDefaultProps(): Props {
 // context provider
 function PropsContextProvider({ children }: { children: React.ReactNode }) {
 	const [props, setProps] = useState<Props>({
+		devMode: 'none',
 		geometry: "cube",
-		mirror: false,
+		refraction: true,
 		mode: "medium",
 		playerType: "player",
 		player1Name: "name",
 		player2Name: "name",
-		invite: false,
-		readyPlay: false,
-		startPlay: false,
-		inGame: false,
-		endGame: false,
-		devMode: false,
 	});
 
 	const contextValue: IPropsContext = {

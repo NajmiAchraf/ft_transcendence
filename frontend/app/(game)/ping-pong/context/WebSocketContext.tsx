@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { DefaultEventsMap } from '@socket.io/component-emitter';
 
@@ -28,7 +28,7 @@ function WebSocketContextProvider({ children }: { children: React.ReactNode }) {
 		query: {
 			// accessToken: localStorage.getItem('accessToken'),
 
-			accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiYWNocmFmIiwiaWF0IjoxNzAxODE5ODY2LCJleHAiOjE3MDE5MDYyNjZ9.se7UnxMKEK842JI3kaRkHQPbtF10ReP2sZ5h0hfTxiA",
+			accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiYWNocmFmIiwiaWF0IjoxNzAxOTUxMDI4LCJleHAiOjE3MDIwMzc0Mjh9.Vz9oPv6wwA8cKXOOkV9qSlH394sniTw8ZqC5thuZBq0",
 		}
 	});
 

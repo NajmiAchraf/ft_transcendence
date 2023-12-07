@@ -7,9 +7,10 @@ export type Geometry = "cube" | "sphere";
 export type PlayerType = "player" | "bot";
 export type PlayStates = 'readyPlay' | 'startPlay' | 'endPlay';
 export type GameStates = 'settings' | 'wait' | 'play';
+export type DevMode = 'none' | 'all' | 'camera' | 'paddle-bot';
 
 export let vars = {
-	speed_init: 600 / 150, //! depend on width
+	speed_init: 600 / 120, //! depend on width
 	width: 600,
 	height: 400,
 	depth: 4,
@@ -22,17 +23,19 @@ export let vars = {
 }
 
 export type Props = {
+	devMode: DevMode,
 	geometry: Geometry,
-	mirror: boolean,
+	refraction: boolean,
 	mode: Mode,
 	playerType: PlayerType,
 	player1Name: string,
 	player2Name: string,
+}
+
+export type Options = {
 	invite: boolean,
 	readyPlay: boolean,
 	startPlay: boolean,
 	inGame: boolean,
 	endGame: boolean,
-	devMode: boolean,
 }
-

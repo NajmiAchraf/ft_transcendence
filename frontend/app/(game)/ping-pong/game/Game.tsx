@@ -1,6 +1,8 @@
 'use client';
 
 import * as THREE from 'three'
+
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -11,7 +13,7 @@ import { Socket } from "socket.io-client";
 import Ball from "@/app/(game)/ping-pong/game/Ball";
 import Board from "@/app/(game)/ping-pong/game/Board";
 import Player from "@/app/(game)/ping-pong/game/Player";
-import { vars, Side, Props, Canvas } from '@/app/(game)/ping-pong/common/Common'
+import { vars, Side, Props, Canvas, DevMode } from '@/app/(game)/ping-pong/common/Common'
 
 
 class CanvasComponent {
@@ -27,11 +29,16 @@ class CanvasComponent {
 	moving_camera: boolean = false;
 	onWindowResize: () => void;
 
-	constructor(canvas: HTMLCanvasElement) {
+	constructor(canvas: HTMLCanvasElement, devMode: DevMode) {
 		this.canvas = canvas
 		this.renderer = this.rendererSetup(canvas)
 		this.scene = this.sceneSetup()
 		this.camera = this.cameraSetup(75, this.canvas.clientWidth / this.canvas.clientHeight, 0.1, 5000, new THREE.Vector3(0, 0, vars.height))
+
+		if (devMode === 'all' || devMode === 'camera') {
+			const orbitControls = new OrbitControls(this.camera, this.renderer.domElement)
+			orbitControls.update()
+		}
 
 		this.onWindowResize = () => {
 			if (screen.orientation?.type === 'portrait-primary'
@@ -47,6 +54,7 @@ class CanvasComponent {
 			}
 			this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
 			this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
+			this.renderer.setPixelRatio(window.devicePixelRatio);
 			this.camera.updateProjectionMatrix();
 		}
 
@@ -65,7 +73,6 @@ class CanvasComponent {
 		this.composer.addPass(this.bloomPass);
 
 	}
-
 
 	private rendererSetup(canvas: HTMLCanvasElement) {
 		let renderer = new THREE.WebGLRenderer({
@@ -86,7 +93,9 @@ class CanvasComponent {
 		return scene
 	}
 
-	protected resetCamera() {
+	protected resetCamera(devMode: DevMode) {
+		if (devMode === 'all' || devMode === 'camera')
+			return;
 		if (this.moving_camera)
 			return;
 
@@ -145,6 +154,7 @@ export default class Game extends CanvasComponent {
 	// service: SocketService;
 	getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>;
 	getDataPlayer: () => any;
+	getProps: () => Props;
 	room: string;
 	idPlayer: string | undefined = undefined;
 
@@ -159,14 +169,15 @@ export default class Game extends CanvasComponent {
 	constructor(getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>, getProps: () => Props, getCanvas: () => Canvas, getDataPlayer: () => any) {
 		if (!getCanvas())
 			throw new Error("Canvas is not defined");
-		super(getCanvas() as HTMLCanvasElement)
+		super(getCanvas() as HTMLCanvasElement, getProps().devMode)
 
 		// this.service = service;
 		this.getSocket = getSocket;
 		this.getDataPlayer = getDataPlayer;
+		this.getProps = getProps;
 		this.room = getDataPlayer().room;
 
-		this.board = new Board(this, vars.width, vars.height, vars.depth, getProps().geometry, getProps().mirror)
+		this.board = new Board(this, vars.width, vars.height, vars.depth, getProps().geometry, getProps().refraction)
 		this.ball = new Ball(this, getProps().geometry)
 		this.player1 = new Player(this, "right", getProps().geometry, getProps().devMode)
 		this.player2 = new Player(this, "left", getProps().geometry, getProps().devMode)
@@ -186,7 +197,9 @@ export default class Game extends CanvasComponent {
 
 	// entry point for the game camera move from pi/3 to pi/2
 	private startCamera() {
-		this.resetCamera();
+		if (this.getProps().devMode === 'all' || this.getProps().devMode === 'camera')
+			return;
+		this.resetCamera(this.getProps().devMode);
 		if (this.moving_camera)
 			return;
 
@@ -210,7 +223,7 @@ export default class Game extends CanvasComponent {
 			}
 			else {
 				this.moving_camera = false;
-				super.resetCamera();
+				this.resetCamera(this.getProps().devMode);
 			}
 		};
 
@@ -248,10 +261,12 @@ export default class Game extends CanvasComponent {
 	}
 
 	private moveCameraSeries(side: Side) {
+		if (this.getProps().devMode === 'all' || this.getProps().devMode === 'camera')
+			return;
 		if (this.moving_camera)
 			return;
 
-		this.resetCamera();
+		this.resetCamera(this.getProps().devMode);
 		this.moving_camera = true;
 
 		let step = 1;
@@ -272,7 +287,7 @@ export default class Game extends CanvasComponent {
 			} else {
 
 				this.moving_camera = false;
-				super.resetCamera();
+				this.resetCamera(this.getProps().devMode);
 			}
 		};
 
@@ -280,7 +295,7 @@ export default class Game extends CanvasComponent {
 	}
 
 	private update() {
-		this.resetCamera()
+		this.resetCamera(this.getProps().devMode);
 		this.ball.update();
 		this.player1.update()
 		this.player2.update()
