@@ -1,4 +1,4 @@
-import { GameResultType, Mode, PlayerType } from 'src/modules/ping-pong/common/Common';
+import { GameResultType, Mode, PlayerType, Side } from 'src/modules/ping-pong/common/Common';
 import Game from "src/modules/ping-pong/component/Game";
 import PingPongGateway from "src/modules/ping-pong/ping-pong.gateway";
 
@@ -155,15 +155,23 @@ export default class Room {
 		return undefined;
 	}
 
-	addPlayerBot(playerID: string, clientID: string, mode: Mode): string | undefined {
+	addPlayerBot(playerID: string, clientID: string, mode: Mode, side: Side): string | undefined {
 		if (this.checkRoom(playerID) === true) {
 			this.pingPongGateway.server.to(playerID).emit("denyToPlay", { error: "You are already in a room" });
 			return undefined;
 		}
 
-		const pair: PairType = [[playerID, clientID], ['bot', 'bot']];
+		if (side === "right") {
 
-		this.createGame(pair, "player", "bot", mode);
+			const pair: PairType = [[playerID, clientID], ['bot', 'bot']];
+			this.createGame(pair, "player", "bot", mode);
+
+		} else if (side === "left") {
+
+			const pair: PairType = [['bot', 'bot'], [playerID, clientID]];
+			this.createGame(pair, "bot", "player", mode);
+
+		}
 
 		// emit to client that he is in pair
 		this.pingPongGateway.server.to(clientID).emit("allowToPlay", { message: "You are in room" });

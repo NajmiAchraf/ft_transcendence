@@ -12,7 +12,7 @@ import { Namespace, Server, Socket } from 'socket.io';
 
 import Room from "src/modules/ping-pong/Room";
 import { PingPongService } from 'src/modules/ping-pong/ping-pong.service';
-import { Mode, PlayerType } from 'src/modules/ping-pong/common/Common';
+import { Mode, PlayerType, Side } from 'src/modules/ping-pong/common/Common';
 
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 
@@ -93,9 +93,11 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 	async joinGame(@ConnectedSocket() client: Socket, @MessageBody() data: {
 		playerType: PlayerType,
 		mode: Mode
+		side: Side,
 	}) {
 		const playerType = data.playerType;
 		const mode = data.mode;
+		const side = data.side;
 
 		// get user id from access token
 		const userId = await this.globalHelperService.getClientIdFromJwt(client);
@@ -125,7 +127,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 				if (idRoom)
 					console.log("	Room player created, id: " + idRoom);
 			} else if (playerType === "bot") {
-				const idRoom = this.rooms.addPlayerBot(userId.toString(), client.id, mode);
+				const idRoom = this.rooms.addPlayerBot(userId.toString(), client.id, mode, side);
 				if (idRoom)
 					console.log("	Room bot created, id: " + idRoom);
 			}

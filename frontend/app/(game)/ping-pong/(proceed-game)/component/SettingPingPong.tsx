@@ -15,6 +15,7 @@ function SettingPingPong() {
 
 	const [devMode, setDevMode] = useState(propsContext.props.devMode);
 	const [mode, setMode] = useState(propsContext.props.mode);
+	const [side, setSide] = useState(propsContext.props.side);
 	const [refraction, setRefraction] = useState(propsContext.props.refraction);
 	const [geometry, setGeometry] = useState(propsContext.props.geometry);
 
@@ -43,6 +44,15 @@ function SettingPingPong() {
 		setMode(propsContext.props.mode)
 	}
 
+	const changeSide = () => {
+		if (propsContext.props.side === "right") {
+			propsContext.props.side = "left";
+		} else {
+			propsContext.props.side = "right";
+		}
+		setSide(propsContext.props.side)
+	}
+
 	const changeRefraction = () => {
 		propsContext.props.refraction = !propsContext.props.refraction
 		setRefraction(propsContext.props.refraction)
@@ -59,6 +69,7 @@ function SettingPingPong() {
 		webContext.socketGame.emit("joinGame", {
 			playerType: propsContext.props.playerType,
 			mode: propsContext.props.mode,
+			side: propsContext.props.side,
 		});
 
 		setButtonClicked(true);
@@ -87,6 +98,11 @@ function SettingPingPong() {
 			{propsContext.props.playerType === "bot" && (
 				/* change mode three modes easy medium hard */
 				<button id="Button" onClick={changeMode}>Mode {mode}</button>
+			)}
+
+			{propsContext.props.playerType === "bot" && (
+				/* side of the paddle you play with */
+				<button id="Button" onClick={changeSide}>Side {side}</button>
 			)}
 
 			{/* change refraction on(true) off(false) */}

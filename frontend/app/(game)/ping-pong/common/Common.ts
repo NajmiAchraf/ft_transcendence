@@ -27,6 +27,7 @@ export type Props = {
 	geometry: Geometry,
 	refraction: boolean,
 	mode: Mode,
+	side: Side,
 	playerType: PlayerType,
 	player1Name: string,
 	player2Name: string,

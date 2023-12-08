@@ -137,13 +137,37 @@ class Paddle {
 		});
 	}
 
-	update(): void {
-		const { getDataPlayer, ball } = this.game;
-		const isMe = getDataPlayer().side === this.side;
-		const isBot = getDataPlayer().player2Name === "bot";
+	RightLeft(): void {
+		const { ball, getDataPlayer } = this.game;
+		const { side } = getDataPlayer();
+		const isMe = side === this.side;
 
-		if (isMe || !isBot || (isBot && ball.x < -vars.width / 4 && ball.velocityX < 0)) {
+		const isRight = ball.velocityX > 0 && ball.x > vars.width / 4;
+		const isLeft = ball.velocityX < 0 && ball.x < -vars.width / 4;
+
+		if (isLeft) {
+			if (
+				(isMe && side === "left") ||
+				(!isMe && side === "right")
+			)
+				this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.4);
+		} else if (isRight) {
+			if (
+				(isMe && side === "right") ||
+				(!isMe && side === "left")
+			)
+				this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.4);
+		}
+	}
+
+	update(): void {
+		const { player1Name, player2Name } = this.game.getDataPlayer();
+		const isBot = this.side === 'left' ? player2Name === "bot" : player1Name === "bot";
+
+		if (!isBot) {
 			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.4);
+		} else if (isBot) {
+			this.RightLeft();
 		}
 	}
 
@@ -215,20 +239,13 @@ class Bot extends Paddle {
 	}
 
 	update(): void {
-		const { getDataPlayer, ball } = this.game;
-		const { side } = getDataPlayer();
+		const { side } = this.game.getDataPlayer();
 		const isMe = side === this.side;
 
 		if (isMe) {
 			this.auto_paddle_position();
 		}
-
-		if (
-			(isMe && ball.x > vars.width / 4 && ball.velocityX > 0) ||
-			(!isMe && ball.x < -vars.width / 4 && ball.velocityX < 0)
-		) {
-			this.paddle.position.lerp(new THREE.Vector3(this.x, this.y, this.z), 0.4);
-		}
+		this.RightLeft();
 	}
 
 	dispose(): void {

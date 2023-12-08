@@ -52,27 +52,31 @@ export default class Game {
 		}
 		this.readyToPlay1 = () => {
 			this.ready_player++;
-			if (this.ready_player === 2) {
+			if (playerType1 === 'bot') {
+				this.start()
+			} else if (this.ready_player === 2) {
 				this.start()
 			}
 		}
 		this.readyCanvas0 = () => {
 			let msg = "room created and waiting for player 2";
-			if (this.ready_player === 2 || playerType2 === 'bot')
+			if (this.ready_player === 2 || playerType1 === 'bot')
 				msg = "room created and start play";
 			this.server.to(this.pair[0]).emit("roomConstruction", { message: msg, room: idRoom });
 		}
 		this.readyCanvas1 = () => {
 			let msg = "room created and waiting for player 1";
-			if (this.ready_player === 2)
+			if (this.ready_player === 2 || playerType2 === 'bot')
 				msg = "room created and start play";
 			this.server.to(this.pair[1]).emit("roomConstruction", { message: msg, room: idRoom });
 		}
 
 		this.listener0 = this.server.sockets.get(this.pair[0]);
 		this.listener1 = this.server.sockets.get(this.pair[1]);
-		this.listener0.on("readyToPlay", this.readyToPlay0);
-		this.listener0.on("readyCanvas", this.readyCanvas0);
+		if (this.listener0 !== undefined) {
+			this.listener0.on("readyToPlay", this.readyToPlay0);
+			this.listener0.on("readyCanvas", this.readyCanvas0);
+		}
 		if (this.listener1 !== undefined) {
 			this.listener1.on("readyToPlay", this.readyToPlay1);
 			this.listener1.on("readyCanvas", this.readyCanvas1);
@@ -145,8 +149,10 @@ export default class Game {
 	destroy(): void {
 		this.stop();
 
-		this.listener0.off("readyToPlay", this.readyToPlay0);
-		this.listener0.off("readyCanvas", this.readyCanvas0);
+		if (this.listener0 !== undefined) {
+			this.listener0.off("readyToPlay", this.readyToPlay0);
+			this.listener0.off("readyCanvas", this.readyCanvas0);
+		}
 		if (this.listener1 !== undefined) {
 			this.listener1.off("readyToPlay", this.readyToPlay1);
 			this.listener1.off("readyCanvas", this.readyCanvas1);
