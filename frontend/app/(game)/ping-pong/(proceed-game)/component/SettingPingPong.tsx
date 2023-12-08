@@ -21,12 +21,12 @@ function SettingPingPong() {
 
 	const changeDevMode = () => {
 		if (propsContext.props.devMode === 'none') {
-			propsContext.props.devMode = 'all';
-		} else if (propsContext.props.devMode === 'all') {
 			propsContext.props.devMode = 'camera';
 		} else if (propsContext.props.devMode === 'camera') {
 			propsContext.props.devMode = 'paddle-bot';
 		} else if (propsContext.props.devMode === 'paddle-bot') {
+			propsContext.props.devMode = 'all';
+		} else if (propsContext.props.devMode === 'all') {
 			propsContext.props.devMode = 'none';
 		}
 		setDevMode(propsContext.props.devMode)
@@ -76,8 +76,13 @@ function SettingPingPong() {
 
 	return (
 		<div className="Settings" id="Settings">
-			{/* change dev mode on(true) off(false) */}
-			<button id="Button" onClick={changeDevMode}>DevMode {devMode}</button>
+			{
+				// if npm run dev then show devMode button else hide
+				process.env.NODE_ENV === "development" && (
+					/* change dev mode on(true) off(false) */
+					<button id="Button" onClick={changeDevMode}>DevMode {devMode}</button>
+				)
+			}
 
 			{propsContext.props.playerType === "bot" && (
 				/* change mode three modes easy medium hard */
@@ -95,7 +100,7 @@ function SettingPingPong() {
 				<button id="Button" onClick={joinGame} disabled={isButtonClicked}>Join Game</button>
 			) : (
 				/* start game */
-				<button id="Button" onClick={invitePlayer} disabled={isButtonClicked}>Confirme Invitation</button>
+				<button id="Button" onClick={invitePlayer} disabled={isButtonClicked}>Proceed</button>
 			)
 			}
 		</div >
