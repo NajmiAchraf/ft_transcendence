@@ -284,11 +284,11 @@ body, html
 }
 
 .setting .props {
-	background: linear-gradient(180deg, #947f18 0%, #134d8f 100%);
+	background: linear-gradient(180deg, #dabd31 0%, #2170cb 100%);
 }
 
 .setting .props:active {
-	background: linear-gradient(180deg, #dabd31 0%, #2170cb 100%);
+	background: linear-gradient(180deg, #947f18 0%, #134d8f 100%);
 }
 
 .setting .leave {
