@@ -65,6 +65,7 @@ export class ChatHttpService {
 
 			if (entry2.length == 0 || entry[0].created_at > entry2[0].created_at) {
 				return {
+					profileId: entry[0].receiver_id,
 					nickname: entry[0].dm_receiver.nickname,
 					avatar: entry[0].dm_receiver.avatar,
 					status: entry[0].dm_receiver.status,
@@ -74,6 +75,7 @@ export class ChatHttpService {
 				};
 			} else {
 				return {
+					profileId: entry2[0].sender_id,
 					nickname: entry2[0].dm_sender.nickname,
 					avatar: entry2[0].dm_sender.avatar,
 					status: entry2[0].dm_sender.status,
@@ -83,11 +85,197 @@ export class ChatHttpService {
 				};
 			}
 		}));
+
+		// sort by created_at
+
+		lastDms.sort((a, b) => {
+			return b.created_at.getTime() - a.created_at.getTime();
+		});
 		return lastDms;
 	}
 
+	async getChannelMembers(userId: number, channelId: number) {
+		const entry = await this.prsimaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		const entries = await this.prsimaService.user_channel.findMany({
+			where: {
+				channel_id: channelId,
+			},
+			include: {
+				channel_member: true,
+			}
+		});
+
+		const owner = {};
+		const admins = [];
+		const members = [];
+
+		entries.forEach(entry => {
+			if (entry.user_role === 'owner') {
+				owner['id'] = entry.channel_member.id;
+				owner['nickname'] = entry.channel_member.nickname;
+				owner['avatar'] = entry.channel_member.avatar;
+				owner['status'] = entry.channel_member.status;
+				return;
+			}
+			if (entry.user_role === 'admin') {
+				admins.push({
+					id: entry.channel_member.id,
+					nickname: entry.channel_member.nickname,
+					avatar: entry.channel_member.avatar,
+					status: entry.channel_member.status,
+				});
+				return;
+			}
+			members.push({
+				id: entry.channel_member.id,
+				nickname: entry.channel_member.nickname,
+				avatar: entry.channel_member.avatar,
+				status: entry.channel_member.status,
+			});
+		});
+
+		return {
+			owner,
+			admins,
+			members,
+		}
+	}
+
+	async getDmFriend(userId: number, profileId: number) {
+		const profile = await this.prsimaService.user.findUnique({
+			where: {
+				id: profileId,
+			}
+		});
+
+		const user = await this.prsimaService.user.findUnique({
+			where: {
+				id: userId,
+			}
+		});
+
+		return [
+			{
+				id: profile.id,
+				nickname: profile.nickname,
+				avatar: profile.avatar,
+				status: profile.status,
+			},
+			{
+				id: user.id,
+				nickname: user.nickname,
+				avatar: user.avatar,
+				status: user.status,
+			},
+		]
+	}
+
+	async getLastChannelMessages(userId: number) {
+		const entries = await this.prsimaService.user_channel.findMany({
+			where: {
+				user_id: userId,
+			},
+			include: {
+				channel: true,
+			}
+		});
+
+		const filteredEntries = await Promise.all(entries.map(async entry => {
+			const last_message = await this.prsimaService.channels_message.findMany({
+				where: {
+					channel_id: entry.channel_id,
+				},
+				orderBy: {
+					created_at: 'desc',
+				},
+				include: {
+					cm_sender: true,
+				},
+				take: 1,
+			});
+
+			return {
+				channel_id: entry.channel_id,
+				channel_name: entry.channel.channel_name,
+				avatar: entry.channel.avatar,
+				last_message: last_message.length !== 0 ? last_message[0].message_text : null,
+				sender_id: last_message.length !== 0 ? last_message[0].sender_id : null,
+				nickname: last_message.length !== 0 ? last_message[0].cm_sender.nickname : null,
+				created_at: last_message.length !== 0 ? last_message[0].created_at : null,
+			}
+		})
+		);
+
+		filteredEntries.sort((a, b) => {
+			return b.created_at.getTime() - a.created_at.getTime();
+		});
+
+		return filteredEntries;
+	}
+
+	async getChannelMessageHistory(channelId: number, userId: number) {
+		const entry = await this.prsimaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		const entries = await this.prsimaService.channels_message.findMany({
+			where: {
+				channel_id: channelId,
+			},
+			orderBy: {
+				created_at: 'desc',
+			},
+			include: {
+				cm_sender: true,
+			},
+		});
+
+		const messages = entries.map(entry => {
+			return {
+				sender_id: entry.sender_id,
+				nickname: entry.cm_sender.nickname,
+				message_text: entry.message_text,
+				avatar: entry.cm_sender.avatar,
+				status: entry.cm_sender.status,
+				created_at: entry.created_at,
+			}
+		});
+	}
+
+	async amIOwner(userId: number, channelId: number) {
+		const entry = await this.prsimaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		return entry.user_role === 'owner';
+	}
+
 	async getDMHistory(userId: number, profileId: number) {
-		const dm = await this.prsimaService.direct_message.findMany({
+		const dms = await this.prsimaService.direct_message.findMany({
 			where: {
 				OR: [
 					{ sender_id: userId, receiver_id: profileId },
@@ -97,8 +285,21 @@ export class ChatHttpService {
 			orderBy: {
 				created_at: 'desc',
 			},
+			include: {
+				dm_sender: true,
+			}
 		})
-		return dm;
+
+		return dms.map(dm => {
+			return {
+				id: dm.sender_id,
+				nickname: dm.dm_sender.nickname,
+				avatar: dm.dm_sender.avatar,
+				status: dm.dm_sender.status,
+				message_text: dm.message_text,
+				created_at: dm.created_at,
+			}
+		});
 	}
 
 	async findAllGlobalChat(userId: number) {

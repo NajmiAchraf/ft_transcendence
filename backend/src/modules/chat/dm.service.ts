@@ -30,7 +30,6 @@ export class DmService {
 				server.to(socket).emit('receiveDM', message);
 			});
 
-
 		} catch (err) {
 			server.to(client.id).emit('Invalid access', { error: "error occured" });
 		}

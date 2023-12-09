@@ -70,7 +70,6 @@ export class ChannelChatService {
 			// !send a notification
 			const socketIds = this.socketService.getSockets(+message.profileId, 'chat');
 			socketIds.forEach(socketId => {
-				// server.to(socketId).emit('addChannelMember', 'you have been added to a channel');
 				server.sockets.get(socketId).join(message.channelId.toString());
 			});
 
@@ -80,7 +79,7 @@ export class ChannelChatService {
 
 			const user = await this.prismaService.user.findUnique({ where: { id: +message.profileId, } });
 			filteredSockets.forEach(socket => {
-				socket.emit('addChannelMember', { id: user.id, nickname: user.nickname });
+				socket.emit('addChannelMember', { id: user.id, channel_id: message.channelId, nickname: user.nickname });
 			});
 
 			await this.prismaService.notification.create({
@@ -90,7 +89,6 @@ export class ChannelChatService {
 				}
 			});
 
-			server.to(client.id).emit('addChannelMember', 'user added to channel');
 		} catch (err) {
 			console.log(err);
 			server.to(client.id).emit('Invalid access', { error: err });

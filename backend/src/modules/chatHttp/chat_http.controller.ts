@@ -14,11 +14,47 @@ import { ChannelPasswordDto } from './dto/channel_password.dto';
 export class ChatHttpController {
 	constructor(private readonly chatHttpService: ChatHttpService) { }
 
-	// @UseGuards(ChatBlockCheckGuard)
-	@Post('last_dms')
-	async getLastDMs(@Body() body: ProfileId, @Req() req: Request) {
+	@Get('dms')
+	async getLastDMs(@Req() req: Request) {
 		const userId = req.user['sub'];
 		return this.chatHttpService.getLastDMs(userId);
+	}
+
+	@UseGuards(BannedUserGuard)
+	@Post('am_i_owner')
+	async amIOwner(@Body() body: ChannelIdDto, @Req() req: Request) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		return this.chatHttpService.amIOwner(userId, channelId);
+	}
+
+	@Get('channels')
+	async getLastChannelMessages(@Req() req: Request) {
+		const userId = req.user['sub'];
+		return this.chatHttpService.getLastChannelMessages(userId);
+	}
+
+	@UseGuards(BannedUserGuard)
+	@Post('channel_message_history')
+	async getChannelMessageHistory(@Body() body: ChannelIdDto, @Req() req: Request) {
+		const userId = req.user['sub'];
+		return this.chatHttpService.getChannelMessageHistory(+body.channelId, userId);
+	}
+
+	@UseGuards(BannedUserGuard)
+	@Post('channel_members')
+	async getChannelMembers(@Body() body: ChannelIdDto, @Req() req: Request) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		return this.chatHttpService.getChannelMembers(userId, channelId);
+	}
+
+	@UseGuards(ChatBlockCheckGuard)
+	@Post('getDmFriend')
+	async getDmFriend(@Body() body: ProfileId, @Req() req: Request) {
+		const userId = req.user['sub'];
+		const profileId = +body.profileId;
+		return this.chatHttpService.getDmFriend(userId, profileId);
 	}
 
 	@UseGuards(ChatBlockCheckGuard)
