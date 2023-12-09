@@ -163,6 +163,6 @@ export class UserController {
 	async checkTwoFactor(@Body() body: TwoFactorDto, @Req() req: Request) {
 		const userId = req.user['sub'];
 		const { code } = body;
-		return await this.twoFactorService.checkTwoFactor(userId, code);
+		return { img: await this.twoFactorService.checkTwoFactor(userId, code) };
 	}
 }

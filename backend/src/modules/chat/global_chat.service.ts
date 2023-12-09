@@ -25,12 +25,12 @@ export class GlobalChatService {
     });
 
     const message = {
-      senderId: entry.sender_id,
-      senderNickname: entry.globalm_sender.nickname,
-      message: entry.message_text,
+      sender_id: entry.sender_id,
+      nickname: entry.globalm_sender.nickname,
+      message_text: entry.message_text,
       avatar: entry.globalm_sender.avatar,
       status: entry.globalm_sender.status,
-      createdAt: entry.created_at,
+      created_at: entry.created_at,
     };
 
     const filteredSockets = await this.socketService.filterSockets(userId, Array.from(server.sockets.values()));
