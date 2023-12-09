@@ -239,10 +239,11 @@ body, html
 }
 
 .setting {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-	margin: 20px 0px;
-	grid-gap: 14px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-around;
+	height: 100vh; /* This makes the container take up the full height of the viewport */
 	font-family: 'Bakbak One', sans-serif;
 	font-family: 'Montserrat', sans-serif;
 	opacity: 0;
@@ -258,8 +259,6 @@ body, html
 .setting .stg {
 	background-color: transparent;
 	position: relative;
-	display: flex;
-	flex-direction: column;
 }
 
 .setting .stg .background {
@@ -276,16 +275,20 @@ body, html
 }
 
 .setting .button-part {
-	flex-basis: 20%;
 	display: flex;
+	flex-direction: row;
 	align-items: center;
 	justify-content: center;
+	margin-top: 2rem; /* This adds space above each row of buttons */
+	margin-bottom: 2rem; /* This adds space below each row of buttons */
+	margin-right: 1rem;
+	margin-left: 1rem;
 }
 
 .setting .button-stg {
-	width: 97px;
-	height: 36px;
-	border-radius: 6px;
+	width: 120px;
+	height: 40px;
+	border-radius: 8px;
 	border: none;
 	text-align: center;
 	color: white;
@@ -294,7 +297,7 @@ body, html
 	align-items: center;
 	justify-content: center;
 	gap: 0.5rem;
-	margin: 0 auto;
+	margin: 1rem;
 	font-size: 1rem;
 }
 
