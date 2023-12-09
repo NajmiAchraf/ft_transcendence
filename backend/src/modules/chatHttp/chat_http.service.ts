@@ -126,7 +126,7 @@ export class ChatHttpService {
 				owner['nickname'] = entry.channel_member.nickname;
 				owner['avatar'] = entry.channel_member.avatar;
 				owner['status'] = entry.channel_member.status;
-				owner['isOperatable'] = false;
+				owner['operate'] = false;
 				owner['isSelf'] = entry.channel_member.id === userId;
 				return;
 			}
@@ -136,7 +136,7 @@ export class ChatHttpService {
 					nickname: entry.channel_member.nickname,
 					avatar: entry.channel_member.avatar,
 					status: entry.channel_member.status,
-					isOperatable: user_role === 'owner',
+					operate: user_role === 'owner',
 					isSelf: entry.channel_member.id === userId,
 				});
 				return;
@@ -146,7 +146,7 @@ export class ChatHttpService {
 				nickname: entry.channel_member.nickname,
 				avatar: entry.channel_member.avatar,
 				status: entry.channel_member.status,
-				isOperatable: user_role === 'owner' || user_role === 'admin',
+				operate: user_role === 'owner' || user_role === 'admin',
 				isSelf: entry.channel_member.id === userId,
 			});
 		});
