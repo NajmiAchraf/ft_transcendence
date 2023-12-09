@@ -18,7 +18,7 @@ function SettingPingPong() {
 	const [devMode, setDevMode] = useState(propsContext.props.devMode);
 	const [mode, setMode] = useState(propsContext.props.mode);
 	const [side, setSide] = useState(propsContext.props.side);
-	const [reflection, setRefraction] = useState(propsContext.props.reflection);
+	const [reflection, setReflection] = useState(propsContext.props.reflection);
 	const [geometry, setGeometry] = useState(propsContext.props.geometry);
 
 
@@ -55,9 +55,9 @@ function SettingPingPong() {
 		setSide(propsContext.props.side)
 	}
 
-	const changeRefraction = () => {
+	const changeReflection = () => {
 		propsContext.props.reflection = !propsContext.props.reflection
-		setRefraction(propsContext.props.reflection)
+		setReflection(propsContext.props.reflection)
 	}
 
 	const changeGeometry = () => {
@@ -113,7 +113,7 @@ function SettingPingPong() {
 						)}
 
 						{/* change reflection on(true) off(false) */}
-						<button className="button-stg props" onClick={changeRefraction}>Refraction {reflection ? "on" : "off"}</button>
+						<button className="button-stg props" onClick={changeReflection}>Reflection {reflection ? "on" : "off"}</button>
 
 						{/* change geometry cube(sphere) */}
 						<button className="button-stg props" onClick={changeGeometry}>Geometry {geometry}</button>
