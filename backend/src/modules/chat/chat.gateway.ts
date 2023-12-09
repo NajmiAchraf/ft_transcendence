@@ -2,9 +2,7 @@ import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGat
 import { Namespace, Socket } from 'socket.io';
 import { GlobalChatService } from './global_chat.service';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
 import { GlobalHelperService } from 'src/common/services/global_helper.service';
-import { SocketService } from 'src/common/services/socket.service';
 import { ConnectionService } from './connection.service';
 import { ChannelChatService } from './channel_chat.service';
 import { DmService } from './dm.service';
@@ -22,9 +20,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	server: Namespace;
 
 	constructor(private readonly globalChatService: GlobalChatService,
-		private readonly prismaService: PrismaService,
 		private readonly globalHelperService: GlobalHelperService,
-		private readonly socketService: SocketService,
 		private readonly connectionService: ConnectionService,
 		private readonly channelChatService: ChannelChatService,
 		private readonly dmService: DmService) { }
@@ -150,8 +146,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		return this.channelChatService.createChannel(this.server, client, message);
 	}
 
-
-
 	// ** Direct Chat **
 	@SubscribeMessage('directCreateChat')
 	async directCreateChat(@ConnectedSocket() client: Socket, @MessageBody() message: any) {
@@ -163,5 +157,4 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 		return this.dmService.directCreateChat(this.server, client, message);
 	}
-
 }

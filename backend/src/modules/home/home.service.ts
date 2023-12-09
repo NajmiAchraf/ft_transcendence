@@ -67,6 +67,11 @@ export class HomeService {
 
 	async getStandings(userId: number) {
 		const entries = await this.prismaService.user.findMany({
+			where: {
+				nickname: {
+					not: null,
+				}
+			},
 			orderBy: { total_points: 'desc' },
 		});
 

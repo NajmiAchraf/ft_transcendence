@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Namespace, Server, Socket } from "socket.io";
-import { ChannelPasswordDto } from "../chatHttp/dto/channel_password.dto";
+import { Namespace, Socket } from "socket.io";
 import { SocketService } from "src/common/services/socket.service";
 import { PrismaService } from "../prisma/prisma.service";
 
