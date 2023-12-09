@@ -1,33 +1,91 @@
 import { ForbiddenException, Injectable, UseGuards } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GlobalHelperService } from 'src/common/services/global_helper.service';
-import { ChatBlockCheckGuard } from 'src/common/guards';
 import { CreateChannelDto } from './dto';
-import * as path from 'path';
 
 @Injectable()
 export class ChatHttpService {
 	constructor(private readonly prsimaService: PrismaService,
 		private readonly globalHelperService: GlobalHelperService) { }
 
-	@UseGuards(ChatBlockCheckGuard)
-	async getLastDM(userId: number, profileId: number) {
-		const dm = await this.prsimaService.direct_message.findMany({
+	async getLastDMs(userId: number) {
+		const receiverIds = await this.prsimaService.direct_message.findMany({
 			where: {
-				OR: [
-					{ sender_id: userId, receiver_id: profileId },
-					{ sender_id: profileId, receiver_id: userId }
-				]
+				sender_id: userId,
 			},
-			orderBy: {
-				created_at: 'desc',
+		});
+
+		const senderIds = await this.prsimaService.direct_message.findMany({
+			where: {
+				receiver_id: userId,
 			},
-			take: 1,
 		})
-		return dm;
+
+		if (senderIds.length === 0 && receiverIds.length === 0) {
+			return [];
+		}
+
+		const ids = [...new Set([...receiverIds.map(entry => entry.receiver_id), ...senderIds.map(entry => entry.sender_id)])];
+
+		const filteredPromises = ids.filter(async (id) => {
+			return !(await this.globalHelperService.isBlocked(userId, id) || await this.globalHelperService.isBlocked(id, userId));
+		});
+
+		const filteredIds = await Promise.all(filteredPromises);
+
+		// get the last message for each user
+		const lastDms = await Promise.all(filteredIds.map(async (id) => {
+			const entry = await this.prsimaService.direct_message.findMany({
+				where: {
+					sender_id: userId,
+					receiver_id: id,
+				},
+				orderBy: {
+					created_at: 'desc',
+				},
+				take: 1,
+				include: {
+					dm_receiver: true,
+				},
+			});
+
+			const entry2 = await this.prsimaService.direct_message.findMany({
+				where: {
+					sender_id: id,
+					receiver_id: userId,
+				},
+				orderBy: {
+					created_at: 'desc',
+				},
+				take: 1,
+				include: {
+					dm_sender: true,
+				},
+			});
+
+			if (entry2.length == 0 || entry[0].created_at > entry2[0].created_at) {
+				return {
+					nickname: entry[0].dm_receiver.nickname,
+					avatar: entry[0].dm_receiver.avatar,
+					status: entry[0].dm_receiver.status,
+					message_text: entry[0].message_text,
+					created_at: entry[0].created_at,
+					isSender: true,
+				};
+			} else {
+				return {
+					nickname: entry2[0].dm_sender.nickname,
+					avatar: entry2[0].dm_sender.avatar,
+					status: entry2[0].dm_sender.status,
+					message_text: entry2[0].message_text,
+					created_at: entry2[0].created_at,
+					isSender: false,
+				};
+			}
+		}));
+		return lastDms;
 	}
 
-	@UseGuards(ChatBlockCheckGuard)
 	async getDMHistory(userId: number, profileId: number) {
 		const dm = await this.prsimaService.direct_message.findMany({
 			where: {
@@ -669,5 +727,32 @@ export class ChatHttpService {
 				receiver_id: receiverId,
 			}
 		});
+	}
+
+	async findOtherChannels(userId: number) {
+		const entries = await this.prsimaService.user_channel.findMany({
+			where: {
+				user_id: userId,
+			},
+			select: {
+				channel_id: true,
+			}
+		});
+
+		const channelIds = entries.map(entry => entry.channel_id);
+
+		const channels = await this.prsimaService.channel.findMany({
+			where: {
+				id: {
+					notIn: channelIds,
+				},
+				privacy: 'public',
+			},
+			orderBy: {
+				members_count: 'desc',
+			},
+		});
+
+		return channels;
 	}
 }

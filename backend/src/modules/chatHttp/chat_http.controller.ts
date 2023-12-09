@@ -14,12 +14,11 @@ import { ChannelPasswordDto } from './dto/channel_password.dto';
 export class ChatHttpController {
 	constructor(private readonly chatHttpService: ChatHttpService) { }
 
-	@UseGuards(ChatBlockCheckGuard)
-	@Post('last_dm')
-	async getLastDM(@Body() body: ProfileId, @Req() req: Request) {
-		const profileId = +body.profileId;
+	// @UseGuards(ChatBlockCheckGuard)
+	@Post('last_dms')
+	async getLastDMs(@Body() body: ProfileId, @Req() req: Request) {
 		const userId = req.user['sub'];
-		return this.chatHttpService.getLastDM(userId, profileId);
+		return this.chatHttpService.getLastDMs(userId);
 	}
 
 	@UseGuards(ChatBlockCheckGuard)
@@ -145,6 +144,13 @@ export class ChatHttpController {
 		const userId = req.user['sub'];
 		const channelId = +body.channelId;
 		return this.chatHttpService.removeChannelPassword(userId, channelId);
+	}
+
+	@UseGuards(BannedUserGuard)
+	@Get('findOtherChannels')
+	async findOtherChannels(@Req() req: Request) {
+		const userId = req.user['sub'];
+		return this.chatHttpService.findOtherChannels(userId);
 	}
 }
 
