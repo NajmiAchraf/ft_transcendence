@@ -7,7 +7,6 @@ import { multerConfig } from 'src/common/confs/multer.config';
 import { avatarDto } from 'src/common/dtos/avatar.dto';
 import { ChannelIdDto, ChannelMessageDto, CreateChannelDto, DmDto, ProfileChannelIdDto } from './dto';
 import { ProfileId } from '../user/dto';
-import { Profile } from 'passport';
 import { ChannelPasswordDto } from './dto/channel_password.dto';
 
 @Controller('chatHttp')
