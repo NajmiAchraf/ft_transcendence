@@ -6,6 +6,8 @@ import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketCon
 
 import { useState } from 'react';
 
+import "@/app/(game)/ping-pong.css";
+
 function SettingPingPong() {
 	const optionsContext = useOptionsContext();
 	const propsContext = usePropsContext();
@@ -86,40 +88,53 @@ function SettingPingPong() {
 	}
 
 	return (
-		<div className="Settings" id="Settings">
-			{
-				// if npm run dev then show devMode button else hide
-				process.env.NODE_ENV === "development" && (
-					/* change dev mode on(true) off(false) */
-					<button id="Button" onClick={changeDevMode}>DevMode {devMode}</button>
-				)
-			}
 
-			{propsContext.props.playerType === "bot" && (
-				/* change mode three modes easy medium hard */
-				<button id="Button" onClick={changeMode}>Mode {mode}</button>
-			)}
+		<div className="setting">
+			<div className="stg-section stg">
+				<div className="background">
+					<div className="button-part">
+						{
 
-			{propsContext.props.playerType === "bot" && (
-				/* side of the paddle you play with */
-				<button id="Button" onClick={changeSide}>Side {side}</button>
-			)}
+							// if npm run dev then show devMode button else hide
+							process.env.NODE_ENV === "development" && (
+								/* change dev mode on(true) off(false) */
+								<button className="button-stg props" onClick={changeDevMode}>DevMode {devMode}</button>
+							)
+						}
 
-			{/* change refraction on(true) off(false) */}
-			<button id="Button" onClick={changeRefraction}>Refraction {refraction ? "on" : "off"}</button>
+						{propsContext.props.playerType === "bot" && (
+							/* change mode three modes easy medium hard */
+							<button className="button-stg props" onClick={changeMode}>Mode {mode}</button>
+						)}
 
-			{/* change geometry cube(sphere) */}
-			<button id="Button" onClick={changeGeometry}>Geometry {geometry}</button>
+						{propsContext.props.playerType === "bot" && (
+							/* side of the paddle you play with */
+							<button className="button-stg props" onClick={changeSide}>Side {side}</button>
+						)}
 
-			{!optionsContext.options.invite ? (
-				/* join game */
-				<button id="Button" onClick={joinGame} disabled={isButtonClicked}>Join Game</button>
-			) : (
-				/* start game */
-				<button id="Button" onClick={invitePlayer} disabled={isButtonClicked}>Proceed</button>
-			)
-			}
-		</div >
+						{/* change refraction on(true) off(false) */}
+						<button className="button-stg props" onClick={changeRefraction}>Refraction {refraction ? "on" : "off"}</button>
+
+						{/* change geometry cube(sphere) */}
+						<button className="button-stg props" onClick={changeGeometry}>Geometry {geometry}</button>
+
+					</div>
+					<div className="button-part">
+
+						{!optionsContext.options.invite ? (
+							/* join game */
+							<button className="button-stg proceed" onClick={joinGame} disabled={isButtonClicked}> Join Game </button>
+						) : (
+							/* invite player */
+							<button className="button-stg proceed" onClick={invitePlayer} disabled={isButtonClicked}> Proceed </button>
+						)}
+						{/* leave to home */}
+						<button className="button-stg leave" onClick={() => { window.location.href = "/"; }}> Leave </button>
+
+					</div>
+				</div>
+			</div>
+		</div>
 	);
 }
 

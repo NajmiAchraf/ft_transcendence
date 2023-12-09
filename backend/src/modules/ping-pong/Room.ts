@@ -179,6 +179,25 @@ export default class Room {
 		return this.idRoom.toString();
 	}
 
+	addPlayerInvite(player1ID: string, client1ID: string, player2ID: string, client2ID: string): string | undefined {
+		if (this.checkRoom(player1ID) === true) {
+			this.pingPongGateway.server.to(client1ID).emit("allowToPlay", { message: "You are in room" });
+			return this.idRoom.toString();
+		}
+		if (this.checkRoom(player2ID) === true) {
+			this.pingPongGateway.server.to(client2ID).emit("denyToPlay", { error: "You are already in a room" });
+			return undefined;
+		}
+
+		const pair: PairType = [[player1ID, client1ID], [player2ID, client2ID]];
+		this.createGame(pair, "player", "player", "medium");
+
+		// emit to client that he is in pair
+		this.pingPongGateway.server.to(client1ID).emit("allowToPlay", { message: "You are in room" });
+
+		return this.idRoom.toString();
+	}
+
 	endGame(room: string, loser: number, corruption: boolean): void {
 		let loserID = parseInt(this.room[room][loser][0]);
 		let winnerID = parseInt(this.room[room][1 - loser][0]);
