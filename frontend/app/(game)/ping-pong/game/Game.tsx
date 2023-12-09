@@ -177,7 +177,7 @@ export default class Game extends CanvasComponent {
 		this.getProps = getProps;
 		this.room = getDataPlayer().room;
 
-		this.board = new Board(this, vars.width, vars.height, vars.depth, getProps().geometry, getProps().refraction)
+		this.board = new Board(this, vars.width, vars.height, vars.depth, getProps().geometry, getProps().reflection)
 		this.ball = new Ball(this, getProps().geometry)
 		this.player1 = new Player(this, "right", getProps().geometry, getProps().devMode)
 		this.player2 = new Player(this, "left", getProps().geometry, getProps().devMode)

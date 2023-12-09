@@ -25,7 +25,7 @@ export let vars = {
 export type Props = {
 	devMode: DevMode,
 	geometry: Geometry,
-	refraction: boolean,
+	reflection: boolean,
 	mode: Mode,
 	side: Side,
 	playerType: PlayerType,

@@ -28,7 +28,7 @@ export function getDefaultProps(): Props {
 	const defaultProps: Props = {
 		devMode: 'none',
 		geometry: "cube",
-		refraction: true,
+		reflection: true,
 		mode: "medium",
 		side: "right",
 		playerType: "player",
@@ -44,7 +44,7 @@ function PropsContextProvider({ children }: { children: React.ReactNode }) {
 	const [props, setProps] = useState<Props>({
 		devMode: 'none',
 		geometry: "cube",
-		refraction: true,
+		reflection: true,
 		mode: "medium",
 		side: "right",
 		playerType: "player",

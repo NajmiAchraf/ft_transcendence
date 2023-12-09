@@ -8,13 +8,9 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import Game from '@/app/(game)/ping-pong/game/Game'
 import { vars, Geometry } from '@/app/(game)/ping-pong/common/Common'
 
-const reflectorShader = {
-	// name: 'reflector',
+const ReflectorShader = {
 
-	// defines: {
-	// 	'DISTANCE_ATTENUATION': true,
-	// 	'FRESNEL': true
-	// },
+	name: 'ReflectorShaderWithOpacity',
 
 	uniforms: {
 
@@ -30,56 +26,61 @@ const reflectorShader = {
 			value: null
 		}
 
-
-
 	},
 
-	vertexShader: [
-		'uniform mat4 textureMatrix;',
-		'varying vec4 vUv;',
+	vertexShader: /* glsl */`
+		uniform mat4 textureMatrix;
+		varying vec4 vUv;
 
-		'void main() {',
+		#include <common>
+		#include <logdepthbuf_pars_vertex>
 
-		'	vUv = textureMatrix * vec4( position, 1.0 );',
+		void main() {
 
-		'	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
+			vUv = textureMatrix * vec4( position, 1.0 );
 
-		'}'
-	].join('\n'),
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 
-	fragmentShader: [
-		'uniform vec3 color;',
-		'uniform float opacity;',
-		'uniform sampler2D tDiffuse;',
-		'varying vec4 vUv;',
+			#include <logdepthbuf_vertex>
 
-		'float blendOverlay( float base, float blend ) {',
+		}`,
 
-		'	return( base < 0.5 ? ( 2.0 * base * blend ) : ( 1.0 - 2.0 * ( 1.0 - base ) * ( 1.0 - blend ) ) );',
+	fragmentShader: /* glsl */`
+		uniform vec3 color;
+		uniform sampler2D tDiffuse;
+		varying vec4 vUv;
 
-		'}',
+		#include <logdepthbuf_pars_fragment>
 
-		'vec3 blendOverlay( vec3 base, vec3 blend ) {',
+		float blendOverlay( float base, float blend ) {
 
-		'	return vec3( blendOverlay( base.r, blend.r ), blendOverlay( base.g, blend.g ), blendOverlay( base.b, blend.b ) );',
+			return( base < 0.5 ? ( 2.0 * base * blend ) : ( 1.0 - 2.0 * ( 1.0 - base ) * ( 1.0 - blend ) ) );
 
-		'}',
+		}
 
-		'void main() {',
+		vec3 blendOverlay( vec3 base, vec3 blend ) {
 
-		'	vec4 base = texture2DProj( tDiffuse, vUv );',
-		'	gl_FragColor = vec4( blendOverlay( base.rgb, color ), opacity );',
+			return vec3( blendOverlay( base.r, blend.r ), blendOverlay( base.g, blend.g ), blendOverlay( base.b, blend.b ) );
 
-		'}'
-	].join('\n')
+		}
 
+		void main() {
+
+			#include <logdepthbuf_fragment>
+
+			vec4 base = texture2DProj( tDiffuse, vUv );
+			gl_FragColor = vec4( blendOverlay( base.rgb, color ), 0.1 );
+
+			#include <tonemapping_fragment>
+			#include <colorspace_fragment>
+
+		}`
 };
 
 class Table {
 	table: THREE.Mesh | null = null;
-	glass: Reflector | null = null;
-	mirror: Reflector | null = null;
-	geometry: THREE.BoxGeometry | null = null;
+	reflector: Reflector | null = null;
+	geometry: THREE.BoxGeometry[] = [];
 	material: THREE.MeshPhysicalMaterial | null = null;
 
 	board: Board;
@@ -102,95 +103,54 @@ class Table {
 		this.depth = depth;
 	}
 
-	tableSetup(z: number = 0) {
-		vars.z += z;
-
-		this.geometry = new THREE.BoxGeometry(this.width, this.height, this.depth);
+	tableSetup() {
+		const geometry = new THREE.BoxGeometry(this.width, this.height, this.depth);
 		this.material = new THREE.MeshPhysicalMaterial({
 			color: 0x000000,
 			metalness: 0.2,
 			roughness: 0.5,
 			transmission: 0.9,
 			envMapIntensity: 1.0,
-			opacity: 0.8,
-			reflectivity: 0.9,
 			side: THREE.DoubleSide,
 		});
-		this.table = new THREE.Mesh(this.geometry, this.material);
+		this.table = new THREE.Mesh(geometry, this.material);
 		this.scene.add(this.table);
 		this.table.position.set(this.board.x, this.board.y, vars.z);
+		this.geometry.push(geometry);
 	}
 
-	mirrorSetup(z: number = 0) {
+	reflectorSetup(z: number) {
 		vars.z += z;
 
-		this.geometry = new THREE.BoxGeometry(this.width, this.height, this.depth);
-
-		const color = new THREE.Color(0x000000);
-		const textureWidth = this.canvas.clientWidth * window.devicePixelRatio;
-		const textureHeight = this.canvas.clientHeight * window.devicePixelRatio;
-		const clipBias = 0.003;
-		const multisample = 4;
-		const opacity = 0.9;
-
-		const renderTarget = new THREE.WebGLRenderTarget(textureWidth, textureHeight, { samples: multisample });
-
-		var textureMatrix = new THREE.Matrix4();
-		var shader = reflectorShader;
-		var material = new THREE.ShaderMaterial({
-			uniforms: THREE.UniformsUtils.merge([
-				{
-					opacity: {
-						value: opacity
-					}
-				},
-				shader.uniforms
-			]),
-			fragmentShader: shader.fragmentShader,
-			vertexShader: shader.vertexShader
-		});
-
-		material.uniforms["tDiffuse"].value = renderTarget.texture;
-		material.uniforms["color"].value = color;
-		material.uniforms["textureMatrix"].value = textureMatrix;
+		const geometry = new THREE.BoxGeometry(this.width, this.height, this.depth);
 
 		const reflectorOptions = {
-			color: color,
-			textureWidth: textureWidth,
-			textureHeight: textureHeight,
-			clipBias: clipBias,
+			color: new THREE.Color(0x000000),
+			textureWidth: this.canvas.clientWidth * window.devicePixelRatio,
+			textureHeight: this.canvas.clientHeight * window.devicePixelRatio,
+			clipBias: 0.003,
+			shader: ReflectorShader,
 		};
 
-		this.glass = new Reflector(this.geometry, reflectorOptions);
-		this.glass.material = material;
-		this.glass.material.transparent = true;
+		this.reflector = new Reflector(geometry, reflectorOptions);
+		(this.reflector.material as THREE.Material).transparent = true;
 
-		this.scene.add(this.glass);
-		this.glass.position.set(this.board.x, this.board.y, vars.z);
-
-		this.mirror = new Reflector(this.geometry, reflectorOptions);
-
-		this.scene.add(this.mirror);
-		this.mirror.position.set(this.board.x, this.board.y, vars.z - z);
+		this.scene.add(this.reflector);
+		this.reflector.position.set(this.board.x, this.board.y, vars.z);
+		this.geometry.push(geometry);
 	}
 
-	disposeTable() {
+	dispose() {
+		for (let i = 0; i < this.geometry.length; i++) {
+			this.geometry[i].dispose();
+		}
 		if (this.table) {
-			this.geometry?.dispose();
 			this.material?.dispose();
 			this.scene.remove(this.table);
 		}
-	}
-
-	disposeMirror() {
-		this.geometry?.dispose();
-		if (this.mirror) {
-			this.mirror.dispose();
-			this.scene.remove(this.mirror);
-		}
-		if (this.glass) {
-			this.glass.dispose();
-			this.scene.remove(this.glass);
+		if (this.reflector) {
+			this.reflector.dispose();
+			this.scene.remove(this.reflector);
 		}
 	}
 
@@ -216,23 +176,23 @@ class Net {
 		this.depth = depth;
 	}
 
-	setup(z: number = 0, numberOfNetParts: number) {
+	setup(numberOfNetParts: number) {
 		const emptySpaceHeight = this.height / 80;
 		const netLineWidth = this.width / 200;
 		const netPartHeight = (this.height - (emptySpaceHeight * (numberOfNetParts - 1))) / numberOfNetParts;
 		let currentY = this.board.y - this.height / 2 + netPartHeight / 2;
 
 		for (let i = 0; i < numberOfNetParts; i++) {
-			this.createNetPart(netLineWidth / 2, currentY, z + this.depth / 2, netLineWidth, netPartHeight, this.depth);
+			this.createNetPart(netLineWidth / 2, currentY, netLineWidth, netPartHeight, this.depth);
 			currentY += netPartHeight + emptySpaceHeight;
 		}
 	}
 
-	createNetPart(x: number, y: number, z: number, width: number, height: number, depth: number) {
+	createNetPart(x: number, y: number, width: number, height: number, depth: number) {
 		const geometry = new THREE.BoxGeometry(width, height, depth);
 		const material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
 		const netPart = new THREE.Mesh(geometry, material);
-		netPart.position.set(x, y, z);
+		netPart.position.set(x, y, vars.z + depth);
 		this.game.scene.add(netPart);
 
 		this.geometry.push(geometry);
@@ -310,6 +270,8 @@ class Score {
 	score1: Text;
 	score2: Text;
 
+	firstUpdate: boolean = false;
+
 	constructor(board: Board) {
 		this.board = board;
 		this.game = board.game;
@@ -319,6 +281,12 @@ class Score {
 
 	// Update scores with animations
 	updateScores(player1Score: number, player2Score: number): void {
+		if (!this.firstUpdate) {
+			this.firstUpdate = true;
+			this.score1.position.set(-vars.width / 10, vars.height / 2 - vars.height / 10, vars.z + vars.font_height);
+			this.score2.position.set(vars.width / 10, vars.height / 2 - vars.height / 10, vars.z + vars.font_height);
+		}
+
 		const length = player1Score.toString().length;
 		const x1 = vars.font_size / 2 * length;
 
@@ -354,7 +322,6 @@ class EndGame {
 	}
 }
 
-
 class Border {
 	boarder: THREE.Mesh[] = [];
 	geometry: THREE.BoxGeometry[] = [];
@@ -365,13 +332,15 @@ class Border {
 	width: number;
 	height: number;
 	depth: number;
+	baseWH: number;
 
 	constructor(board: Board, width: number, height: number) {
 		this.board = board;
 		this.game = board.game;
 		this.width = width;
 		this.height = height;
-		this.depth = vars.depth;
+		this.depth = (vars.depth + vars.z_glass + vars.z) * 2
+		this.baseWH = height / (vars.scale_width * 3);
 	}
 
 	private createBorderShaderMaterial(colors: number[], isHorizontal: boolean) {
@@ -414,11 +383,11 @@ class Border {
 	}
 
 	private setupBoxBorder(x: number, y: number, width: number, height: number, colors: number[], isHorizontal: boolean) {
-		const geometry = new THREE.BoxGeometry(width, height, this.depth + vars.z + 2, 1, 1, 1);
+		const geometry = new THREE.BoxGeometry(width, height, this.depth);
 		var material = this.createBorderShaderMaterial(colors, isHorizontal);
 		const border = new THREE.Mesh(geometry, material);
 		this.game.scene.add(border);
-		border.position.set(x, y, vars.depth / 2 + this.depth / 2 + vars.z_glass);
+		border.position.set(x, y, this.depth / 2 - vars.depth / 2);
 
 		this.geometry.push(geometry);
 		this.material.push(material);
@@ -426,44 +395,43 @@ class Border {
 	}
 
 	private setup() {
-		const orange_blue = [0xD75433, 0xAD4366, 0x833298, 0x5921CB]
-		const blue_orange = [0x5921CB, 0x833298, 0xAD4366, 0xD75433]
-		const height = this.height / 50;
+		const orange_blue = [0xD75433, 0xAD4366, 0x833298, 0x5921CB];
+		const blue_orange = [0x5921CB, 0x833298, 0xAD4366, 0xD75433];
 
 		// draw horizontal borders
 		this.setupBoxBorder(
 			0,
-			this.height / 2 + height / 2,
-			this.width + height * 2,
-			height,
+			this.height / 2 + this.baseWH / 2,
+			this.width + this.baseWH * 2,
+			this.baseWH,
 			blue_orange,
 			true
 		);
 
 		this.setupBoxBorder(
 			0,
-			-this.height / 2 - height / 2,
-			this.width + height * 2,
-			height,
+			-this.height / 2 - this.baseWH / 2,
+			this.width + this.baseWH * 2,
+			this.baseWH,
 			orange_blue,
 			true
 		);
 
 		// draw vertical borders
 		this.setupBoxBorder(
-			-this.width / 2 - height / 2,
+			-this.width / 2 - this.baseWH / 2,
 			0,
-			height,
-			this.height + height * 2,
+			this.baseWH,
+			this.height + this.baseWH * 2,
 			orange_blue,
 			false
 		);
 
 		this.setupBoxBorder(
-			this.width / 2 + height / 2,
+			this.width / 2 + this.baseWH / 2,
 			0,
-			height,
-			this.height + height * 2,
+			this.baseWH,
+			this.height + this.baseWH * 2,
 			blue_orange,
 			false
 		);
@@ -501,16 +469,16 @@ export default class Board {
 	x: number = 0;
 	y: number = 0;
 
-	mirror: boolean;
+	reflector: boolean;
 
-	constructor(game: Game, width: number, height: number, depth: number, geometry: Geometry, mirror: boolean) {
+	constructor(game: Game, width: number, height: number, depth: number, geometry: Geometry, reflector: boolean) {
 		this.game = game;
 		this.width = width;
 		this.height = height;
 		this.depth = depth;
 		this.geometry = geometry;
 
-		this.mirror = mirror;
+		this.reflector = reflector;
 
 		this.table = new Table(this, width, height, depth);
 		this.net = new Net(this, width, height, depth);
@@ -522,11 +490,13 @@ export default class Board {
 	}
 
 	setup() {
-		if (this.mirror)
-			this.table.mirrorSetup();
+		if (this.reflector) {
+			this.table.tableSetup();
+			this.table.reflectorSetup(this.depth);
+		}
 		else
 			this.table.tableSetup();
-		this.net.setup(1, 30);
+		this.net.setup(30);
 		this.border.borderSetup();
 	}
 
@@ -554,10 +524,7 @@ export default class Board {
 	}
 
 	dispose() {
-		if (this.mirror)
-			this.table.disposeMirror();
-		else
-			this.table.disposeTable();
+		this.table.dispose();
 		this.net.disposeNet();
 		this.border.disposeBorder();
 		this.score.dispose();
