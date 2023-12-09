@@ -283,26 +283,22 @@ body, html
 	font-size: 1rem;
 }
 
+.setting .execute {
+	background: linear-gradient(180deg, #D75433 0%, #5921CB 100%);
+}
+
+.setting .execute:active {
+	background: linear-gradient(180deg, #6d2210 0%, #310b7e 100%);
+}
+
+.setting .execute:disabled {
+	background: linear-gradient(180deg, #430e01 0%, #1a0249 100%);
+}
+
 .setting .props {
 	background: linear-gradient(180deg, #dabd31 0%, #2170cb 100%);
 }
 
 .setting .props:active {
 	background: linear-gradient(180deg, #947f18 0%, #134d8f 100%);
-}
-
-.setting .leave {
-	background: linear-gradient(180deg, #6d2210 0%, #310b7e 100%);
-}
-
-.setting .leave:active {
-	background: linear-gradient(180deg, #430e01 0%, #1a0249 100%);
-}
-
-.setting .proceed {
-	background: linear-gradient(180deg, #D75433 0%, #5921CB 100%);
-}
-
-.setting .proceed:active {
-	background: linear-gradient(180deg, #6d2210 0%, #310b7e 100%);
 }

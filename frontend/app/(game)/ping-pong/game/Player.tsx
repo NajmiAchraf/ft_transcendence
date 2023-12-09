@@ -206,13 +206,11 @@ class Bot extends Paddle {
 	}
 
 	contact_algorithm(): void {
-		const random = Math.random();
-
 		// mode strong
-		this.contact = random * (this.height / 2 * 1);
+		this.contact = Math.random() * (this.height / 2 * 1);
 
 		// positive or negative
-		if (random > 0.5)
+		if (Math.random() > 0.5)
 			this.contact = -this.contact;
 	}
 

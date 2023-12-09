@@ -123,13 +123,13 @@ function SettingPingPong() {
 
 						{!optionsContext.options.invite ? (
 							/* join game */
-							<button className="button-stg proceed" onClick={joinGame} disabled={isButtonClicked}> Join Game </button>
+							<button className="button-stg execute" onClick={joinGame} disabled={isButtonClicked}> Join Game </button>
 						) : (
 							/* invite player */
-							<button className="button-stg proceed" onClick={invitePlayer} disabled={isButtonClicked}> Proceed </button>
+							<button className="button-stg execute" onClick={invitePlayer} disabled={isButtonClicked}> Proceed </button>
 						)}
 						{/* leave to home */}
-						<button className="button-stg leave" onClick={() => { window.location.href = "/"; }}> Leave </button>
+						<button className="button-stg execute" onClick={() => { window.location.href = "/"; }}> Leave </button>
 
 					</div>
 				</div>
