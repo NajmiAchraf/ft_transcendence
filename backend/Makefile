@@ -1,7 +1,8 @@
 all: up
 
 up:
-	@mkdir -p backend/uploads
+	# @mkdir -p ./backend/uploads
+	@mkdir -p ./uploads
 	@docker compose up -d --build
 	@(cd database && npx prisma migrate dev && npx prisma studio)
 
