@@ -25,13 +25,7 @@ export class ChatHttpService {
 			return [];
 		}
 
-		const ids = [...new Set([...receiverIds.map(entry => entry.receiver_id), ...senderIds.map(entry => entry.sender_id)])];
-
-		const filteredPromises = ids.filter(async (id) => {
-			return !(await this.globalHelperService.isBlocked(userId, id) || await this.globalHelperService.isBlocked(id, userId));
-		});
-
-		const filteredIds = await Promise.all(filteredPromises);
+		const filteredIds = [...new Set([...receiverIds.map(entry => entry.receiver_id), ...senderIds.map(entry => entry.sender_id)])];
 
 		// get the last message for each user
 		const lastDms = await Promise.all(filteredIds.map(async (id) => {
@@ -63,7 +57,7 @@ export class ChatHttpService {
 				},
 			});
 
-			if (entry2.length == 0 || entry[0].created_at > entry2[0].created_at) {
+			if (entry.length !== 0 && (entry2.length == 0 || entry[0].created_at > entry2[0].created_at)) {
 				return {
 					profileId: entry[0].receiver_id,
 					nickname: entry[0].dm_receiver.nickname,
