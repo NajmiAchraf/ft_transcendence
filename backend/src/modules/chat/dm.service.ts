@@ -29,7 +29,10 @@ export class DmService {
 			receiverSockets.forEach(socket => {
 				server.to(socket).emit('receiveDM', message);
 			});
-
+			senderSockets.forEach(socket => {
+				server.to(socket).emit('receiveDM', message);
+			});
+			//! message: { senderId, avatar, message, created_at, status }
 		} catch (err) {
 			server.to(client.id).emit('Invalid access', { error: "error occured" });
 		}

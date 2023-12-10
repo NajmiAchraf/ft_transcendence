@@ -174,7 +174,7 @@ export class ChannelChatService {
 				created_at: entry[0].created_at,
 			}
 			filteredSockets.forEach(socket => {
-				socket.emit('channelCreateChat', messagePayload);
+				socket.emit('receiveChannelMessage', messagePayload);
 			});
 		} catch (err) {
 			console.log('something went wrong-');
