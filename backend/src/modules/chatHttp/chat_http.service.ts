@@ -248,7 +248,14 @@ export class ChatHttpService {
 			},
 		});
 
-		const messages = entries.map(entry => {
+		const filteredEntries = await Promise.all(entries.filter(async entry => {
+			if (entry.sender_id === userId || (!await this.globalHelperService.isBlocked(userId, entry.sender_id) && !await this.globalHelperService.isBlocked(entry.sender_id, userId))) {
+				return true;
+			}
+			return false;
+		}));
+
+		const messages = filteredEntries.map(entry => {
 			return {
 				sender_id: entry.sender_id,
 				nickname: entry.cm_sender.nickname,
@@ -258,6 +265,8 @@ export class ChatHttpService {
 				created_at: entry.created_at,
 			}
 		});
+
+		return messages;
 	}
 
 	async amIOwner(userId: number, channelId: number) {
