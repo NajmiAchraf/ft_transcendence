@@ -26,11 +26,37 @@ export class DmService {
 			const senderId = this.socketService.getUserId(client.id);
 			const receiverSockets = this.socketService.getSockets(message.receiverId);
 			const senderSockets = this.socketService.getSockets(senderId);
+
+			const [entry] = await this.prismaService.direct_message.findMany({
+				where: {
+					AND: [
+						{ sender_id: senderId },
+						{ receiver_id: message.receiverId },
+					]
+				},
+				include: {
+					dm_sender: true,
+				},
+				orderBy: {
+					created_at: 'desc',
+				},
+				take: 1,
+			});
+
+			const messagePayload = {
+				sender_id: senderId,
+				nickname: entry.dm_sender.nickname,
+				avatar: entry.dm_sender.avatar,
+				message_text: message.message,
+				created_at: entry.created_at,
+				status: entry.dm_sender.status,
+			};
+
 			receiverSockets.forEach(socket => {
-				server.to(socket).emit('receiveDM', message);
+				server.to(socket).emit('receiveDM', messagePayload);
 			});
 			senderSockets.forEach(socket => {
-				server.to(socket).emit('receiveDM', message);
+				server.to(socket).emit('receiveDM', messagePayload);
 			});
 			//! message: { senderId, avatar, message, created_at, status }
 		} catch (err) {
