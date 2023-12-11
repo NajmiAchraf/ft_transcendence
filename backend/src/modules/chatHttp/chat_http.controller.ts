@@ -60,7 +60,7 @@ export class ChatHttpController {
 	@Post('create_dm')
 	async createDM(@Req() req: Request, @Body() body: DmDto) {
 		const userId = req.user['sub'];
-		const receiverId = +body.receiverId;
+		const receiverId = +body.profileId;
 		return this.chatHttpService.createDM(userId, receiverId, body.message);
 	}
 

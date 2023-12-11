@@ -24,14 +24,14 @@ export class DmService {
 				return;
 			}
 			const senderId = this.socketService.getUserId(client.id);
-			const receiverSockets = this.socketService.getSockets(message.receiverId);
+			const receiverSockets = this.socketService.getSockets(message.profileId);
 			const senderSockets = this.socketService.getSockets(senderId);
 
 			const [entry] = await this.prismaService.direct_message.findMany({
 				where: {
 					AND: [
 						{ sender_id: senderId },
-						{ receiver_id: message.receiverId },
+						{ receiver_id: message.profileId },
 					]
 				},
 				include: {
@@ -45,7 +45,6 @@ export class DmService {
 
 			const messagePayload = {
 				sender_id: senderId,
-				other_user_id: message.receiverId, // default
 				nickname: entry.dm_sender.nickname,
 				avatar: entry.dm_sender.avatar,
 				message_text: message.message,
@@ -54,8 +53,6 @@ export class DmService {
 			};
 
 			receiverSockets.forEach(socket => {
-				// update other_user_id
-				messagePayload.other_user_id = senderId;
 				server.to(socket).emit('receiveDM', messagePayload);
 			});
 			senderSockets.forEach(socket => {
