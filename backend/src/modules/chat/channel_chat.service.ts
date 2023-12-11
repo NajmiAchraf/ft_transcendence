@@ -115,7 +115,7 @@ export class ChannelChatService {
 			const newMemberSocketIds = this.socketService.getSockets(+message.profileId, 'chat');
 			// emit to all sockets of the user
 			newMemberSocketIds.forEach(socketId => {
-				server.to(socketId).emit('addChannelAdmin', 'you are now admin');
+				server.to(socketId).emit('addChannelAdmin', { message: 'you are now admin', channelId: message.channelId });
 			});
 
 			// !send a notification
@@ -166,6 +166,7 @@ export class ChannelChatService {
 			});
 
 			const messagePayload = {
+				channel_id: entry[0].channel_id,
 				sender_id: entry[0].sender_id,
 				nickname: entry[0].cm_sender.nickname,
 				message_text: entry[0].message_text,

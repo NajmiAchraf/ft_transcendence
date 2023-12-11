@@ -20,7 +20,7 @@ export class DmService {
 			});
 			if (!res.ok) {
 				console.log('something went wrong');
-				server.to(client.id).emit('Invalid', { error: "error occured" });
+				server.to(client.id).emit('Invalid access', { error: "error occured" });
 				return;
 			}
 			const senderId = this.socketService.getUserId(client.id);
@@ -45,6 +45,7 @@ export class DmService {
 
 			const messagePayload = {
 				sender_id: senderId,
+				other_user_id: message.receiverId, // default
 				nickname: entry.dm_sender.nickname,
 				avatar: entry.dm_sender.avatar,
 				message_text: message.message,
@@ -53,6 +54,8 @@ export class DmService {
 			};
 
 			receiverSockets.forEach(socket => {
+				// update other_user_id
+				messagePayload.other_user_id = senderId;
 				server.to(socket).emit('receiveDM', messagePayload);
 			});
 			senderSockets.forEach(socket => {

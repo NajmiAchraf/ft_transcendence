@@ -284,6 +284,56 @@ export class ChatHttpService {
 		return entry.user_role === 'owner';
 	}
 
+	async inviteToChannelList(userId: number, channelId: number) {
+		const entry = await this.prsimaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		const entries = await this.prsimaService.friends.findMany({
+			where: {
+				OR: [{ user1_id: userId }, { user2_id: userId }],
+			},
+			include: {
+				user1: true,
+				user2: true,
+			}
+		});
+
+		const filteredFriends = await Promise.all(entries.filter(async entry => {
+			const friendId = entry.user1_id === userId ? entry.user2_id : entry.user1_id;
+
+			const memberEntry = await this.prsimaService.user_channel.findFirst({
+				where: {
+					channel_id: channelId,
+					user_id: friendId,
+				},
+			});
+
+			return memberEntry === null;
+		})
+		);
+
+		const inviteList = filteredFriends.map(entry => {
+			const friend = entry.user1_id === userId ? entry.user2 : entry.user1;
+
+			return {
+				id: friend.id,
+				nickname: friend.nickname,
+				avatar: friend.avatar,
+				status: friend.status,
+			}
+		});
+
+		return inviteList;
+	}
+
 	async getDMHistory(userId: number, profileId: number) {
 		const dms = await this.prsimaService.direct_message.findMany({
 			where: {

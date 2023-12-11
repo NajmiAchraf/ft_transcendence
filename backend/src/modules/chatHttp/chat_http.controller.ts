@@ -72,6 +72,14 @@ export class ChatHttpController {
 		return this.chatHttpService.getDMHistory(userId, profileId);
 	}
 
+	@UseGuards(BannedUserGuard)
+	@Post('inviteToChannelList')
+	async inviteToChannelList(@Req() req: Request, @Body() body: ChannelIdDto) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		return this.chatHttpService.inviteToChannelList(userId, channelId);
+	}
+
 	@Get('findAllGlobalChat')
 	async findAllGlobalChat(@Req() req: Request) {
 		const userId = req.user['sub'];
