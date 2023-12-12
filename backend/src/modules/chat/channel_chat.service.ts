@@ -272,6 +272,7 @@ export class ChannelChatService {
 			const res = await fetch(`${process.env.API_URL}/chatHttp/banChannelMember`, {
 				method: 'POST',
 				headers: {
+					'Content-Type': 'application/json',
 					"Authorization": "Bearer " + client.handshake.query['accessToken'],
 				},
 				body: JSON.stringify(message)
@@ -298,6 +299,7 @@ export class ChannelChatService {
 			const res = await fetch(`${process.env.API_URL}/chatHttp/muteChannelMember`, {
 				method: 'POST',
 				headers: {
+					'Content-Type': 'application/json',
 					"Authorization": "Bearer " + client.handshake.query['accessToken'],
 				},
 				body: JSON.stringify(message)
@@ -323,6 +325,7 @@ export class ChannelChatService {
 			const res = await fetch(`${process.env.API_URL}/chatHttp/createChannel`, {
 				method: 'POST',
 				headers: {
+					'Content-Type': 'application/json',
 					"Authorization": "Bearer " + client.handshake.query['accessToken'],
 				},
 				body: JSON.stringify(message)

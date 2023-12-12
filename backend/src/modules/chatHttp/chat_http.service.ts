@@ -306,7 +306,10 @@ export class ChatHttpService {
 			}
 		});
 
-		const filteredFriends = await Promise.all(entries.filter(async entry => {
+		const filteredFriends = [];
+
+		for (let i = 0; i < entries.length; i++) {
+			const entry = entries[i];
 			const friendId = entry.user1_id === userId ? entry.user2_id : entry.user1_id;
 
 			const memberEntry = await this.prsimaService.user_channel.findFirst({
@@ -316,12 +319,17 @@ export class ChatHttpService {
 				},
 			});
 
-			if (memberEntry) {
-				return false;
+			const banEntry = await this.prsimaService.banned.findFirst({
+				where: {
+					channel_id: channelId,
+					banned_user_id: friendId,
+				},
+			});
+
+			if (!memberEntry && !banEntry) {
+				filteredFriends.push(entry);
 			}
-			return true;
-		})
-		);
+		}
 
 		const inviteList = filteredFriends.map(entry => {
 			const friend = entry.user1_id === userId ? entry.user2 : entry.user1;
