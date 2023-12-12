@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { ForbiddenException, Injectable } from "@nestjs/common";
 import { Namespace, Socket } from "socket.io";
 import { SocketService } from "src/common/services/socket.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -179,8 +179,17 @@ export class ChannelChatService {
 			});
 		} catch (err) {
 			console.log('something went wrong-');
-			console.log(err);
-			server.to(client.id).emit('Invalid access', { error: "error occured" });
+			if (err instanceof ForbiddenException) {
+				if (err.message === 'You are muted') {
+					const userId = this.socketService.getUserId(client.id);
+					const connectedSockets = this.socketService.getSockets(userId, 'chat');
+					connectedSockets.forEach(socket => {
+						socket.emit('muted', { userId: userId, channelId: message.channelId });
+					});
+					return;
+				}
+				server.to(client.id).emit('Invalid access', { error: "error occured" });
+			}
 		}
 	}
 
@@ -319,31 +328,4 @@ export class ChannelChatService {
 			server.to(client.id).emit('Invalid access', { error: "error occured" });
 		}
 	}
-
-	async createChannel(server: Namespace, client: Socket, message: any) {
-		try {
-			const res = await fetch(`${process.env.API_URL}/chatHttp/createChannel`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					"Authorization": "Bearer " + client.handshake.query['accessToken'],
-				},
-				body: JSON.stringify(message)
-			});
-			if (!res.ok) {
-				console.log('something went wrong');
-				server.to(client.id).emit('Invalid access', { error: "error occured" });
-				return;
-			}
-
-			const socketIds = this.socketService.getSockets(+message.profileId, 'chat');
-			socketIds.forEach(socketId => {
-				server.sockets.get(socketId).emit('channelCreate', { message: 'you have been muted for 2 minutes', channelId: message.channelId });
-			});
-		} catch (err) {
-			// console.log(err);
-			server.to(client.id).emit('Invalid access', { error: "error occured" });
-		}
-	}
-
 }

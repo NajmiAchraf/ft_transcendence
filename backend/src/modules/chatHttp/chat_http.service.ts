@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, UseGuards } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GlobalHelperService } from 'src/common/services/global_helper.service';
 import { CreateChannelDto } from './dto';
@@ -218,6 +218,12 @@ export class ChatHttpService {
 		);
 
 		filteredEntries.sort((a, b) => {
+			if (a.created_at === null) {
+				return 1;
+			}
+			if (b.created_at === null) {
+				return -1;
+			}
 			return b.created_at.getTime() - a.created_at.getTime();
 		});
 
