@@ -316,7 +316,10 @@ export class ChatHttpService {
 				},
 			});
 
-			return memberEntry === null;
+			if (memberEntry) {
+				return false;
+			}
+			return true;
 		})
 		);
 
