@@ -190,6 +190,15 @@ export class ChatHttpController {
 	}
 
 	@UseGuards(BannedUserGuard)
+	@Post('addChannelPassword')
+	async addChannelPassword(@Req() req: Request, @Body() body: ChannelPasswordDto) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		const password = body.password;
+		return this.chatHttpService.addChannelPassword(userId, channelId, password);
+	}
+
+	@UseGuards(BannedUserGuard)
 	@Get('findOtherChannels')
 	async findOtherChannels(@Req() req: Request) {
 		const userId = req.user['sub'];

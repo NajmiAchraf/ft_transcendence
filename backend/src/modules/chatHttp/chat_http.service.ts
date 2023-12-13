@@ -1086,4 +1086,47 @@ export class ChatHttpService {
 			}
 		});
 	}
+
+	async addChannelPassword(userId: number, channelId: number, password: string) {
+		// check if the user is the owner
+		const entry = await this.prismaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		if (entry.user_role !== 'owner') {
+			throw new ForbiddenException('Only owners can add the password');
+		}
+
+		const channelEntry = await this.prismaService.channel.findUnique({
+			where: {
+				id: channelId,
+			},
+			select: {
+				privacy: true,
+			}
+		});
+
+		if (channelEntry.privacy === 'protected') {
+			throw new ForbiddenException('Channel already has a password');
+		}
+
+		const hash = await this.globalHelperService.hashData(password);
+
+		await this.prismaService.channel.update({
+			where: {
+				id: channelId,
+			},
+			data: {
+				password: hash,
+				privacy: 'protected',
+			}
+		});
+	}
 }
