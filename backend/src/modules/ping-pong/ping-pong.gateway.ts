@@ -51,9 +51,22 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 			client.disconnect();
 			return;
 		}
+		// check if the user is already in game
+		const entry = await this.prismaService.user.findUnique({
+			where: {
+				user_id: userId,
+			},
+		});
+	
+		if (entry.in_game === true) {
+			this.server.to(client.id).emit('Invalid access', { error: 'Already in game' });
+			client.disconnect();
+			return ;
+		}
 
 		// insert new connection
 		this.socketService.insert(client.id, userId, 'ping-pong');
+
 
 		// set player in game
 		await this.prismaService.user.update({

@@ -25,7 +25,7 @@ export class HomeService {
 				id: friend.id,
 				nickname: friend.nickname,
 				avatar: friend.avatar,
-				status: friend.status,
+				status: friendStatus,
 			};
 		});
 		return friendList;
