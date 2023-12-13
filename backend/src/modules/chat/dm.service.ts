@@ -63,4 +63,59 @@ export class DmService {
 			server.to(client.id).emit('Invalid access', { error: "error occured" });
 		}
 	}
+
+	// async acceptGameInvitation(server: Namespace, client: Socket, message: any) {
+	// 	try {
+	// 		const res = await fetch(`${process.env.API_URL}/chatHttp/acceptGameInvitation`, {
+	// 			method: 'POST',
+	// 			headers: {
+	// 				'Content-Type': 'application/json',
+	// 				'Authorization': 'Bearer ' + client.handshake.query['accessToken'],
+	// 			},
+	// 			body: JSON.stringify(message)
+	// 		});
+	// 		if (!res.ok) {
+	// 			console.log('something went wrong');
+	// 			server.to(client.id).emit('Invalid access', { error: "error occured" });
+	// 			return;
+	// 		}
+	// 		const senderId = this.socketService.getUserId(client.id);
+	// 		const receiverSockets = this.socketService.getSockets(message.profileId);
+	// 		const senderSockets = this.socketService.getSockets(senderId);
+
+	// 		const [entry] = await this.prismaService.direct_message.findMany({
+	// 			where: {
+	// 				AND: [
+	// 					{ sender_id: senderId },
+	// 					{ receiver_id: message.profileId },
+	// 				]
+	// 			},
+	// 			include: {
+	// 				dm_sender: true,
+	// 			},
+	// 			orderBy: {
+	// 				created_at: 'desc',
+	// 			},
+	// 			take: 1,
+	// 		});
+
+	// 		const messagePayload = {
+	// 			sender_id: senderId,
+	// 			nickname: entry.dm_sender.nickname,
+	// 			avatar: entry.dm_sender.avatar,
+	// 			message_text: message.message,
+	// 			created_at: entry.created_at,
+	// 			status: entry.dm_sender.status,
+	// 		};
+
+	// 		receiverSockets.forEach(socket => {
+	// 			server.to(socket).emit('receiveDM', messagePayload);
+	// 		});
+	// 		senderSockets.forEach(socket => {
+	// 			server.to(socket).emit('receiveDM', messagePayload);
+	// 		});
+	// 	} catch (err) {
+	// 		server.to(client.id).emit('Invalid access', { error: "error occured" });
+	// 	}
+	// }
 }

@@ -15,6 +15,11 @@ export class HomeService {
 
 		const friendList = friends.map((friendship) => {
 			const friend = userId === friendship.user1_id ? friendship.user2 : friendship.user1;
+			let friendStatus = friend.status;
+
+			if (friendStatus === 'online' && friend.in_game === true) {
+				friendStatus = 'in_game';
+			}
 
 			return {
 				id: friend.id,

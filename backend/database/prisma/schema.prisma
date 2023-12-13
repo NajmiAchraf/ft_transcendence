@@ -51,6 +51,8 @@ model user {
     banned_user banned[] @relation(name: "banned_user")
     muted_user muted[] @relation(name: "muted_user")
     notification_user notification[] @relation(name: "notification_user")
+    gi_sender game_invitation[] @relation(name: "game_invitation_sender")
+    gi_receiver game_invitation[] @relation(name: "game_invitation_receiver")
 }
 
 model channel {
@@ -180,15 +182,11 @@ model notification {
   created_at DateTime @default(now())
 }
 
-// Ping Pong Novice: Play your first match in the game.
-// Perfect Ten: Achieve a score of 10-0 in a match.
-// Point Collector: Score a total of 500 points across all matches.
-// Endurance Master: Play a single match that lasts longer than 30 minutes.
-// Quick Finisher: Win a match in under 5 minutes.
-// IamAHuman: lost against bot
-// cyborg: 1 scored point versus a bot
-// Speed Run: 10 matches in less than 30 min
-// streaker: 3 won matches in a row
-// grandMaster: won 30 matches in a row
-// boomer: lost the first match
-// pingPongMaster: won against the bot
+model game_invitation {
+  id Int @id @default(autoincrement())
+  sender_id Int
+  gi_sender user @relation(name: "game_invitation_sender", fields: [sender_id], references: [id])
+  receiver_id Int
+  gi_receiver user @relation(name: "game_invitation_receiver", fields: [receiver_id], references: [id])
+  created_at DateTime @default(now())
+}

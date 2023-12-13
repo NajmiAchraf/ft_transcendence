@@ -46,7 +46,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		const userId = await this.globalHelperService.getClientIdFromJwt(client);
 
 		if (userId === undefined) {
-			this.server.to(client.id).emit('error', { error: 'Invalid Access Token' });
+			this.server.to(client.id).emit('Invalid access', { error: 'Invalid Access Token' });
 			//! route to authentication page
 			client.disconnect();
 			return;
@@ -55,6 +55,15 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		// insert new connection
 		this.socketService.insert(client.id, userId, 'ping-pong');
 
+		// set player in game
+		await this.prismaService.user.update({
+			where: {
+				id: userId,
+			},
+			data: {
+				in_game: true,
+			}
+		});
 		console.log('NEW CONNECTION: ' + client.id + ' ' + userId);
 	}
 
@@ -62,7 +71,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		const userId = this.socketService.getUserId(client.id, 'ping-pong');
 
 		if (userId === undefined) {
-			this.server.to(client.id).emit('error', { error: 'Invalid Access Token' });
+			this.server.to(client.id).emit('Invalid access', { error: 'Invalid Access Token' });
 			//! route to authentication page
 			return;
 		}
@@ -101,7 +110,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		const userId = await this.globalHelperService.getClientIdFromJwt(client);
 
 		if (userId === undefined) {
-			this.server.to(client.id).emit('error', { error: 'Invalid Access Token' });
+			this.server.to(client.id).emit('Invalid access', { error: 'Invalid Access Token' });
 			return;
 		}
 
@@ -129,15 +138,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 				if (idRoom)
 					console.log("	Room bot created, id: " + idRoom);
 			}
-			// set player in game
-			await this.prismaService.user.update({
-				where: {
-					id: user.id,
-				},
-				data: {
-					in_game: true,
-				}
-			});
+
 		} catch (error) {
 			console.log(error);
 		}
@@ -147,7 +148,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		const userId = await this.globalHelperService.getClientIdFromJwt(client);
 
 		if (userId === undefined) {
-			this.server.to(client.id).emit('error', { error: 'Invalid Access Token' });
+			this.server.to(client.id).emit('Invalid access', { error: 'Invalid Access Token' });
 			//! route to authentication page
 			return undefined;
 		}

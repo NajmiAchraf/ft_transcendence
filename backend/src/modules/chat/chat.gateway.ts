@@ -146,4 +146,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 		return this.dmService.directCreateChat(this.server, client, message);
 	}
+
+	// @SubscribeMessage('acceptGameInvitation')
+	// async acceptGameInvitation(@ConnectedSocket() client: Socket, @MessageBody() message: any) {
+	// 	const userId = await this.globalHelperService.getClientIdFromJwt(client);
+
+	// 	if (userId === undefined) {
+	// 		this.server.to(client.id).emit('Invalid access', { error: 'Invalid Access Token' });
+	// 		return;
+	// 	}
+	// 	return this.dmService.acceptGameInvitation(this.server, client, message);
+	// }
 }

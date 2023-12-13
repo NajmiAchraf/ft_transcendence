@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpStatus, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ChatHttpService } from './chat_http.service';
 import { Request } from 'express';
-import { ChatBlockCheckGuard, BannedMemberGuard, BannedUserGuard } from 'src/common/guards';
+import { ChatBlockCheckGuard, BannedMemberGuard, BannedUserGuard, BlockCheckGuard } from 'src/common/guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerConfig } from 'src/common/confs/multer.config';
 import { avatarDto } from 'src/common/dtos/avatar.dto';
@@ -194,6 +194,24 @@ export class ChatHttpController {
 	async findOtherChannels(@Req() req: Request) {
 		const userId = req.user['sub'];
 		return this.chatHttpService.findOtherChannels(userId);
+	}
+
+	@UseGuards(ChatBlockCheckGuard)
+	@Post('acceptGameInvitation')
+	async acceptGameInvitation(@Req() req: Request, @Body() body: ProfileId) {
+		const userId = req.user['sub'];
+		const profileId = +body.profileId;
+
+		return this.chatHttpService.acceptGameInvitation(userId, profileId);
+	}
+
+	@UseGuards(ChatBlockCheckGuard)
+	@Post('removeGameInvitation')
+	async removeGameInvitation(@Req() req: Request, @Body() body: ProfileId) {
+		const userId = req.user['sub'];
+		const profileId = +body.profileId;
+
+		return this.chatHttpService.removeGameInvitation(userId, profileId);
 	}
 }
 
