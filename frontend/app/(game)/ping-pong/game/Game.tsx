@@ -17,27 +17,31 @@ import { vars, Side, Props, Canvas, DevMode } from '@/app/(game)/ping-pong/commo
 
 
 class CanvasComponent {
-	canvas: HTMLCanvasElement
-	renderer: THREE.WebGLRenderer
-	scene: THREE.Scene
-	camera: THREE.PerspectiveCamera
+	canvas: HTMLCanvasElement;
+	protected renderer: THREE.WebGLRenderer;
+	scene: THREE.Scene;
+	protected camera: THREE.PerspectiveCamera;
+	protected orbits: OrbitControls | undefined;
 
-	composer: EffectComposer;
-	renderPass: RenderPass;
-	bloomPass: UnrealBloomPass;
+	protected composer: EffectComposer;
+	protected renderPass: RenderPass;
+	protected bloomPass: UnrealBloomPass;
 
-	moving_camera: boolean = false;
+	protected moving_camera: boolean = false;
 	onWindowResize: () => void;
 
+	devMode: DevMode;
+
 	constructor(canvas: HTMLCanvasElement, devMode: DevMode) {
-		this.canvas = canvas
-		this.renderer = this.rendererSetup(canvas)
-		this.scene = this.sceneSetup()
-		this.camera = this.cameraSetup(75, this.canvas.clientWidth / this.canvas.clientHeight, 0.1, 5000, new THREE.Vector3(0, 0, vars.height))
+		this.devMode = devMode;
+		this.canvas = canvas;
+		this.renderer = this.rendererSetup(canvas);
+		this.scene = this.sceneSetup();
+		this.camera = this.cameraSetup(75, this.canvas.clientWidth / this.canvas.clientHeight, 0.1, 5000, new THREE.Vector3(0, 0, vars.height));
 
 		if (devMode === 'all' || devMode === 'camera') {
-			const orbitControls = new OrbitControls(this.camera, this.renderer.domElement)
-			orbitControls.update()
+			this.orbits = new OrbitControls(this.camera, this.renderer.domElement);
+			this.orbits.update();
 		}
 
 		this.onWindowResize = () => {
@@ -84,7 +88,7 @@ class CanvasComponent {
 		renderer.setPixelRatio(window.devicePixelRatio);
 		renderer.shadowMap.enabled = true;
 		//renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-		return renderer
+		return renderer;
 	}
 
 	private sceneSetup() {
@@ -93,8 +97,8 @@ class CanvasComponent {
 		return scene
 	}
 
-	protected resetCamera(devMode: DevMode) {
-		if (devMode === 'all' || devMode === 'camera')
+	protected resetCamera() {
+		if (this.devMode === 'all' || this.devMode === 'camera')
 			return;
 		if (this.moving_camera)
 			return;
@@ -103,15 +107,17 @@ class CanvasComponent {
 	}
 
 	protected hardResetCamera() {
+		if (this.devMode === 'all' || this.devMode === 'camera')
+			return;
 		this.camera.position.set(0, 0, vars.height)
 		this.camera.lookAt(0, 0, 0)
 	}
 
 	private cameraSetup(fov: number = 75, aspect: number = this.canvas.clientWidth / this.canvas.clientHeight, near: number = 0.1, far: number = 5000, position: THREE.Vector3 = new THREE.Vector3(0, 0, 1000)): THREE.PerspectiveCamera {
-		let camera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(fov, aspect, near, far)
-		camera.position.set(position.x, position.y, position.z)
-		this.scene.add(camera)
-		return camera
+		let camera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+		camera.position.set(position.x, position.y, position.z);
+		this.scene.add(camera);
+		return camera;
 	}
 
 	protected render() {
@@ -119,12 +125,15 @@ class CanvasComponent {
 		// this.renderer.render(this.scene, this.camera)
 	}
 
-	dispose() {
+	protected dispose() {
 		window.removeEventListener('resize', this.onWindowResize);
 
 		while (this.scene.children.length > 0) {
 			this.scene.remove(this.scene.children[0]);
 		}
+
+		if (this.orbits)
+			this.orbits.dispose();
 
 		// stop animation
 		this.renderer.setAnimationLoop(null);
@@ -146,12 +155,11 @@ class CanvasComponent {
 }
 
 export default class Game extends CanvasComponent {
-	board: Board
-	player1: Player
-	player2: Player
-	ball: Ball
+	board: Board;
+	player1: Player;
+	player2: Player;
+	ball: Ball;
 
-	// service: SocketService;
 	getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>;
 	getDataPlayer: () => any;
 	getProps: () => Props;
@@ -167,11 +175,11 @@ export default class Game extends CanvasComponent {
 	winned: boolean = false;
 
 	constructor(getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>, getProps: () => Props, getCanvas: () => Canvas, getDataPlayer: () => any) {
+		vars.z = 0;
 		if (!getCanvas())
 			throw new Error("Canvas is not defined");
 		super(getCanvas() as HTMLCanvasElement, getProps().devMode)
 
-		// this.service = service;
 		this.getSocket = getSocket;
 		this.getDataPlayer = getDataPlayer;
 		this.getProps = getProps;
@@ -197,9 +205,9 @@ export default class Game extends CanvasComponent {
 
 	// entry point for the game camera move from pi/3 to pi/2
 	private startCamera() {
-		if (this.getProps().devMode === 'all' || this.getProps().devMode === 'camera')
+		if (this.devMode === 'all' || this.devMode === 'camera')
 			return;
-		this.resetCamera(this.getProps().devMode);
+		this.resetCamera();
 		if (this.moving_camera)
 			return;
 
@@ -223,15 +231,14 @@ export default class Game extends CanvasComponent {
 			}
 			else {
 				this.moving_camera = false;
-				this.resetCamera(this.getProps().devMode);
+				this.resetCamera();
 			}
 		};
 
 		update();
-
 	}
 
-	// move the camera to the left or right side after a goal and go back to the center after a goal
+	// move the camera to the left or right side and go back to the center after a goal
 	private moveCameraWithDirection(side: Side, moveBack: boolean) {
 		const start = Date.now();
 		const duration = this.duration / 2;
@@ -261,12 +268,12 @@ export default class Game extends CanvasComponent {
 	}
 
 	private moveCameraSeries(side: Side) {
-		if (this.getProps().devMode === 'all' || this.getProps().devMode === 'camera')
+		if (this.devMode === 'all' || this.devMode === 'camera')
 			return;
 		if (this.moving_camera)
 			return;
 
-		this.resetCamera(this.getProps().devMode);
+		this.resetCamera();
 		this.moving_camera = true;
 
 		let step = 1;
@@ -287,7 +294,7 @@ export default class Game extends CanvasComponent {
 			} else {
 
 				this.moving_camera = false;
-				this.resetCamera(this.getProps().devMode);
+				this.resetCamera();
 			}
 		};
 
@@ -295,7 +302,7 @@ export default class Game extends CanvasComponent {
 	}
 
 	private update() {
-		this.resetCamera(this.getProps().devMode);
+		this.resetCamera();
 		this.ball.update();
 		this.player1.update()
 		this.player2.update()

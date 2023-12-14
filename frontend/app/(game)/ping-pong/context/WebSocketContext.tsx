@@ -28,7 +28,7 @@ function WebSocketContextProvider({ children }: { children: React.ReactNode }) {
 		query: {
 			// accessToken: localStorage.getItem('accessToken'),
 
-			accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiYWNocmFmIiwiaWF0IjoxNzAyMTI1Njc1LCJleHAiOjE3MDIyMTIwNzV9.3QRnNsrwqu6ONTp549Eqi-Q9t-XkM17Fn0Fr1g26SiY",
+			accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiYW5ham1pIiwiaWF0IjoxNzAyNTU5ODU4LCJleHAiOjE3MDI2NDYyNTh9.zG02sKvKSj9QVefvwKqI36KxT8XvcD9DmojuOk7EFrY",
 		}
 	});
 

@@ -301,24 +301,73 @@ class Score {
 }
 
 class EndGame {
-	endMesh: Text | null = null;
 	board: Board;
 	game: Game;
+	loseMesh: Text;
+	winMesh: Text;
+	endPosition: THREE.Vector3;
 
 	constructor(board: Board) {
 		this.board = board;
 		this.game = board.game;
+
+		let { x: x, y: y, z: z, text: text, size: size } = this.endState("Game Over\n You Lose", "Game Over".length);
+		this.loseMesh = new Text(this.game, new THREE.Vector3(x, y, 300));
+		this.loseMesh.set(text, 0, size);
+		if (this.loseMesh.textMesh)
+			this.game.scene.remove(this.loseMesh.textMesh);
+
+		let { x: x_win, y: y_win, text: text_win, size: size_win } = this.endState("Game Over\n You Win", "Game Over".length);
+		this.winMesh = new Text(this.game, new THREE.Vector3(x_win, y_win, 300));
+		this.winMesh.set(text_win, 0, size_win);
+		if (this.winMesh.textMesh)
+			this.game.scene.remove(this.winMesh.textMesh);
+
+		this.endPosition = new THREE.Vector3(x, y, vars.z + vars.font_height + z);
 	}
 
-	set(x: number, y: number, z: number, state: string, size: number) {
-		this.endMesh = new Text(this.game, new THREE.Vector3(x, y, vars.z + vars.font_height + z));
-		this.endMesh.set(state, 0, size);
+	set(winner: boolean) {
+		const textMesh = winner ? this.winMesh.textMesh : this.loseMesh.textMesh;
+		if (textMesh)
+			this.game.scene.add(textMesh);
+
+		if (textMesh) {
+			const currentPosition = textMesh.position.clone();
+			let t = 0;
+
+			const updatePosition = () => {
+				t += 0.05; // Adjust the speed of interpolation here
+
+				if (t >= 1) {
+					textMesh.position.copy(this.endPosition);
+				} else {
+					textMesh.position.lerpVectors(currentPosition, this.endPosition, t);
+					requestAnimationFrame(updatePosition);
+				}
+			};
+
+			updatePosition();
+		}
+	}
+
+	endState(text: string, length: number): { x: number, y: number, z: number, text: string, size: number } {
+		let x = - vars.font_size * (length + 2) / 2;
+		let y = vars.font_size;
+		return { x, y, z: vars.z_glass, text, size: vars.font_size * 2 }
+
+	}
+
+	lose() {
+		this.set(false);
+	}
+
+	win() {
+		this.set(true);
 	}
 
 	dispose() {
-		if (this.endMesh) {
-			this.endMesh.dispose();
-		}
+		this.loseMesh.dispose();
+		this.winMesh.dispose();
 	}
 }
 
@@ -504,18 +553,12 @@ export default class Board {
 		this.score.updateScores(player1Score, player2Score);
 	}
 
-	endState(text: string, length: number) {
-		const x = - vars.font_size * (length + 2) / 2;
-		const y = vars.font_size;
-		this.endGame.set(x, y, vars.z_glass, text, vars.font_size * 2);
-	}
-
 	lose() {
-		this.endState("Game Over\n You Lose", "Game Over".length);
+		this.endGame.lose();
 	}
 
 	win() {
-		this.endState("Game Over\n You Win", "Game Over".length);
+		this.endGame.win();
 	}
 
 	update(): void {
