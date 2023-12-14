@@ -4,9 +4,9 @@ import { extname } from 'path';
 
 export const multerConfig = {
 	dest: './uploads',
-	limits: {
-		fileSize: 1024 * 1024,
-	},
+	// limits: {
+	// 	fileSize: 1024 * 1024,
+	// },
 	fileFilter: (req, file, cb) => {
 		const allowedFileTypes = /jpeg|jpg|png|gif/;
 		const isAllowed = allowedFileTypes.test(extname(file.originalname).toLowerCase());
@@ -27,4 +27,10 @@ export const multerConfig = {
 			cb(null, filename);
 		},
 	}),
+	// Custom exception for handling file size limit
+	// onFileUploadComplete: (file) => {
+	// 	if (file.size > multerConfig.limits.fileSize) {
+	// 		throw new BadRequestException('File size exceeds the allowed limit.');
+	// 	}
+	// },
 };

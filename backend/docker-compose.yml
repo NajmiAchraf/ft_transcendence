@@ -18,22 +18,6 @@ services:
       ports:
         - "${POSTGRES_PORT}:${POSTGRES_PORT}"
 
-  # pgadmin:
-  #   image: dpage/pgadmin4
-  #   container_name: pgadmin
-  #   restart: always
-  #   environment:
-  #     POSTGRESQL_PASS: ${POSTGRESQL_PASS}
-  #     DB_NAME: ${DB_NAME}
-  #     PMA_HOST: ${PMA_HOST}
-  #     PMA_PORT: ${PMA_PORT}
-  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-  #   ports:
-  #     - "${PMA_PORT}:${PMA_PORT}"
-  #   networks:
-  #     - transcendence
-
 networks:
   transcendence:
     driver: bridge

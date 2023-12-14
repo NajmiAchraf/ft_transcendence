@@ -1,32 +1,66 @@
 import { Body, Controller, Get, HttpStatus, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ChatHttpService } from './chat_http.service';
 import { Request } from 'express';
-import { ChatBlockCheckGuard, BannedMemberGuard, BannedUserGuard } from 'src/common/guards';
+import { ChatBlockCheckGuard, BannedMemberGuard, BannedUserGuard, BlockCheckGuard } from 'src/common/guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerConfig } from 'src/common/confs/multer.config';
 import { avatarDto } from 'src/common/dtos/avatar.dto';
 import { ChannelIdDto, ChannelMessageDto, CreateChannelDto, DmDto, ProfileChannelIdDto } from './dto';
 import { ProfileId } from '../user/dto';
-import { Profile } from 'passport';
 import { ChannelPasswordDto } from './dto/channel_password.dto';
 
 @Controller('chatHttp')
 export class ChatHttpController {
 	constructor(private readonly chatHttpService: ChatHttpService) { }
 
-	@UseGuards(ChatBlockCheckGuard)
-	@Post('last_dm')
-	async getLastDM(@Body() body: ProfileId, @Req() req: Request) {
-		const profileId = +body.profileId;
+	@Get('dms')
+	async getLastDMs(@Req() req: Request) {
 		const userId = req.user['sub'];
-		return this.chatHttpService.getLastDM(userId, profileId);
+		return this.chatHttpService.getLastDMs(userId);
+	}
+
+	@UseGuards(BannedUserGuard)
+	@Post('am_i_owner')
+	async amIOwner(@Body() body: ChannelIdDto, @Req() req: Request) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		return this.chatHttpService.amIOwner(userId, channelId);
+	}
+
+	@Get('channels')
+	async getLastChannelMessages(@Req() req: Request) {
+		const userId = req.user['sub'];
+		return this.chatHttpService.getLastChannelMessages(userId);
+	}
+
+	@UseGuards(BannedUserGuard)
+	@Post('channel_message_history')
+	async getChannelMessageHistory(@Body() body: ChannelIdDto, @Req() req: Request) {
+		const userId = req.user['sub'];
+		return this.chatHttpService.getChannelMessageHistory(+body.channelId, userId);
+	}
+
+	@UseGuards(BannedUserGuard)
+	@Post('channel_members')
+	async getChannelMembers(@Body() body: ChannelIdDto, @Req() req: Request) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		return this.chatHttpService.getChannelMembers(userId, channelId);
+	}
+
+	@UseGuards(ChatBlockCheckGuard)
+	@Post('getDmFriend')
+	async getDmFriend(@Body() body: ProfileId, @Req() req: Request) {
+		const userId = req.user['sub'];
+		const profileId = +body.profileId;
+		return this.chatHttpService.getDmFriend(userId, profileId);
 	}
 
 	@UseGuards(ChatBlockCheckGuard)
 	@Post('create_dm')
 	async createDM(@Req() req: Request, @Body() body: DmDto) {
 		const userId = req.user['sub'];
-		const receiverId = +body.receiverId;
+		const receiverId = +body.profileId;
 		return this.chatHttpService.createDM(userId, receiverId, body.message);
 	}
 
@@ -36,6 +70,14 @@ export class ChatHttpController {
 		const profileId = +body.profileId;
 		const userId = req.user['sub'];
 		return this.chatHttpService.getDMHistory(userId, profileId);
+	}
+
+	@UseGuards(BannedUserGuard)
+	@Post('inviteToChannelList')
+	async inviteToChannelList(@Req() req: Request, @Body() body: ChannelIdDto) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		return this.chatHttpService.inviteToChannelList(userId, channelId);
 	}
 
 	@Get('findAllGlobalChat')
@@ -104,6 +146,16 @@ export class ChatHttpController {
 	}
 
 	@UseGuards(BannedMemberGuard)
+	@Post('deleteChannel')
+	async deleteChannel(@Req() req: Request, @Body() body: ChannelIdDto) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+
+		return this.chatHttpService.deleteChannel(userId, channelId);
+	}
+
+
+	@UseGuards(BannedMemberGuard)
 	@Post('kickChannelMember')
 	async kickChannelMember(@Req() req: Request, @Body() body: ProfileChannelIdDto) {
 		const userId = req.user['sub'];
@@ -146,8 +198,56 @@ export class ChatHttpController {
 		const channelId = +body.channelId;
 		return this.chatHttpService.removeChannelPassword(userId, channelId);
 	}
-}
 
-/*
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoib21hcnJyIiwiaWF0IjoxNzAxMjY4NzIxLCJleHAiOjE3MDEzNTUxMjF9.aNBerca4xpVc_4Rn2zzF5C4AQUiWuxK_SPxKdGkM10g
-*/
+	@UseGuards(BannedUserGuard)
+	@Post('addChannelPassword')
+	async addChannelPassword(@Req() req: Request, @Body() body: ChannelPasswordDto) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+		const password = body.password;
+		return this.chatHttpService.addChannelPassword(userId, channelId, password);
+	}
+
+	@UseGuards(BannedUserGuard)
+	@Get('findOtherChannels')
+	async findOtherChannels(@Req() req: Request) {
+		const userId = req.user['sub'];
+		return this.chatHttpService.findOtherChannels(userId);
+	}
+
+	@UseGuards(ChatBlockCheckGuard)
+	@Post('sendGameInvitation')
+	async sendGameInvitation(@Req() req: Request, @Body() body: ProfileId) {
+		const userId = req.user['sub'];
+		const profileId = +body.profileId;
+
+		return this.chatHttpService.sendGameInvitation(userId, profileId);
+	}
+
+	@UseGuards(ChatBlockCheckGuard)
+	@Post('acceptGameInvitation')
+	async acceptGameInvitation(@Req() req: Request, @Body() body: ProfileId) {
+		const userId = req.user['sub'];
+		const profileId = +body.profileId;
+
+		return this.chatHttpService.acceptGameInvitation(userId, profileId);
+	}
+
+	@UseGuards(ChatBlockCheckGuard)
+	@Post('rejectGameInvitation')
+	async rejectGameInvitation(@Req() req: Request, @Body() body: ProfileId) {
+		const userId = req.user['sub'];
+		const profileId = +body.profileId;
+
+		return this.chatHttpService.rejectGameInvitation(userId, profileId);
+	}
+
+	@UseGuards(ChatBlockCheckGuard)
+	@Post('cancelGameInvitation')
+	async cancelGameInvitation(@Req() req: Request, @Body() body: ProfileId) {
+		const userId = req.user['sub'];
+		const profileId = +body.profileId;
+
+		return this.chatHttpService.cancelGameInvitation(userId, profileId);
+	}
+}

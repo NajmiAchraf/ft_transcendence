@@ -13,5 +13,11 @@ export class SettingsDto {
 	})
 	privacy: string;
 
+	@IsString()
+	@Matches(/^(ON|OFF)$/, {
+		message: 'Two factor auth should be either "ON" or "OFF"',
+	})
+	two_factor_auth: string;
+
 	avatar: string;
 }

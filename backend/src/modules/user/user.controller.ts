@@ -20,7 +20,7 @@ export class UserController {
 	@UseInterceptors(FileInterceptor('avatar', multerConfig))
 	async addMoreInfos(@Body() additionalInfos: AdditionalInfo, @UploadedFile() file: avatarDto, @Req() req: Request) {
 		additionalInfos.avatar = file.path;
-		console.log(file);
+		// console.log(file);
 		return this.userService.AddMoreInfos(additionalInfos, req.user['sub']);
 	}
 
@@ -52,6 +52,14 @@ export class UserController {
 
 		// * send friendship requests to the user (profileId)
 		return this.userService.sendFriendRequest(profileId, req.user['sub']);
+	}
+
+	@Post('cancel_friend_request')
+	async cancelFriendRequest(@Body() body: ProfileId, @Req() req: Request) {
+		const profileId = +body.profileId;
+
+		// * cancel friendship requests to the user (profileId)
+		return this.userService.cancelFriendRequest(profileId, req.user['sub']);
 	}
 
 	@Post('respond_to_friend_request')
@@ -110,7 +118,6 @@ export class UserController {
 		return this.userService.getMatchHistory(userId, profileId);
 	}
 
-	// ! userID must be sent in the body
 	@BlockPublic()
 	@Get('defaultSettings')
 	async getDefaultSettings(@Req() req: Request) {
@@ -156,6 +163,13 @@ export class UserController {
 	async checkTwoFactor(@Body() body: TwoFactorDto, @Req() req: Request) {
 		const userId = req.user['sub'];
 		const { code } = body;
-		return await this.twoFactorService.checkTwoFactor(userId, code);
+		return { img: await this.twoFactorService.checkTwoFactor(userId, code) };
+	}
+
+	@BlockPublic()
+	@Get('amIinGame')
+	async amIinGame(@Req() req: Request) {
+		const userId = req.user['sub'];
+		return await this.userService.amIinGame(userId);
 	}
 }

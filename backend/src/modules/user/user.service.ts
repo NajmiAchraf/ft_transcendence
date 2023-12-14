@@ -297,13 +297,13 @@ export class UserService {
 				id: userId,
 			},
 			data: {
-				visibility: body.visibility,
+				visibility: body.privacy,
 				avatar: body.avatar,
 				nickname: body.nickname,
 			},
 		});
 
-		if (body.two_factor_auth === false) {
+		if (body.two_factor_auth === 'OFF') {
 			await this.prismaService.user.update({
 				where: {
 					id: userId,
@@ -354,13 +354,13 @@ export class UserService {
 				id: userId,
 			},
 			data: { // http:/
-				visibility: body.visibility,
+				visibility: body.privacy,
 				avatar: this.globalHelperService.join(process.env.API_URL, body.avatar),
 				nickname: body.nickname,
 			},
 		});
 
-		if (body.two_factor_auth === false) {
+		if (body.two_factor_auth === 'OFF') {
 			await this.prismaService.user.update({
 				where: {
 					id: userId,
@@ -377,7 +377,6 @@ export class UserService {
 		delete updatedUser.password;
 		delete updatedUser.refresh_token;
 
-		// ! the front end must check the 2factor in the response, in order to decide.
 		return { updatedUser, two_factor_auth: body.two_factor_auth };
 	}
 
@@ -393,11 +392,30 @@ export class UserService {
 
 		return {
 			username: user.username,
-			visibility: user.visibility,
+			privacy: user.visibility,
 			avatar: user.avatar,
 			nickname: user.nickname,
 			two_factor_auth: user.two_factor_auth,
 		};
+	}
+
+	async cancelFriendRequest(profileId: number, userId: number) {
+		const entry = await this.prismaService.friendship_request.findFirst({
+			where: {
+				adding_user_id: userId,
+				added_user_id: profileId,
+			}
+		});
+
+		if (!entry) {
+			throw new BadRequestException('Friendship request not found');
+		}
+
+		await this.prismaService.friendship_request.delete({
+			where: {
+				id: entry.id,
+			}
+		});
 	}
 
 	async sendFriendRequest(profileId: number, userId: number) {
@@ -406,10 +424,17 @@ export class UserService {
 			throw new BadRequestException('You cannot send a friend request to yourself');
 		}
 
+		// check if the user has already blocked the profile
+		if (await this.globalHelperService.isBlocked(profileId, userId)) {
+			throw new BadRequestException('You cannot send a friend request to this user');
+		}
+
 		const entry = await this.prismaService.friendship_request.findFirst({
 			where: {
-				adding_user_id: userId,
-				added_user_id: profileId,
+				OR: [
+					{ adding_user_id: userId, added_user_id: profileId },
+					{ adding_user_id: profileId, added_user_id: userId },
+				],
 			}
 		});
 
@@ -534,6 +559,25 @@ export class UserService {
 			});
 		}
 
+		// delete friend request if any 
+
+		const friendshipRequest = await this.prismaService.friendship_request.findFirst({
+			where: {
+				OR: [
+					{ adding_user_id: userId, added_user_id: profileId },
+					{ adding_user_id: profileId, added_user_id: userId },
+				],
+			}
+		});
+
+		if (friendshipRequest) {
+			await this.prismaService.friendship_request.delete({
+				where: {
+					id: friendshipRequest.id,
+				}
+			});
+		}
+
 		try {
 			await this.prismaService.direct_message.deleteMany({
 				where: {
@@ -578,5 +622,18 @@ export class UserService {
 				id: entry.id,
 			}
 		});
+	}
+
+	async amIinGame(userId: number) {
+		const entry = await this.prismaService.user.findUnique({
+			where: {
+				id: userId,
+			},
+			select: {
+				in_game: true,
+			}
+		});
+
+		return entry.in_game === true;
 	}
 }

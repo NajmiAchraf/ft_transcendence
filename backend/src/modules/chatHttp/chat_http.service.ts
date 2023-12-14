@@ -1,35 +1,360 @@
-import { ForbiddenException, Injectable, UseGuards } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GlobalHelperService } from 'src/common/services/global_helper.service';
-import { ChatBlockCheckGuard } from 'src/common/guards';
 import { CreateChannelDto } from './dto';
-import * as path from 'path';
 
 @Injectable()
 export class ChatHttpService {
-	constructor(private readonly prsimaService: PrismaService,
+	constructor(private readonly prismaService: PrismaService,
 		private readonly globalHelperService: GlobalHelperService) { }
 
-	@UseGuards(ChatBlockCheckGuard)
-	async getLastDM(userId: number, profileId: number) {
-		const dm = await this.prsimaService.direct_message.findMany({
+	async getLastDMs(userId: number) {
+		const receiverIds = await this.prismaService.direct_message.findMany({
 			where: {
-				OR: [
-					{ sender_id: userId, receiver_id: profileId },
-					{ sender_id: profileId, receiver_id: userId }
-				]
+				sender_id: userId,
 			},
-			orderBy: {
-				created_at: 'desc',
+		});
+
+		const senderIds = await this.prismaService.direct_message.findMany({
+			where: {
+				receiver_id: userId,
 			},
-			take: 1,
 		})
-		return dm;
+
+		if (senderIds.length === 0 && receiverIds.length === 0) {
+			return [];
+		}
+
+		const filteredIds = [...new Set([...receiverIds.map(entry => entry.receiver_id), ...senderIds.map(entry => entry.sender_id)])];
+
+		// get the last message for each user
+		const lastDms = await Promise.all(filteredIds.map(async (id) => {
+			const entry = await this.prismaService.direct_message.findMany({
+				where: {
+					sender_id: userId,
+					receiver_id: id,
+				},
+				orderBy: {
+					created_at: 'desc',
+				},
+				take: 1,
+				include: {
+					dm_receiver: true,
+				},
+			});
+
+			const entry2 = await this.prismaService.direct_message.findMany({
+				where: {
+					sender_id: id,
+					receiver_id: userId,
+				},
+				orderBy: {
+					created_at: 'desc',
+				},
+				take: 1,
+				include: {
+					dm_sender: true,
+				},
+			});
+
+			if (entry.length !== 0 && (entry2.length == 0 || entry[0].created_at > entry2[0].created_at)) {
+				return {
+					profileId: entry[0].receiver_id,
+					nickname: entry[0].dm_receiver.nickname,
+					avatar: entry[0].dm_receiver.avatar,
+					status: entry[0].dm_receiver.status,
+					message_text: entry[0].message_text,
+					created_at: entry[0].created_at,
+					isSender: true,
+				};
+			} else {
+				return {
+					profileId: entry2[0].sender_id,
+					nickname: entry2[0].dm_sender.nickname,
+					avatar: entry2[0].dm_sender.avatar,
+					status: entry2[0].dm_sender.status,
+					message_text: entry2[0].message_text,
+					created_at: entry2[0].created_at,
+					isSender: false,
+				};
+			}
+		}));
+
+		// sort by created_at
+
+		lastDms.sort((a, b) => {
+			return b.created_at.getTime() - a.created_at.getTime();
+		});
+		return lastDms;
 	}
 
-	@UseGuards(ChatBlockCheckGuard)
+	async getChannelMembers(userId: number, channelId: number) {
+		const entry = await this.prismaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		const entries = await this.prismaService.user_channel.findMany({
+			where: {
+				channel_id: channelId,
+			},
+			include: {
+				channel_member: true,
+				channel: true,
+			}
+		});
+
+		const owner = {};
+		const admins = [];
+		const members = [];
+
+		const user_role = entry.user_role;
+		entries.forEach(entry => {
+			if (entry.user_role === 'owner') {
+				owner['id'] = entry.channel_member.id;
+				owner['nickname'] = entry.channel_member.nickname;
+				owner['avatar'] = entry.channel_member.avatar;
+				owner['status'] = entry.channel_member.status;
+				owner['operate'] = false;
+				owner['isSelf'] = entry.channel_member.id === userId;
+				owner['isChannelProtected'] = entry.channel.privacy === 'protected';
+				return;
+			}
+			if (entry.user_role === 'admin') {
+				admins.push({
+					id: entry.channel_member.id,
+					nickname: entry.channel_member.nickname,
+					avatar: entry.channel_member.avatar,
+					status: entry.channel_member.status,
+					operate: user_role === 'owner',
+					isSelf: entry.channel_member.id === userId,
+				});
+				return;
+			}
+			members.push({
+				id: entry.channel_member.id,
+				nickname: entry.channel_member.nickname,
+				avatar: entry.channel_member.avatar,
+				status: entry.channel_member.status,
+				operate: user_role === 'owner' || user_role === 'admin',
+				isSelf: entry.channel_member.id === userId,
+			});
+		});
+
+		return {
+			owner,
+			admins,
+			members,
+		}
+	}
+
+	async getDmFriend(userId: number, profileId: number) {
+		const profile = await this.prismaService.user.findUnique({
+			where: {
+				id: profileId,
+			}
+		});
+
+		const user = await this.prismaService.user.findUnique({
+			where: {
+				id: userId,
+			}
+		});
+
+		return [
+			{
+				id: profile.id,
+				nickname: profile.nickname,
+				avatar: profile.avatar,
+				status: profile.status,
+			},
+			{
+				id: user.id,
+				nickname: user.nickname,
+				avatar: user.avatar,
+				status: user.status,
+			},
+		]
+	}
+
+	async getLastChannelMessages(userId: number) {
+		const entries = await this.prismaService.user_channel.findMany({
+			where: {
+				user_id: userId,
+			},
+			include: {
+				channel: true,
+			}
+		});
+
+		const filteredEntries = await Promise.all(entries.map(async entry => {
+			const last_message = await this.prismaService.channels_message.findMany({
+				where: {
+					channel_id: entry.channel_id,
+				},
+				orderBy: {
+					created_at: 'desc',
+				},
+				include: {
+					cm_sender: true,
+				},
+				take: 1,
+			});
+
+			return {
+				channel_id: entry.channel_id,
+				channel_name: entry.channel.channel_name,
+				avatar: entry.channel.avatar,
+				last_message: last_message.length !== 0 ? last_message[0].message_text : null,
+				sender_id: last_message.length !== 0 ? last_message[0].sender_id : null,
+				nickname: last_message.length !== 0 ? last_message[0].cm_sender.nickname : null,
+				created_at: last_message.length !== 0 ? last_message[0].created_at : null,
+			}
+		})
+		);
+
+		filteredEntries.sort((a, b) => {
+			if (a.created_at === null) {
+				return 1;
+			}
+			if (b.created_at === null) {
+				return -1;
+			}
+			return b.created_at.getTime() - a.created_at.getTime();
+		});
+
+		return filteredEntries;
+	}
+
+	async getChannelMessageHistory(channelId: number, userId: number) {
+		const entry = await this.prismaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		const entries = await this.prismaService.channels_message.findMany({
+			where: {
+				channel_id: channelId,
+			},
+			orderBy: {
+				created_at: 'desc',
+			},
+			include: {
+				cm_sender: true,
+			},
+		});
+
+		const filteredEntries = await Promise.all(entries.filter(async entry => {
+			if (entry.sender_id === userId || (!await this.globalHelperService.isBlocked(userId, entry.sender_id) && !await this.globalHelperService.isBlocked(entry.sender_id, userId))) {
+				return true;
+			}
+			return false;
+		}));
+
+		const messages = filteredEntries.map(entry => {
+			return {
+				sender_id: entry.sender_id,
+				nickname: entry.cm_sender.nickname,
+				message_text: entry.message_text,
+				avatar: entry.cm_sender.avatar,
+				status: entry.cm_sender.status,
+				created_at: entry.created_at,
+			}
+		});
+
+		return messages;
+	}
+
+	async amIOwner(userId: number, channelId: number) {
+		const entry = await this.prismaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		return entry.user_role === 'owner';
+	}
+
+	async inviteToChannelList(userId: number, channelId: number) {
+		const entry = await this.prismaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		const entries = await this.prismaService.friends.findMany({
+			where: {
+				OR: [{ user1_id: userId }, { user2_id: userId }],
+			},
+			include: {
+				user1: true,
+				user2: true,
+			}
+		});
+
+		const filteredFriends = [];
+
+		for (let i = 0; i < entries.length; i++) {
+			const entry = entries[i];
+			const friendId = entry.user1_id === userId ? entry.user2_id : entry.user1_id;
+
+			const memberEntry = await this.prismaService.user_channel.findFirst({
+				where: {
+					channel_id: channelId,
+					user_id: friendId,
+				},
+			});
+
+			const banEntry = await this.prismaService.banned.findFirst({
+				where: {
+					channel_id: channelId,
+					banned_user_id: friendId,
+				},
+			});
+
+			if (!memberEntry && !banEntry) {
+				filteredFriends.push(entry);
+			}
+		}
+
+		const inviteList = filteredFriends.map(entry => {
+			const friend = entry.user1_id === userId ? entry.user2 : entry.user1;
+
+			return {
+				id: friend.id,
+				nickname: friend.nickname,
+				avatar: friend.avatar,
+				status: friend.status,
+			}
+		});
+
+		return inviteList;
+	}
+
 	async getDMHistory(userId: number, profileId: number) {
-		const dm = await this.prsimaService.direct_message.findMany({
+		const dms = await this.prismaService.direct_message.findMany({
 			where: {
 				OR: [
 					{ sender_id: userId, receiver_id: profileId },
@@ -39,12 +364,25 @@ export class ChatHttpService {
 			orderBy: {
 				created_at: 'desc',
 			},
+			include: {
+				dm_sender: true,
+			}
 		})
-		return dm;
+
+		return dms.map(dm => {
+			return {
+				id: dm.sender_id,
+				nickname: dm.dm_sender.nickname,
+				avatar: dm.dm_sender.avatar,
+				status: dm.dm_sender.status,
+				message_text: dm.message_text,
+				created_at: dm.created_at,
+			}
+		});
 	}
 
 	async findAllGlobalChat(userId: number) {
-		const entries = await this.prsimaService.global_chat.findMany({
+		const entries = await this.prismaService.global_chat.findMany({
 			include: {
 				globalm_sender: true,
 			},
@@ -73,7 +411,7 @@ export class ChatHttpService {
 	}
 
 	async findChannelChat(userId: number, channelId: number) {
-		const entry = await this.prsimaService.user_channel.findFirst({
+		const entry = await this.prismaService.user_channel.findFirst({
 			where: {
 				channel_id: channelId,
 				user_id: userId,
@@ -84,7 +422,7 @@ export class ChatHttpService {
 			throw new ForbiddenException('You are not in the channel');
 		}
 
-		const entries = await this.prsimaService.channels_message.findMany({
+		const entries = await this.prismaService.channels_message.findMany({
 			where: {
 				channel_id: channelId,
 			},
@@ -125,7 +463,7 @@ export class ChatHttpService {
 		}
 
 		try {
-			const channel = await this.prsimaService.channel.create({
+			const channel = await this.prismaService.channel.create({
 				data: {
 					channel_name: body.channelName,
 					avatar: this.globalHelperService.join(process.env.API_URL, body.avatar),
@@ -137,7 +475,7 @@ export class ChatHttpService {
 			if (body.privacy === 'protected') {
 				const hash = await this.globalHelperService.hashData(body.password);
 
-				await this.prsimaService.channel.update({
+				await this.prismaService.channel.update({
 					where: {
 						id: channel.id,
 					},
@@ -147,7 +485,7 @@ export class ChatHttpService {
 				});
 			}
 
-			await this.prsimaService.user_channel.create({
+			await this.prismaService.user_channel.create({
 				data: {
 					user_role: 'owner',
 					channel_id: channel.id,
@@ -165,7 +503,7 @@ export class ChatHttpService {
 		}
 
 		// check if the user is the owner
-		const entry = await this.prsimaService.user_channel.findFirst({
+		const entry = await this.prismaService.user_channel.findFirst({
 			where: {
 				channel_id: channelId,
 				user_id: userId,
@@ -180,7 +518,7 @@ export class ChatHttpService {
 			throw new ForbiddenException('Only owners can change the password');
 		}
 
-		const channelEntry = await this.prsimaService.channel.findUnique({
+		const channelEntry = await this.prismaService.channel.findUnique({
 			where: {
 				id: channelId,
 			},
@@ -195,7 +533,7 @@ export class ChatHttpService {
 
 		const hash = await this.globalHelperService.hashData(password);
 
-		await this.prsimaService.channel.update({
+		await this.prismaService.channel.update({
 			where: {
 				id: channelId,
 			},
@@ -207,7 +545,7 @@ export class ChatHttpService {
 
 	async removeChannelPassword(userId: number, channelId: number) {
 		// check if the user is the owner
-		const entry = await this.prsimaService.user_channel.findFirst({
+		const entry = await this.prismaService.user_channel.findFirst({
 			where: {
 				channel_id: channelId,
 				user_id: userId,
@@ -222,7 +560,7 @@ export class ChatHttpService {
 			throw new ForbiddenException('Only owners can remove the password');
 		}
 
-		const channelEntry = await this.prsimaService.channel.findUnique({
+		const channelEntry = await this.prismaService.channel.findUnique({
 			where: {
 				id: channelId,
 			},
@@ -235,7 +573,7 @@ export class ChatHttpService {
 			throw new ForbiddenException('Only protected channels have passwords');
 		}
 
-		await this.prsimaService.channel.update({
+		await this.prismaService.channel.update({
 			where: {
 				id: channelId,
 			},
@@ -251,7 +589,7 @@ export class ChatHttpService {
 		}
 
 		// check if the adder is in the channel
-		const adderEntry = await this.prsimaService.user_channel.findFirst({
+		const adderEntry = await this.prismaService.user_channel.findFirst({
 			where: {
 				channel_id: channelId,
 				user_id: userId,
@@ -263,7 +601,7 @@ export class ChatHttpService {
 		}
 
 		// check if the channel is protected
-		const channel = await this.prsimaService.channel.findUnique({
+		const channel = await this.prismaService.channel.findUnique({
 			where: {
 				id: channelId,
 			},
@@ -282,7 +620,7 @@ export class ChatHttpService {
 		}
 
 		// check if user is already in the channel
-		const addedEntry = await this.prsimaService.user_channel.findFirst({
+		const addedEntry = await this.prismaService.user_channel.findFirst({
 			where: {
 				channel_id: channelId,
 				user_id: memberId,
@@ -294,7 +632,7 @@ export class ChatHttpService {
 		}
 
 		// add user to channel
-		await this.prsimaService.user_channel.create({
+		await this.prismaService.user_channel.create({
 			data: {
 				user_role: 'member',
 				channel_id: channelId,
@@ -303,7 +641,7 @@ export class ChatHttpService {
 		});
 
 		// * increment members_count
-		await this.prsimaService.channel.update({
+		await this.prismaService.channel.update({
 			where: {
 				id: channelId,
 			},
@@ -321,7 +659,7 @@ export class ChatHttpService {
 		}
 
 		// check if the adder is in the channel
-		const adderEntry = await this.prsimaService.user_channel.findFirst({
+		const adderEntry = await this.prismaService.user_channel.findFirst({
 			where: {
 				channel_id: channelId,
 				user_id: userId,
@@ -338,7 +676,7 @@ export class ChatHttpService {
 		}
 
 		// check if user is already in the channel
-		const addedEntry = await this.prsimaService.user_channel.findFirst({
+		const addedEntry = await this.prismaService.user_channel.findFirst({
 			where: {
 				channel_id: channelId,
 				user_id: memberId,
@@ -355,7 +693,7 @@ export class ChatHttpService {
 		}
 
 		// update user role to admin
-		await this.prsimaService.user_channel.update({
+		await this.prismaService.user_channel.update({
 			where: {
 				id: addedEntry.id,
 			},
@@ -367,7 +705,7 @@ export class ChatHttpService {
 
 	async joinChannel(userId: number, channelId: number, password: string | undefined) {
 		// check if the user is already in the channel
-		const entry = await this.prsimaService.user_channel.findFirst({
+		const entry = await this.prismaService.user_channel.findFirst({
 			where: {
 				channel_id: channelId,
 				user_id: userId,
@@ -378,7 +716,7 @@ export class ChatHttpService {
 			throw new ForbiddenException('You are already in the channel');
 		}
 
-		const channel = await this.prsimaService.channel.findUnique({
+		const channel = await this.prismaService.channel.findUnique({
 			where: {
 				id: channelId,
 			},
@@ -402,7 +740,7 @@ export class ChatHttpService {
 		}
 
 		// add user to channel
-		await this.prsimaService.user_channel.create({
+		await this.prismaService.user_channel.create({
 			data: {
 				user_role: 'member',
 				channel_id: channelId,
@@ -411,7 +749,7 @@ export class ChatHttpService {
 		});
 
 		// * increment members_count
-		await this.prsimaService.channel.update({
+		await this.prismaService.channel.update({
 			where: {
 				id: channelId,
 			},
@@ -425,7 +763,7 @@ export class ChatHttpService {
 
 	async leaveChannel(userId: number, channelId: number) {
 		// check if the user is in the channel
-		const entry = await this.prsimaService.user_channel.findFirst({
+		const entry = await this.prismaService.user_channel.findFirst({
 			where: {
 				channel_id: channelId,
 				user_id: userId,
@@ -436,12 +774,16 @@ export class ChatHttpService {
 			throw new ForbiddenException('You are not in the channel');
 		}
 
-		const entries = await this.prsimaService.user_channel.findMany({});
+		const entries = await this.prismaService.user_channel.findMany({
+			where: {
+				channel_id: channelId,
+			}
+		});
 
 		if (entries.length > 1) {
 			// check if the user is the owner
 			if (entry.user_role === 'owner') {
-				const [admin] = await this.prsimaService.user_channel.findMany({
+				const [admin] = await this.prismaService.user_channel.findMany({
 					where: {
 						channel_id: channelId,
 						user_role: 'admin',
@@ -457,7 +799,7 @@ export class ChatHttpService {
 				}
 
 				// set the first admin as the owner
-				await this.prsimaService.user_channel.update({
+				await this.prismaService.user_channel.update({
 					where: {
 						id: admin.id,
 					},
@@ -469,14 +811,14 @@ export class ChatHttpService {
 		}
 
 		// delete user from channel
-		await this.prsimaService.user_channel.delete({
+		await this.prismaService.user_channel.delete({
 			where: {
 				id: entry.id,
 			}
 		});
 
 		// * decrement members_count
-		await this.prsimaService.channel.update({
+		await this.prismaService.channel.update({
 			where: {
 				id: channelId,
 			},
@@ -488,13 +830,43 @@ export class ChatHttpService {
 		});
 
 		if (entries.length === 1) {
-			// delete channel
-			await this.prsimaService.channel.delete({
-				where: {
-					id: channelId,
-				}
-			});
+			this.deleteChannel(userId, channelId);
 		}
+	}
+
+	async deleteChannel(userId: number, channelId: number) {
+		const entry = await this.prismaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		if (entry.user_role !== 'owner') {
+			throw new ForbiddenException('Only owners can delete the channel');
+		}
+
+		await this.prismaService.user_channel.deleteMany({
+			where: {
+				channel_id: channelId,
+			}
+		});
+
+		await this.prismaService.channels_message.deleteMany({
+			where: {
+				channel_id: channelId,
+			}
+		});
+		// delete channel
+		await this.prismaService.channel.delete({
+			where: {
+				id: channelId,
+			}
+		});
 	}
 
 	async kickChannelMember(userId: number, channelId: number, memberId: number) {
@@ -502,7 +874,7 @@ export class ChatHttpService {
 			throw new ForbiddenException('You cannot kick yourself');
 		}
 
-		const kickerEntry = await this.prsimaService.user_channel.findFirst({
+		const kickerEntry = await this.prismaService.user_channel.findFirst({
 			where: {
 				channel_id: channelId,
 				user_id: userId,
@@ -517,7 +889,7 @@ export class ChatHttpService {
 			throw new ForbiddenException('Only admins and owners can kick members');
 		}
 
-		const kickedEntry = await this.prsimaService.user_channel.findFirst({
+		const kickedEntry = await this.prismaService.user_channel.findFirst({
 			where: {
 				channel_id: channelId,
 				user_id: memberId,
@@ -536,14 +908,14 @@ export class ChatHttpService {
 			throw new ForbiddenException('Only owners can kick admins');
 		}
 
-		await this.prsimaService.user_channel.delete({
+		await this.prismaService.user_channel.delete({
 			where: {
 				id: kickedEntry.id,
 			}
 		});
 
 		// * decrement members_count
-		await this.prsimaService.channel.update({
+		await this.prismaService.channel.update({
 			where: {
 				id: channelId,
 			},
@@ -559,7 +931,7 @@ export class ChatHttpService {
 		try {
 			await this.kickChannelMember(userId, channelId, memberId);
 
-			await this.prsimaService.banned.create({
+			await this.prismaService.banned.create({
 				data: {
 					channel_id: channelId,
 					banned_user_id: memberId,
@@ -571,7 +943,7 @@ export class ChatHttpService {
 	}
 
 	async muteChannelMember(userId: number, channelId: number, memberId: number) {
-		const muterEntry = await this.prsimaService.user_channel.findFirst({
+		const muterEntry = await this.prismaService.user_channel.findFirst({
 			where: {
 				channel_id: channelId,
 				user_id: userId,
@@ -586,7 +958,7 @@ export class ChatHttpService {
 			throw new ForbiddenException('Only admins and owners can mute members');
 		}
 
-		const mutedEntry = await this.prsimaService.user_channel.findFirst({
+		const mutedEntry = await this.prismaService.user_channel.findFirst({
 			where: {
 				channel_id: channelId,
 				user_id: memberId,
@@ -605,7 +977,7 @@ export class ChatHttpService {
 			throw new ForbiddenException('Only owners can mute admins');
 		}
 
-		await this.prsimaService.muted.create({
+		await this.prismaService.muted.create({
 			data: {
 				channel_id: channelId,
 				muted_user_id: memberId,
@@ -614,7 +986,7 @@ export class ChatHttpService {
 	}
 
 	async createChannelMessage(userId: number, channelId: number, message: string) {
-		const entry = await this.prsimaService.user_channel.findFirst({
+		const entry = await this.prismaService.user_channel.findFirst({
 			where: {
 				channel_id: channelId,
 				user_id: userId,
@@ -626,7 +998,7 @@ export class ChatHttpService {
 		}
 
 		// check if the user is muted
-		const BanEntry = await this.prsimaService.muted.findFirst({
+		const BanEntry = await this.prismaService.muted.findFirst({
 			where: {
 				channel_id: channelId,
 				muted_user_id: userId,
@@ -638,7 +1010,7 @@ export class ChatHttpService {
 				throw new ForbiddenException('You are muted');
 			}
 			// delete the banned entry
-			await this.prsimaService.muted.delete({
+			await this.prismaService.muted.delete({
 				where: {
 					id: BanEntry.id,
 				},
@@ -646,7 +1018,7 @@ export class ChatHttpService {
 		}
 
 		// created the message
-		await this.prsimaService.channels_message.create({
+		await this.prismaService.channels_message.create({
 			data: {
 				message_text: message,
 				sender_id: userId,
@@ -662,7 +1034,7 @@ export class ChatHttpService {
 		}
 
 		// create the message
-		await this.prsimaService.direct_message.create({
+		await this.prismaService.direct_message.create({
 			data: {
 				message_text: message,
 				sender_id: userId,
@@ -670,4 +1042,205 @@ export class ChatHttpService {
 			}
 		});
 	}
+
+	async findOtherChannels(userId: number) {
+		const entries = await this.prismaService.user_channel.findMany({
+			where: {
+				user_id: userId,
+			},
+			select: {
+				channel_id: true,
+			}
+		});
+
+		const channelIds = entries.map(entry => entry.channel_id);
+
+		const channels = await this.prismaService.channel.findMany({
+			where: {
+				id: {
+					notIn: channelIds,
+				},
+				privacy: 'public',
+			},
+			orderBy: {
+				members_count: 'desc',
+			},
+		});
+
+		return channels;
+	}
+
+	async addChannelPassword(userId: number, channelId: number, password: string) {
+		// check if the user is the owner
+		const entry = await this.prismaService.user_channel.findFirst({
+			where: {
+				channel_id: channelId,
+				user_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('You are not in the channel');
+		}
+
+		if (entry.user_role !== 'owner') {
+			throw new ForbiddenException('Only owners can add the password');
+		}
+
+		const channelEntry = await this.prismaService.channel.findUnique({
+			where: {
+				id: channelId,
+			},
+			select: {
+				privacy: true,
+			}
+		});
+
+		if (channelEntry.privacy === 'protected') {
+			throw new ForbiddenException('Channel already has a password');
+		}
+
+		const hash = await this.globalHelperService.hashData(password);
+
+		await this.prismaService.channel.update({
+			where: {
+				id: channelId,
+			},
+			data: {
+				password: hash,
+				privacy: 'protected',
+			}
+		});
+	}
+
+	async sendGameInvitation(userId: number, profileId: number) {
+		if (!await this.globalHelperService.areFriends(userId, profileId)) {
+			throw new ForbiddenException('You can only invite friends');
+		}
+
+		const expiredIvitation = await this.prismaService.game_invitation.findFirst({
+			where: {
+				OR: [{ sender_id: userId, receiver_id: userId }],
+				is_accepted: false,
+			}
+		})
+
+		if (expiredIvitation && Date.now() - expiredIvitation.created_at.getTime() < 1000 * 30) {
+			await this.prismaService.game_invitation.delete({
+				where: {
+					id: expiredIvitation.id,
+				}
+			});
+		}
+
+		const profileExpiredInvitation = await this.prismaService.game_invitation.findFirst({
+			where: {
+				OR: [{ sender_id: profileId, receiver_id: profileId }],
+				is_accepted: false,
+			}
+		})
+
+		if (profileExpiredInvitation && Date.now() - profileExpiredInvitation.created_at.getTime() < 1000 * 30) {
+			await this.prismaService.game_invitation.delete({
+				where: {
+					id: profileExpiredInvitation.id,
+				}
+			});
+		}
+
+		const entry = await this.prismaService.game_invitation.findFirst({
+			where: {
+				OR: [
+					{ sender_id: userId },
+					{ receiver_id: userId },
+					{ sender_id: profileId },
+					{ receiver_id: profileId },
+				],
+			},
+		});
+
+		if (entry) {
+			throw new ForbiddenException('You can only either send or receive one invitation at a time');
+		}
+
+		await this.prismaService.game_invitation.create({
+			data: {
+				sender_id: userId,
+				receiver_id: profileId,
+			}
+		});
+	}
+
+	async acceptGameInvitation(userId: number, profileId: number) {
+		if (!await this.globalHelperService.areFriends(userId, profileId)) {
+			throw new ForbiddenException('You can only invite friends');
+		}
+
+		const entry = await this.prismaService.game_invitation.findFirst({
+			where: {
+				receiver_id: userId,
+				sender_id: profileId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('No invitation exists');
+		}
+
+		await this.prismaService.game_invitation.update({
+			where: {
+				id: entry.id,
+			},
+			data: {
+				is_accepted: true,
+			}
+		});
+	}
+
+	async rejectGameInvitation(userId: number, profileId: number) {
+		if (!await this.globalHelperService.areFriends(userId, profileId)) {
+			throw new ForbiddenException('You can only invite friends');
+		}
+
+		const entry = await this.prismaService.game_invitation.findFirst({
+			where: {
+				receiver_id: userId,
+				sender_id: profileId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('No invitation exists');
+		}
+
+		await this.prismaService.game_invitation.delete({
+			where: {
+				id: entry.id,
+			}
+		});
+	}
+
+	async cancelGameInvitation(userId: number, profileId: number) {
+		if (!await this.globalHelperService.areFriends(userId, profileId)) {
+			throw new ForbiddenException('You can only invite friends');
+		}
+
+		const entry = await this.prismaService.game_invitation.findFirst({
+			where: {
+				receiver_id: profileId,
+				sender_id: userId,
+			},
+		});
+
+		if (!entry) {
+			throw new ForbiddenException('No invitation exists');
+		}
+
+		await this.prismaService.game_invitation.delete({
+			where: {
+				id: entry.id,
+			}
+		});
+	}
+
 }

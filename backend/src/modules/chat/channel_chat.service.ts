@@ -1,6 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { Namespace, Server, Socket } from "socket.io";
-import { ChannelPasswordDto } from "../chatHttp/dto/channel_password.dto";
+import { ForbiddenException, Injectable } from "@nestjs/common";
+import { Namespace, Socket } from "socket.io";
 import { SocketService } from "src/common/services/socket.service";
 import { PrismaService } from "../prisma/prisma.service";
 
@@ -71,7 +70,6 @@ export class ChannelChatService {
 			// !send a notification
 			const socketIds = this.socketService.getSockets(+message.profileId, 'chat');
 			socketIds.forEach(socketId => {
-				// server.to(socketId).emit('addChannelMember', 'you have been added to a channel');
 				server.sockets.get(socketId).join(message.channelId.toString());
 			});
 
@@ -81,7 +79,7 @@ export class ChannelChatService {
 
 			const user = await this.prismaService.user.findUnique({ where: { id: +message.profileId, } });
 			filteredSockets.forEach(socket => {
-				socket.emit('addChannelMember', { id: user.id, nickname: user.nickname });
+				socket.emit('addChannelMember', { id: user.id, channel_id: message.channelId, nickname: user.nickname });
 			});
 
 			await this.prismaService.notification.create({
@@ -91,7 +89,6 @@ export class ChannelChatService {
 				}
 			});
 
-			server.to(client.id).emit('addChannelMember', 'user added to channel');
 		} catch (err) {
 			console.log(err);
 			server.to(client.id).emit('Invalid access', { error: err });
@@ -118,7 +115,7 @@ export class ChannelChatService {
 			const newMemberSocketIds = this.socketService.getSockets(+message.profileId, 'chat');
 			// emit to all sockets of the user
 			newMemberSocketIds.forEach(socketId => {
-				server.to(socketId).emit('addChannelAdmin', 'you are now admin');
+				server.to(socketId).emit('addChannelAdmin', { message: 'you are now admin', channelId: message.channelId });
 			});
 
 			// !send a notification
@@ -169,6 +166,7 @@ export class ChannelChatService {
 			});
 
 			const messagePayload = {
+				channel_id: entry[0].channel_id,
 				sender_id: entry[0].sender_id,
 				nickname: entry[0].cm_sender.nickname,
 				message_text: entry[0].message_text,
@@ -177,12 +175,21 @@ export class ChannelChatService {
 				created_at: entry[0].created_at,
 			}
 			filteredSockets.forEach(socket => {
-				socket.emit('channelCreateChat', messagePayload);
+				socket.emit('receiveChannelMessage', messagePayload);
 			});
 		} catch (err) {
 			console.log('something went wrong-');
-			console.log(err);
-			server.to(client.id).emit('Invalid access', { error: "error occured" });
+			if (err instanceof ForbiddenException) {
+				if (err.message === 'You are muted') {
+					const userId = this.socketService.getUserId(client.id);
+					const connectedSockets = this.socketService.getSockets(userId, 'chat');
+					connectedSockets.forEach(socket => {
+						socket.emit('muted', { userId: userId, channelId: message.channelId });
+					});
+					return;
+				}
+				server.to(client.id).emit('Invalid access', { error: "error occured" });
+			}
 		}
 	}
 
@@ -274,6 +281,7 @@ export class ChannelChatService {
 			const res = await fetch(`${process.env.API_URL}/chatHttp/banChannelMember`, {
 				method: 'POST',
 				headers: {
+					'Content-Type': 'application/json',
 					"Authorization": "Bearer " + client.handshake.query['accessToken'],
 				},
 				body: JSON.stringify(message)
@@ -300,6 +308,7 @@ export class ChannelChatService {
 			const res = await fetch(`${process.env.API_URL}/chatHttp/muteChannelMember`, {
 				method: 'POST',
 				headers: {
+					'Content-Type': 'application/json',
 					"Authorization": "Bearer " + client.handshake.query['accessToken'],
 				},
 				body: JSON.stringify(message)
@@ -319,30 +328,4 @@ export class ChannelChatService {
 			server.to(client.id).emit('Invalid access', { error: "error occured" });
 		}
 	}
-
-	async createChannel(server: Namespace, client: Socket, message: any) {
-		try {
-			const res = await fetch(`${process.env.API_URL}/chatHttp/createChannel`, {
-				method: 'POST',
-				headers: {
-					"Authorization": "Bearer " + client.handshake.query['accessToken'],
-				},
-				body: JSON.stringify(message)
-			});
-			if (!res.ok) {
-				console.log('something went wrong');
-				server.to(client.id).emit('Invalid access', { error: "error occured" });
-				return;
-			}
-
-			const socketIds = this.socketService.getSockets(+message.profileId, 'chat');
-			socketIds.forEach(socketId => {
-				server.sockets.get(socketId).emit('channelCreate', { message: 'you have been muted for 2 minutes', channelId: message.channelId });
-			});
-		} catch (err) {
-			// console.log(err);
-			server.to(client.id).emit('Invalid access', { error: "error occured" });
-		}
-	}
-
 }

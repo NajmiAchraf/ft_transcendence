@@ -1,7 +1,6 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GlobalHelperService } from 'src/common/services/global_helper.service';
-import * as path from 'path';
 
 @Injectable()
 export class HomeService {
@@ -16,12 +15,17 @@ export class HomeService {
 
 		const friendList = friends.map((friendship) => {
 			const friend = userId === friendship.user1_id ? friendship.user2 : friendship.user1;
+			let friendStatus = friend.status;
+
+			if (friendStatus === 'online' && friend.in_game === true) {
+				friendStatus = 'in_game';
+			}
 
 			return {
 				id: friend.id,
 				nickname: friend.nickname,
 				avatar: friend.avatar,
-				status: friend.status,
+				status: friendStatus,
 			};
 		});
 		return friendList;
@@ -67,6 +71,11 @@ export class HomeService {
 
 	async getStandings(userId: number) {
 		const entries = await this.prismaService.user.findMany({
+			where: {
+				nickname: {
+					not: null,
+				}
+			},
 			orderBy: { total_points: 'desc' },
 		});
 
