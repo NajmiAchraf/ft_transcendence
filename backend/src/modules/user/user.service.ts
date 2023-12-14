@@ -623,4 +623,17 @@ export class UserService {
 			}
 		});
 	}
+
+	async amIinGame(userId: number) {
+		const entry = await this.prismaService.user.findUnique({
+			where: {
+				id: userId,
+			},
+			select: {
+				in_game: true,
+			}
+		});
+
+		return entry.in_game === true;
+	}
 }

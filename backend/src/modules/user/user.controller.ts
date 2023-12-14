@@ -165,4 +165,11 @@ export class UserController {
 		const { code } = body;
 		return { img: await this.twoFactorService.checkTwoFactor(userId, code) };
 	}
+
+	@BlockPublic()
+	@Get('amIinGame')
+	async amIinGame(@Req() req: Request) {
+		const userId = req.user['sub'];
+		return await this.userService.amIinGame(userId);
+	}
 }

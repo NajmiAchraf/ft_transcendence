@@ -146,6 +146,16 @@ export class ChatHttpController {
 	}
 
 	@UseGuards(BannedMemberGuard)
+	@Post('deleteChannel')
+	async deleteChannel(@Req() req: Request, @Body() body: ChannelIdDto) {
+		const userId = req.user['sub'];
+		const channelId = +body.channelId;
+
+		return this.chatHttpService.deleteChannel(userId, channelId);
+	}
+
+
+	@UseGuards(BannedMemberGuard)
 	@Post('kickChannelMember')
 	async kickChannelMember(@Req() req: Request, @Body() body: ProfileChannelIdDto) {
 		const userId = req.user['sub'];
@@ -206,6 +216,15 @@ export class ChatHttpController {
 	}
 
 	@UseGuards(ChatBlockCheckGuard)
+	@Post('sendGameInvitation')
+	async sendGameInvitation(@Req() req: Request, @Body() body: ProfileId) {
+		const userId = req.user['sub'];
+		const profileId = +body.profileId;
+
+		return this.chatHttpService.sendGameInvitation(userId, profileId);
+	}
+
+	@UseGuards(ChatBlockCheckGuard)
 	@Post('acceptGameInvitation')
 	async acceptGameInvitation(@Req() req: Request, @Body() body: ProfileId) {
 		const userId = req.user['sub'];
@@ -215,15 +234,20 @@ export class ChatHttpController {
 	}
 
 	@UseGuards(ChatBlockCheckGuard)
-	@Post('removeGameInvitation')
-	async removeGameInvitation(@Req() req: Request, @Body() body: ProfileId) {
+	@Post('rejectGameInvitation')
+	async rejectGameInvitation(@Req() req: Request, @Body() body: ProfileId) {
 		const userId = req.user['sub'];
 		const profileId = +body.profileId;
 
-		return this.chatHttpService.removeGameInvitation(userId, profileId);
+		return this.chatHttpService.rejectGameInvitation(userId, profileId);
+	}
+
+	@UseGuards(ChatBlockCheckGuard)
+	@Post('cancelGameInvitation')
+	async cancelGameInvitation(@Req() req: Request, @Body() body: ProfileId) {
+		const userId = req.user['sub'];
+		const profileId = +body.profileId;
+
+		return this.chatHttpService.cancelGameInvitation(userId, profileId);
 	}
 }
-
-/*
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoib21hcnJyIiwiaWF0IjoxNzAxMjY4NzIxLCJleHAiOjE3MDEzNTUxMjF9.aNBerca4xpVc_4Rn2zzF5C4AQUiWuxK_SPxKdGkM10g
-*/

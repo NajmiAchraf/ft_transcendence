@@ -188,5 +188,6 @@ model game_invitation {
   gi_sender user @relation(name: "game_invitation_sender", fields: [sender_id], references: [id])
   receiver_id Int
   gi_receiver user @relation(name: "game_invitation_receiver", fields: [receiver_id], references: [id])
+  is_accepted Boolean @default(false)
   created_at DateTime @default(now())
 }
