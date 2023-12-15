@@ -93,13 +93,13 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		console.log('DELETE CONNECTION: ' + client.id + ' ' + userId);
 		if (this.rooms.deletePlayerRoom(userId.toString())) {
 			this.server.to(client.id).emit("leaveRoom");
-			await this.quitGame(client);
 		}
 		else if (this.rooms.deletePlayerPair(client.id)) {
 			this.server.to(client.id).emit("leaveQueue");
 		}
 		else console.log("Player not found in room or pair");
 
+		await this.cleanUP(client);
 		// delete connection
 		this.socketService.delete(client.id, 'ping-pong');
 	}
@@ -145,7 +145,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 			}
 
 		} catch (error) {
-			console.log(error);
+			console.error(error);
 		}
 	}
 
@@ -161,7 +161,6 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		}
 
 		// get room from database were player accepted invitation
-
 		const entry = await this.prismaService.game_invitation.findFirst({
 			where: {
 				OR: [
@@ -177,28 +176,39 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 
 		if (!entry) {
 			client.emit('invalidAccess', { error: 'You were not invited!' });
-			client.disconnect();
+			this.cleanUP(client);
+			return;
 		}
 
 		const sender_id = entry.sender_id;
 		const receiver_id = entry.receiver_id;
 
 		try {
-			const user = (this.rooms.checkRoom(sender_id.toString()) || this.rooms.checkRoom(receiver_id.toString())) === true
+			const sender = this.rooms.checkRoom(sender_id.toString());
+			const receiver = this.rooms.checkRoom(receiver_id.toString());
 
-			if (this.rooms.checkRoom(sender_id.toString()) === true) {
-				this.server.to(client.id).emit("allowToPlay", { message: "You are in room" });
-				const idRoom = this.rooms.fetchRoom(sender_id.toString());
-				const room = this.rooms.room[idRoom];
-				this.rooms.room[idRoom] = [room[0], [receiver_id.toString(), client.id]];
-				return;
+			let user = "-1";
+			let idRoom = "-1";
+
+			if (sender === true) {
+				user = sender_id.toString();
+				idRoom = this.rooms.fetchRoom(receiver_id.toString());
+			} else if (receiver === true) {
+				user = receiver_id.toString();
+				idRoom = this.rooms.fetchRoom(sender_id.toString());
 			}
 
-			const idRoom = this.rooms.addPlayerInvite(userId.toString(), client.id, userId.toString(), client.id);
-			if (idRoom)
-				console.log("	Room invite joined, id: " + idRoom);
+			if (user !== "-1") {
+				const room = this.rooms.room[idRoom];
+				this.rooms.room[idRoom] = [room[0], [userId.toString(), client.id]];
+				this.rooms.addPlayerInviteStart(idRoom, this.rooms.room[idRoom]);
+			} else {
+				const idRoom = this.rooms.addPlayerInviteCreate(userId.toString(), client.id);
+				if (idRoom)
+					console.log("	Room invite joined, id: " + idRoom);
+			}
 		} catch (error) {
-			console.log(error);
+			console.error(error);
 		}
 	}
 
@@ -223,11 +233,17 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		return userId;
 	}
 
+	async cleanUP(client: Socket) {
+		await this.quitGame(client);
+		client.disconnect();
+	}
+
 	@SubscribeMessage("leaveGame")
 	async leaveGame(client: Socket) {
 		console.log('leaveGame : ' + client.id);
 
-		const userId = await this.quitGame(client)
+		const userId = await this.globalHelperService.getClientIdFromJwt(client);
+
 		if (userId === undefined)
 			return;
 
@@ -240,11 +256,12 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 	async leavedPair(client: Socket) {
 		console.log('leavePair : ' + client.id);
 
-		const userId = await this.quitGame(client)
+		const userId = await this.globalHelperService.getClientIdFromJwt(client);
+
 		if (userId === undefined)
 			return;
 
-		if (this.rooms.deletePlayerPair(client.id)) {
+		if (this.rooms.deletePlayerPair(userId.toString())) {//! check if it's ok
 			this.server.to(client.id).emit("leaveQueue");
 		}
 	}
