@@ -230,6 +230,8 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 				in_game: false,
 			}
 		});
+		//! invitation delete
+
 		return userId;
 	}
 

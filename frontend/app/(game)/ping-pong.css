@@ -34,26 +34,6 @@
 	height: 100%;
 }
 
-@media (orientation: portrait) {
-	.Parent {
-		transform: rotate(90deg);
-		width: 100vh;
-		height: 100vw;
-		top: calc(50% - 50vw);
-		left: calc(50% - 50vh);
-	}
-}
-
-@media (orientation: landscape) {
-	.Parent {
-		transform: rotate(0deg);
-		width: 100%;
-		height: 100%;
-		top: 0;
-		left: 0;
-	}
-}
-
 body, html
 {
 	overflow: hidden;
