@@ -46,7 +46,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		const userId = await this.globalHelperService.getClientIdFromJwt(client);
 
 		if (userId === undefined) {
-			this.server.to(client.id).emit('invalid access', { error: 'Invalid Access Token' });
+			this.server.to(client.id).emit('invalidAccess', { error: 'Invalid Access Token' });
 			//! route to authentication page
 			client.disconnect();
 			return;
@@ -59,7 +59,8 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		});
 
 		if (entry.in_game === true) {
-			this.server.to(client.id).emit('Invalid access', { error: 'Already in game' });
+			this.server.to(client.id).emit("denyToPlay", { error: "You are already in game" });
+
 			client.disconnect();
 			return;
 		}
@@ -84,14 +85,15 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		const userId = this.socketService.getUserId(client.id, 'ping-pong');
 
 		if (userId === undefined) {
-			this.server.to(client.id).emit('invalid access', { error: 'Invalid Access Token' });
+			this.server.to(client.id).emit('invalidAccess', { error: 'Invalid Access Token' });
 			//! route to authentication page
 			return;
 		}
 
 		console.log('DELETE CONNECTION: ' + client.id + ' ' + userId);
-		if (!this.rooms.deletePlayerRoom(userId.toString())) {
+		if (this.rooms.deletePlayerRoom(userId.toString())) {
 			this.server.to(client.id).emit("leaveRoom");
+			await this.quitGame(client);
 		}
 		else if (this.rooms.deletePlayerPair(client.id)) {
 			this.server.to(client.id).emit("leaveQueue");
@@ -99,7 +101,6 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		else console.log("Player not found in room or pair");
 
 		// delete connection
-		await this.quitGame(client);
 		this.socketService.delete(client.id, 'ping-pong');
 	}
 
@@ -125,20 +126,8 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		const userId = await this.globalHelperService.getClientIdFromJwt(client);
 
 		if (userId === undefined) {
-			this.server.to(client.id).emit('invalid access', { error: 'Invalid Access Token' });
+			this.server.to(client.id).emit('invalidAccess', { error: 'Invalid Access Token' });
 			//! route to authentication page
-			return;
-		}
-
-		// check if user is already in game
-		const user = await this.prismaService.user.findUnique({
-			where: {
-				id: userId,
-			},
-		});
-
-		if (user.in_game === true) {
-			this.server.to(client.id).emit("denyToPlay", { error: "You are already in game" });
 			return;
 		}
 
@@ -166,52 +155,48 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		const userId = await this.globalHelperService.getClientIdFromJwt(client);
 
 		if (userId === undefined) {
-			this.server.to(client.id).emit('error', { error: 'Invalid Access Token' });
+			this.server.to(client.id).emit('invalidAccess', { error: 'Invalid Access Token' });
 			//! route to authentication page
 			return;
 		}
 
-		// check if user is already in game //! switch to be check on chat
-		const user = await this.prismaService.user.findUnique({
+		// get room from database were player accepted invitation
+
+		const entry = await this.prismaService.game_invitation.findFirst({
 			where: {
-				id: userId,
-			},
+				OR: [
+					{
+						sender_id: userId,
+					},
+					{
+						receiver_id: userId,
+					},
+				],
+			}
 		});
 
-		if (user.in_game === true) {
-			this.server.to(client.id).emit("denyToPlay", { error: "You are already in game" });
-			return;
+		if (!entry) {
+			client.emit('invalidAccess', { error: 'You were not invited!' });
+			client.disconnect();
 		}
 
-		// get room from database were player accepted invitation
-		// const room = await this.prismaService.room.findFirst({
-		// 	where: {
-		// 		OR: [
-		// 			{
-		// 				player1: userId,
-		// 			},
-		// 			{
-		// 				player2: userId,
-		// 			},
-		// 		],
-		// 		status: "accepted",
-		// 	},
-		// });
+		const sender_id = entry.sender_id;
+		const receiver_id = entry.receiver_id;
 
 		try {
+			const user = (this.rooms.checkRoom(sender_id.toString()) || this.rooms.checkRoom(receiver_id.toString())) === true
+
+			if (this.rooms.checkRoom(sender_id.toString()) === true) {
+				this.server.to(client.id).emit("allowToPlay", { message: "You are in room" });
+				const idRoom = this.rooms.fetchRoom(sender_id.toString());
+				const room = this.rooms.room[idRoom];
+				this.rooms.room[idRoom] = [room[0], [receiver_id.toString(), client.id]];
+				return;
+			}
+
 			const idRoom = this.rooms.addPlayerInvite(userId.toString(), client.id, userId.toString(), client.id);
 			if (idRoom)
 				console.log("	Room invite joined, id: " + idRoom);
-
-			// set player in game
-			await this.prismaService.user.update({
-				where: {
-					id: user.id,
-				},
-				data: {
-					in_game: true,
-				}
-			});
 		} catch (error) {
 			console.log(error);
 		}
@@ -221,7 +206,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		const userId = await this.globalHelperService.getClientIdFromJwt(client);
 
 		if (userId === undefined) {
-			this.server.to(client.id).emit('invalid access', { error: 'Invalid Access Token' });
+			this.server.to(client.id).emit('invalidAccess', { error: 'Invalid Access Token' });
 			//! route to authentication page
 			return undefined;
 		}

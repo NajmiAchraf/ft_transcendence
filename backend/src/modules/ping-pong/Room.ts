@@ -73,7 +73,7 @@ export default class Room {
 		return this.room[room];
 	}
 
-	private fetchRoom(playerID: string): string | undefined {
+	fetchRoom(playerID: string): string | undefined {
 		if (this.room === undefined)
 			return undefined;
 		// find the room where the player is in just the PlayerID without the clientID
@@ -101,7 +101,7 @@ export default class Room {
 		return undefined;
 	}
 
-	private checkRoom(playerID: string): boolean {
+	checkRoom(playerID: string): boolean {
 		if (this.fetchRoom(playerID) !== undefined) {
 			console.log("Player already in a room");
 			return true;
@@ -135,10 +135,10 @@ export default class Room {
 
 	//TODO: Add invitation system across the socket beside the pair
 	addPlayer(playerID: string, clientID: string): string | undefined {
-		if (this.checkRoom(playerID) === true) {
-			this.pingPongGateway.server.to(clientID).emit("denyToPlay", { error: "You are already in a room" });
-			return undefined;
-		}
+		// if (this.checkRoom(playerID) === true) {
+		// 	this.pingPongGateway.server.to(clientID).emit("denyToPlay", { error: "You are already in a room" });
+		// 	return undefined;
+		// }
 
 		const pair = this.pair.addPlayer(playerID, clientID);
 		// emit to client that he is in pair
@@ -156,10 +156,10 @@ export default class Room {
 	}
 
 	addPlayerBot(playerID: string, clientID: string, mode: Mode, side: Side): string | undefined {
-		if (this.checkRoom(playerID) === true) {
-			this.pingPongGateway.server.to(playerID).emit("denyToPlay", { error: "You are already in a room" });
-			return undefined;
-		}
+		// if (this.checkRoom(playerID) === true) {
+		// 	this.pingPongGateway.server.to(playerID).emit("denyToPlay", { error: "You are already in a room" });
+		// 	return undefined;
+		// }
 
 		if (side === "right") {
 
@@ -180,14 +180,14 @@ export default class Room {
 	}
 
 	addPlayerInvite(player1ID: string, client1ID: string, player2ID: string, client2ID: string): string | undefined {
-		if (this.checkRoom(player1ID) === true) {
-			this.pingPongGateway.server.to(client1ID).emit("allowToPlay", { message: "You are in room" });
-			return this.idRoom.toString();
-		}
-		if (this.checkRoom(player2ID) === true) {
-			this.pingPongGateway.server.to(client2ID).emit("denyToPlay", { error: "You are already in a room" });
-			return undefined;
-		}
+		// if (this.checkRoom(player1ID) === true) {
+		// 	this.pingPongGateway.server.to(client1ID).emit("allowToPlay", { message: "You are in room" });
+		// 	return this.idRoom.toString();
+		// }
+		// if (this.checkRoom(player2ID) === true) {
+		// 	this.pingPongGateway.server.to(client2ID).emit("denyToPlay", { error: "You are already in a room" });
+		// 	return undefined;
+		// }
 
 		const pair: PairType = [[player1ID, client1ID], [player2ID, client2ID]];
 		this.createGame(pair, "player", "player", "medium");

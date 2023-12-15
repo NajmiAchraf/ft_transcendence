@@ -20,7 +20,7 @@ class CanvasComponent {
 	canvas: HTMLCanvasElement;
 	protected renderer: THREE.WebGLRenderer;
 	scene: THREE.Scene;
-	protected camera: THREE.PerspectiveCamera;
+	camera: THREE.PerspectiveCamera;
 	protected orbits: OrbitControls | undefined;
 
 	protected composer: EffectComposer;
