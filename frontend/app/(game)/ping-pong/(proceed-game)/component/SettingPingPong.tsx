@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 import { useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext';
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
@@ -12,6 +14,8 @@ function SettingPingPong() {
 	const optionsContext = useOptionsContext();
 	const propsContext = usePropsContext();
 	const webContext = useWebSocketContext();
+
+	const router = useRouter();
 
 	const [isButtonClicked, setButtonClicked] = useState(false);
 
@@ -129,7 +133,7 @@ function SettingPingPong() {
 							<button className="button-stg execute" onClick={invitePlayer} disabled={isButtonClicked}> Proceed </button>
 						)}
 						{/* leave to home */}
-						<button className="button-stg execute" onClick={() => { window.location.href = "/"; }}> Leave </button>
+						<button className="button-stg execute" onClick={() => router.push("/home")}> Leave </button>
 
 					</div>
 				</div>
