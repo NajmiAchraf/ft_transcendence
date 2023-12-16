@@ -57,16 +57,16 @@ class CanvasComponent {
 		}
 
 		this.onWindowResize = () => {
-			this.canvas.style.width = window.innerWidth + 'px';
-			this.canvas.style.height = window.innerHeight + 'px';
+			this.canvas.style.width = parent.innerWidth + 'px';
+			this.canvas.style.height = parent.innerHeight + 'px';
 
-			this.camera.aspect = window.innerWidth / window.innerHeight;
+			this.camera.aspect = parent.innerWidth / parent.innerHeight;
 
 			if (this.camera.aspect > planeAspectRatio) {
-				// window too narrow
+				// parent too narrow
 				this.camera.fov = fov;
 			} else {
-				// window too large
+				// parent too large
 				overScan();
 			}
 
@@ -74,12 +74,12 @@ class CanvasComponent {
 			this.camera.updateProjectionMatrix();
 
 			// Update the renderer size
-			this.renderer.setSize(window.innerWidth, window.innerHeight);
-			this.renderer.setPixelRatio(window.devicePixelRatio);
+			this.renderer.setSize(parent.innerWidth, parent.innerHeight);
+			this.renderer.setPixelRatio(parent.devicePixelRatio);
 		}
 
 		// resize for PerspectiveCamera
-		window.addEventListener('resize', this.onWindowResize);
+		parent.addEventListener('resize', this.onWindowResize);
 
 		// Create an effect composer
 		this.composer = new EffectComposer(this.renderer);
@@ -93,7 +93,7 @@ class CanvasComponent {
 		this.composer.addPass(this.bloomPass);
 
 		// Initial renderer size
-		this.renderer.setSize(window.innerWidth, window.innerHeight);
+		this.renderer.setSize(parent.innerWidth, parent.innerHeight);
 
 		// Initial camera aspect ratio
 		this.onWindowResize();
@@ -107,7 +107,7 @@ class CanvasComponent {
 			alpha: true,
 		})
 		renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
-		renderer.setPixelRatio(window.devicePixelRatio);
+		renderer.setPixelRatio(parent.devicePixelRatio);
 		renderer.shadowMap.enabled = true;
 		//renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		return renderer;
@@ -148,7 +148,7 @@ class CanvasComponent {
 	}
 
 	protected dispose() {
-		window.removeEventListener('resize', this.onWindowResize);
+		parent.removeEventListener('resize', this.onWindowResize);
 
 		while (this.scene.children.length > 0) {
 			this.scene.remove(this.scene.children[0]);
