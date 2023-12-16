@@ -3,6 +3,7 @@
 import { createContext, useContext, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { DefaultEventsMap } from '@socket.io/component-emitter';
+import { getCookie } from '@/app/components/errorChecks';
 
 export interface IWebSocketContext {
 	socketGame: Socket<DefaultEventsMap, DefaultEventsMap>;
@@ -26,9 +27,7 @@ function WebSocketContextProvider({ children }: { children: React.ReactNode }) {
 	const game = io('http://localhost:3001/ping-pong', {
 		transports: ['websocket'],
 		query: {
-			// accessToken: localStorage.getItem('accessToken'),
-
-			accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiYW5ham1pIiwiaWF0IjoxNzAyNzE1OTE2LCJleHAiOjE3MDI4MDIzMTZ9.HfBe6ODLGtkaBsLqJIXd7iR6DHMKHWSrtfoErT1UW8M",
+			accessToken: getCookie("AccessToken"),
 		}
 	});
 
