@@ -1,0 +1,16 @@
+# Use an official Node.js runtime as a base image
+FROM node:20.9.0
+
+WORKDIR /app
+
+COPY ./frontend/package*.json ./
+
+RUN npm install
+
+COPY ./frontend .
+
+EXPOSE 3000
+
+COPY ./script.sh .
+
+CMD ["bash", "script.sh"]

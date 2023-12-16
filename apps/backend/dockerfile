@@ -1,0 +1,20 @@
+# Use an official Node.js runtime as a base image
+FROM node:20.9.0
+
+WORKDIR /app
+
+COPY script.sh .
+
+COPY ./backend/package*.json ./
+
+RUN npm install
+
+COPY ./backend .
+
+RUN mkdir -p /app/uploads
+
+RUN mkdir -p /app/database/prisma/migrations
+
+EXPOSE 3001
+
+CMD ["bash", "script.sh"]

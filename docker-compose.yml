@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  postgresql:
+      build: ./apps/backend/backend/database/postgresql
+      image: postgres
+      container_name: postgresql
+      restart: on-failure
+      env_file:
+        - .env
+      # init : true
+      networks:
+        - transcendence
+      ports:
+        - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+      volumes:
+        - postgresql:/var/lib/postgresql/data
+
+  backend:
+    build: ./apps/backend/
+    image: backend
+    container_name: backend
+    restart: on-failure
+    volumes:
+      - uploads:/app/uploads
+      - migrations:/app/database/prisma/migrations
+    env_file:
+      - .env
+    # expose:
+    #   - "3001"
+    ports:
+      - 3001:3001
+    networks:
+      - transcendence
+    depends_on:
+      - postgresql
+    
+  frontend:
+    build: ./apps/frontend/
+    image: frontend
+    container_name: frontend
+    restart: on-failure
+    env_file:
+      - .env
+    # expose:
+    #   - "3000"
+    ports:
+      - 3000:3000
+    networks:
+      - transcendence
+    depends_on:
+      - backend
+    
+networks:
+  transcendence:
+    driver: bridge
+
+volumes:
+  postgresql:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./volumes/postgresql/data
+      o: 'bind'
+
+  uploads:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./volumes/uploads
+      o: 'bind'
+
+  migrations:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./volumes/migrations
+      o: 'bind'
