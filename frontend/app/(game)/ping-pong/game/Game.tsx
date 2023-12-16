@@ -48,39 +48,6 @@ class CanvasComponent {
 			this.orbits.update();
 		}
 
-
-		let overScan = () => {
-			const cameraHeight = Math.tan(THREE.MathUtils.degToRad(fov / 2));
-			const ratio = this.camera.aspect / planeAspectRatio;
-			const newCameraHeight = cameraHeight / ratio;
-			this.camera.fov = THREE.MathUtils.radToDeg(Math.atan(newCameraHeight)) * 2;
-		}
-
-		this.onWindowResize = () => {
-			this.canvas.style.width = parent.innerWidth + 'px';
-			this.canvas.style.height = parent.innerHeight + 'px';
-
-			this.camera.aspect = parent.innerWidth / parent.innerHeight;
-
-			if (this.camera.aspect > planeAspectRatio) {
-				// parent too narrow
-				this.camera.fov = fov;
-			} else {
-				// parent too large
-				overScan();
-			}
-
-			// Update the camera
-			this.camera.updateProjectionMatrix();
-
-			// Update the renderer size
-			this.renderer.setSize(parent.innerWidth, parent.innerHeight);
-			this.renderer.setPixelRatio(parent.devicePixelRatio);
-		}
-
-		// resize for PerspectiveCamera
-		parent.addEventListener('resize', this.onWindowResize);
-
 		// Create an effect composer
 		this.composer = new EffectComposer(this.renderer);
 
@@ -92,8 +59,48 @@ class CanvasComponent {
 		this.bloomPass = new UnrealBloomPass(new THREE.Vector2(this.canvas.clientWidth, this.canvas.clientHeight), 0.5, 0.4, 0.85);
 		this.composer.addPass(this.bloomPass);
 
-		// Initial renderer size
-		this.renderer.setSize(parent.innerWidth, parent.innerHeight);
+
+		let overScan = () => {
+			const cameraHeight = Math.tan(THREE.MathUtils.degToRad(fov / 2));
+			const ratio = this.camera.aspect / planeAspectRatio;
+			const newCameraHeight = cameraHeight / ratio;
+			this.camera.fov = THREE.MathUtils.radToDeg(Math.atan(newCameraHeight)) * 2;
+		}
+
+		this.onWindowResize = () => {
+			this.canvas.style.width = window.innerWidth + 'px';
+			this.canvas.style.height = window.innerHeight + 'px';
+
+			this.camera.aspect = window.innerWidth / window.innerHeight;
+
+			if (this.camera.aspect > planeAspectRatio) {
+				// window too narrow
+				this.camera.fov = fov;
+			} else {
+				// window too large
+				overScan();
+			}
+
+			// Update the camera
+			this.camera.updateProjectionMatrix();
+
+			// Update the pixel ratio of the renderer inside the composer
+			this.renderer.setPixelRatio(window.devicePixelRatio);
+			this.composer.setPixelRatio(window.devicePixelRatio);
+
+			// Update the size of the renderer inside the composer
+			this.renderer.setSize(window.innerWidth, window.innerHeight);
+			this.composer.setSize(window.innerWidth, window.innerHeight);
+
+			// Update the passes in the composer
+			this.renderPass.setSize(window.innerWidth, window.innerHeight);
+
+			// Update the passes in the composer
+			this.bloomPass.setSize(window.innerWidth, window.innerHeight);
+		}
+
+		// resize for PerspectiveCamera
+		window.addEventListener('resize', this.onWindowResize);
 
 		// Initial camera aspect ratio
 		this.onWindowResize();
@@ -106,10 +113,9 @@ class CanvasComponent {
 			antialias: true,
 			alpha: true,
 		})
-		renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
-		renderer.setPixelRatio(parent.devicePixelRatio);
+		renderer.setPixelRatio(window.devicePixelRatio);
+		renderer.setSize(window.innerWidth, window.innerHeight);
 		renderer.shadowMap.enabled = true;
-		//renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 		return renderer;
 	}
 
@@ -144,11 +150,10 @@ class CanvasComponent {
 
 	protected render() {
 		this.composer.render();
-		// this.renderer.render(this.scene, this.camera)
 	}
 
 	protected dispose() {
-		parent.removeEventListener('resize', this.onWindowResize);
+		window.removeEventListener('resize', this.onWindowResize);
 
 		while (this.scene.children.length > 0) {
 			this.scene.remove(this.scene.children[0]);
