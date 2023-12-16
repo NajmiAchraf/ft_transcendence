@@ -75,9 +75,9 @@ export class AuthController {
             },
             select: {
                 nickname: true,
+                two_factor_auth: true,
             },
         });
-
 
         if (entry.two_factor_auth === true) {
             // ! redirect to the front end 2factor page

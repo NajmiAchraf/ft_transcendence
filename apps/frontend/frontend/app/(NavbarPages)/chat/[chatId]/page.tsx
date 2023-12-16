@@ -532,7 +532,7 @@ const Chat = () => {
                                             <div className="edit-password">
                                                 <div className="section">
                                                     <IonIcon onClick={() => { setPassUpdateState(""); setPassword("") }} icon={IonIcons.closeCircle}></IonIcon>
-                                                    <h3>Update your channel's privacy</h3>
+                                                    <h3>Update your channel s privacy</h3>
                                                     <input name="password" type="password" placeholder="Enter your new password" onChange={(e) => setPassword(e.target.value)} />
                                                     <button onClick={UpdatePassword}>Change</button>
                                                 </div>
