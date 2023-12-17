@@ -8,18 +8,34 @@ import { Suspense, useEffect, useState } from 'react';
 import { getCookie } from './errorChecks';
 import { LogOut } from './errorChecks';
 import { whoami } from './PersonalInfo';
+import { useWebSocketContext } from '../context/WebSocketContext';
+
 type User = {
   id: number;
   nickname: string;
   avatar: string;
 }
+
 const NavBar = () => {
-  const props = useNavContext()
+  const wsProvider = useWebSocketContext()
+  const context = useNavContext()
+  useEffect (() =>{
+    const handleInvite = (event : any) =>{
+        if (event.receiverId == context.id)
+        {
+          const el = document.querySelector(".invite-popup") as HTMLElement;
+            if (el)
+              el.style.display = "flex";
+        }
+    }
+    wsProvider.chat.on("invitePlayer", handleInvite)
+    return () =>{ wsProvider.chat.off("invitePlayer", handleInvite)}
+  })
   /*const [userId, setuserId] = useState(0);*/
   useEffect(() => {
     const localwhoami = async () => {
       const id = await whoami()
-      props.setId(id)
+      context.setId(id)
     }
     localwhoami()
   }, []);
@@ -94,39 +110,39 @@ const NavBar = () => {
         <nav>
           <ul>
             <li className="active">
-              <IonIcon onClick={() => { props.setNav("0") }} icon={IonIcons.home} />
+              <IonIcon onClick={() => { context.setNav("0") }} icon={IonIcons.home} />
             </li>
             <li>
-              <Link onClick={() => { props.setNav("1"); }} href={`/chat/${props.id}`} className="chat-icon">
+              <Link onClick={() => { context.setNav("1"); }} href={`/chat/${context.id}`} className="chat-icon">
                 <IonIcon icon={IonIcons.chatbubbleEllipses} />
               </Link>
             </li>
             <li>
-              <Link onClick={() => { props.setNav("2") }} href="/leaderboard">
+              <Link onClick={() => { context.setNav("2") }} href="/leaderboard">
                 <IonIcon icon={IonIcons.clipboard} />
               </Link>
             </li>
             <li>
-              <Link onClick={() => { props.setNav("3") }} href={`/profile/${props.id}`}>
+              <Link onClick={() => { context.setNav("3") }} href={`/profile/${context.id}`}>
                 <IonIcon icon={IonIcons.person} />
               </Link>
             </li>
             <li>
               <Link onClick={() => {
-                if (props.infoSec !== "3")
-                  props.setinfoSec("3");
-                props.setNav("4")
+                if (context.infoSec !== "3")
+                  context.setinfoSec("3");
+                context.setNav("4")
                 const f = document.querySelectorAll("nav .item");
                 f?.forEach((d, i) => {
                   d.classList?.remove("active");
                   if (i == 3)
                     d.classList?.add("active")
                 });
-              }} href={`/profile/${props.id}`}>
+              }} href={`/profile/${context.id}`}>
                 <IonIcon icon={IonIcons.settings} />
               </Link>
             </li>
-            <div className="hoveredarea" style={{ transform: `translateY(calc( 120px * ${props.nav} - 40px))` }} id="hoverarea"></div>
+            <div className="hoveredarea" style={{ transform: `translateY(calc( 120px * ${context.nav} - 40px))` }} id="hoverarea"></div>
           </ul>
         </nav>
         <div className='logout'>

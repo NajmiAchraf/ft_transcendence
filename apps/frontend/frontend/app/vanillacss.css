@@ -1865,7 +1865,7 @@ linear-gradient(96.25deg, rgba(215, 84, 51, 0.35) 33.33%, rgba(255, 0, 0, 0.35) 
 }
 
 .personal-info button,
-._2factor .verify-btn {
+._2factor .verify-btn, .invite-popup .verify-btn {
   transition: 0.5s;
   color: white;
   background: linear-gradient(226.53deg, #D75433 11.76%, #412271 74.33%);
@@ -1933,7 +1933,7 @@ linear-gradient(96.25deg, rgba(215, 84, 51, 0.35) 33.33%, rgba(255, 0, 0, 0.35) 
   }
 }
 
-._2factor {
+._2factor, .invite-popup {
   position: fixed;
   width: 100%;
   height: 100%;
@@ -1956,12 +1956,12 @@ linear-gradient(96.25deg, rgba(215, 84, 51, 0.35) 33.33%, rgba(255, 0, 0, 0.35) 
   margin-bottom: 10px;
 }
 
-._2factor .buttons {
+._2factor .buttons, .invite-popup .buttons {
   display: flex;
   gap: 1rem;
 }
 
-._2factor .btn-container {
+._2factor .btn-container, .invite-popup .btn-container{
   padding: 1px;
   width: 85px;
   border-radius: 8px;
@@ -1970,13 +1970,12 @@ linear-gradient(96.25deg, rgba(215, 84, 51, 0.35) 33.33%, rgba(255, 0, 0, 0.35) 
   box-shadow: 0px 4px 4px 0px #00000040;
 }
 
-._2factor .cancel-btn {
+._2factor .cancel-btn, .invite-popup .cancel-btn {
   background-color: #272932;
   width: 100%;
   height: 100%;
   border: none;
   color: white;
-  /*background: linear-gradient(226.53deg, #D75433 11.76%, #412271 74.33%);*/
   border-radius: inherit;
   font-family: Montserrat;
   font-size: 12px;
@@ -1984,15 +1983,6 @@ linear-gradient(96.25deg, rgba(215, 84, 51, 0.35) 33.33%, rgba(255, 0, 0, 0.35) 
   line-height: 20px;
   letter-spacing: 0em;
   cursor: pointer;
-  /*border: 1px solid;
-  width: 115px;
-  height: 37px;
-  border-radius: 8px;
-  border: 1px;
-
-  background: linear-gradient(0deg, #272932, #272932),
-    linear-gradient(326.18deg, #412270 33.98%, #C04C3C 101.11%, rgba(0, 0, 0, 0) 102.14%);
-  border-image-source: linear-gradient(326.18deg, #412270 33.98%, #C04C3C 101.11%, rgba(0, 0, 0, 0) 102.14%);*/
 }
 
 ._2factor label {

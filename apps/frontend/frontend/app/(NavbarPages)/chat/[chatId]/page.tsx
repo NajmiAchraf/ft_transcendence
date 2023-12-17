@@ -297,8 +297,15 @@ const Chat = () => {
         const handleJoinedEvent = async () => {
             await fetchChannels()
         }
+        const UpdateData = () => {
+            fetchChannels()
+        }
+        wsProvider.chat.on("joined", UpdateData)
+        wsProvider.chat.on("leaveChannelSelf", UpdateData)
         wsProvider.chat.on("joined", handleJoinedEvent)
         return () => {
+            wsProvider.chat.off("joined", UpdateData);
+            wsProvider.chat.off("leaveChannelSelf", UpdateData);
             wsProvider.chat.off("joined", handleJoinedEvent)
             wsProvider.chat.off("leaveChannelOthers", handleLeaveChannelOthers);
             wsProvider.chat.off("leaveChannelSelf", handleLeaveChannelSelf);
@@ -532,7 +539,7 @@ const Chat = () => {
                                             <div className="edit-password">
                                                 <div className="section">
                                                     <IonIcon onClick={() => { setPassUpdateState(""); setPassword("") }} icon={IonIcons.closeCircle}></IonIcon>
-                                                    <h3>Update your channel s privacy</h3>
+                                                    <h3>Update your channel privacy</h3>
                                                     <input name="password" type="password" placeholder="Enter your new password" onChange={(e) => setPassword(e.target.value)} />
                                                     <button onClick={UpdatePassword}>Change</button>
                                                 </div>
@@ -605,7 +612,12 @@ const Chat = () => {
                     : "")}
             </div>
             <div className="messages">
-                <IonIcon onClick={leaveChannel} icon={IonIcons.logOut}></IonIcon>
+                {((urlParams.chatId as string).endsWith("_channel") ? 
+                    <IonIcon onClick={leaveChannel} icon={IonIcons.logOut}></IonIcon>
+                    :<IonIcon onClick={() =>{
+                        wsProvider.chat.emit("invitePlayer", {senderId: context.id, receiverid : (urlParams.chatId as string)})
+                    }}icon={IonIcons.addCircle}></IonIcon>
+                )}
                 <div className="results">
                     {messages.slice().reverse().map((message, id) => (
                         <div key={id} className={(Number(message.sender_id) == context.id ? "message mine" : "message")}>

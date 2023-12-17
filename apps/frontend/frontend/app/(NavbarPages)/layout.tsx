@@ -62,6 +62,21 @@ export default function RootLayout({
     <WebSocketContextProvider>
       <PrimaryChecks></PrimaryChecks>
       <div className="container">
+        <div className="invite-popup">
+        <div className="buttons">
+            <button type="button" className="verify-btn">Verify</button>
+            <div className="btn-container">
+              <button type="button" onClick={() => {
+                const el = document.querySelector(".invite-popup") as HTMLElement;
+                if (el) {
+                  el.style.animation = "fadeOut 0.3s forwards"
+                  setTimeout(() => { if (el) el.style.display = "none"; el.style.animation = "fadeInAnimation 0.5s ease forwards" }, 400)
+                }
+                hover.setTwoFACode("")
+              }} className='cancel-btn'>Cancel</button>
+            </div>
+          </div>
+        </div>
         <div className="loading-screen"><div className="loader"></div></div>
         <div className="navbar-overlay"></div>
         <div className="_2factor">
