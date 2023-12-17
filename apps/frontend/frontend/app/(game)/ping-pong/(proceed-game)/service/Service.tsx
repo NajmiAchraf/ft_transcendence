@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 import Game from '@/app/(game)/ping-pong/game/Game';
 
@@ -17,6 +18,8 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 	const propsContext = usePropsContext();
 	const webSocketContext = useWebSocketContext();
 	const webSocketGame = webSocketContext.socketGame;
+
+	const router = useRouter();
 
 	let playState: PlayStates = "readyPlay";
 
@@ -103,8 +106,11 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 	};
 
 	const handleDenyToPlay = (data: any) => {
-		console.log('denyToPlay: ', data);
-		setGameState("settings");
+		console.log('denyToPlay: ', data.error);
+		if (data.error) {
+			alert(data.error);
+			router.push("/home");
+		}
 	};
 
 	const handleInvalidAccess = (data: any) => {
