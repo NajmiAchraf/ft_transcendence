@@ -2,19 +2,18 @@ version: '3.8'
 
 services:
   postgresql:
-      build: ./apps/backend/backend/database/postgresql
-      image: postgres
-      container_name: postgresql
-      restart: on-failure
-      env_file:
-        - .env
-      # init : true
-      networks:
-        - transcendence
-      ports:
-        - "${POSTGRES_PORT}:${POSTGRES_PORT}"
-      volumes:
-        - postgresql:/var/lib/postgresql/data
+    build: ./apps/backend/backend/database/postgresql
+    image: postgres
+    container_name: postgresql
+    restart: on-failure
+    env_file:
+      - .env
+    networks:
+      - transcendence
+    ports:
+      - '${POSTGRES_PORT}:${POSTGRES_PORT}'
+    # volumes:
+      # - /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/postgresql/data:/var/lib/postgresql/data
 
   backend:
     build: ./apps/backend/
@@ -22,19 +21,17 @@ services:
     container_name: backend
     restart: on-failure
     volumes:
-      - uploads:/app/uploads
-      - migrations:/app/database/prisma/migrations
+      - /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/uploads:/app/uploads
+      - /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/migrations:/app/database/prisma/migrations
     env_file:
       - .env
-    # expose:
-    #   - "3001"
     ports:
       - 3001:3001
     networks:
       - transcendence
     depends_on:
       - postgresql
-    
+
   frontend:
     build: ./apps/frontend/
     image: frontend
@@ -42,15 +39,13 @@ services:
     restart: on-failure
     env_file:
       - .env
-    # expose:
-    #   - "3000"
     ports:
       - 3000:3000
     networks:
       - transcendence
     depends_on:
       - backend
-    
+
 networks:
   transcendence:
     driver: bridge
@@ -60,19 +55,96 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: ./volumes/postgresql/data
+      device: /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/postgresql/data
       o: 'bind'
 
   uploads:
     driver: local
     driver_opts:
       type: none
-      device: ./volumes/uploads
+      device: /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/uploads
       o: 'bind'
 
   migrations:
     driver: local
     driver_opts:
       type: none
-      device: ./volumes/migrations
+      device: /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/migrations
       o: 'bind'
+
+
+
+
+# version: '3.8'
+
+# services:
+#   postgresql:
+#     build: ./apps/backend/backend/database/postgresql
+#     image: postgres
+#     container_name: postgresql
+#     restart: on-failure
+#     env_file:
+#       - .env
+#     networks:
+#       - transcendence
+#     ports:
+#       - '${POSTGRES_PORT}:${POSTGRES_PORT}'
+#     volumes:
+#       - postgresql_data:/var/lib/postgresql/data
+
+#   backend:
+#     build: ./apps/backend/
+#     image: backend
+#     container_name: backend
+#     restart: on-failure
+#     volumes:
+#       - uploads_data:/app/uploads
+#       - migrations_data:/app/database/prisma/migrations
+#     env_file:
+#       - .env
+#     ports:
+#       - 3001:3001
+#     networks:
+#       - transcendence
+#     depends_on:
+#       - postgresql
+
+#   frontend:
+#     build: ./apps/frontend/
+#     image: frontend
+#     container_name: frontend
+#     restart: on-failure
+#     env_file:
+#       - .env
+#     ports:
+#       - 3000:3000
+#     networks:
+#       - transcendence
+#     depends_on:
+#       - backend
+
+# networks:
+#   transcendence:
+#     driver: bridge
+
+# volumes:
+#   postgresql_data:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       device: /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/postgresql/data
+#       o: 'bind'
+
+#   uploads_data:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       device: /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/uploads
+#       o: 'bind'
+
+#   migrations_data:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       device: /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/migrations
+#       o: 'bind'
