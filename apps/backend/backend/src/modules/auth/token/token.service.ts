@@ -1,7 +1,6 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Tokens } from '../types';
-import * as argon2 from 'argon2';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { GlobalHelperService } from 'src/common/services/global_helper.service';
 

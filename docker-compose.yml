@@ -13,20 +13,21 @@ services:
     ports:
       - '${POSTGRES_PORT}:${POSTGRES_PORT}'
     # volumes:
-      # - /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/postgresql/data:/var/lib/postgresql/data
+    #   - postgresql:/var/lib/postgresql/data
 
   backend:
     build: ./apps/backend/
     image: backend
     container_name: backend
     restart: on-failure
-    volumes:
-      - /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/uploads:/app/uploads
-      - /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/migrations:/app/database/prisma/migrations
+    # volumes:
+      # - migrations:/app/database/prisma/migrations
+    #   - uploads:/app/uploads
     env_file:
       - .env
     ports:
       - 3001:3001
+      - 5555:5555
     networks:
       - transcendence
     depends_on:
@@ -50,27 +51,48 @@ networks:
   transcendence:
     driver: bridge
 
-volumes:
-  postgresql:
-    driver: local
-    driver_opts:
-      type: none
-      device: /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/postgresql/data
-      o: 'bind'
+# volumes:
+#   postgresql:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       device: ~/volumes/postgresql/data
+#       o: 'bind'
 
-  uploads:
-    driver: local
-    driver_opts:
-      type: none
-      device: /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/uploads
-      o: 'bind'
+  # uploads:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     device: ~/volumes/uploads
+  #     o: 'bind'
 
-  migrations:
-    driver: local
-    driver_opts:
-      type: none
-      device: /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/migrations
-      o: 'bind'
+  # migrations:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     device: ~/ft-transcendence/volumes
+  #     o: 'bind'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -128,6 +150,12 @@ volumes:
 #     driver: bridge
 
 # volumes:
+#   migrations_data:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       device: /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/migrations
+#       o: 'bind'
 #   postgresql_data:
 #     driver: local
 #     driver_opts:
@@ -140,11 +168,4 @@ volumes:
 #     driver_opts:
 #       type: none
 #       device: /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/uploads
-#       o: 'bind'
-
-#   migrations_data:
-#     driver: local
-#     driver_opts:
-#       type: none
-#       device: /nfs/sgoinfre/goinfre/Perso/${USER}/docker/volumes/migrations
 #       o: 'bind'
