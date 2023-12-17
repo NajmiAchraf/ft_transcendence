@@ -146,7 +146,7 @@ export class UserController {
 	async getTwoFactorQr(@Req() req: Request) {
 		const userId = req.user['sub'];
 		const username = req.user['username'];
-		return await this.twoFactorService.getTwoFactorQr(userId, username);
+		return {img: await this.twoFactorService.getTwoFactorQr(userId, username)};
 	}
 
 	@BlockPublic()
@@ -163,7 +163,7 @@ export class UserController {
 	async checkTwoFactor(@Body() body: TwoFactorDto, @Req() req: Request) {
 		const userId = req.user['sub'];
 		const { code } = body;
-		return { img: await this.twoFactorService.checkTwoFactor(userId, code) };
+		return await this.twoFactorService.checkTwoFactor(userId, code);
 	}
 
 	@BlockPublic()

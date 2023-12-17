@@ -97,7 +97,7 @@ export class DmService {
 
 	async sendGameInvitation(server: Namespace, client: Socket, message: any) {
 		try {
-			const res = await fetch(`${process.env.API_URL}/chatHttp/acceptGameInvitation`, {
+			const res = await fetch(`${process.env.API_URL}/chatHttp/sendGameInvitation`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
