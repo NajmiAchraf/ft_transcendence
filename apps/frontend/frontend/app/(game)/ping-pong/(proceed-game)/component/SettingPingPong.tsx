@@ -91,6 +91,14 @@ function SettingPingPong() {
 		setButtonClicked(true);
 	}
 
+	const leave = () => {
+		// disconnect socket after leave
+		webContext.socketGame.disconnect();
+
+		// redirect to home
+		router.push("/home");
+	}
+
 	return (
 
 		<div className="setting">
@@ -133,7 +141,7 @@ function SettingPingPong() {
 							<button className="button-stg execute" onClick={invitePlayer} disabled={isButtonClicked}> Proceed </button>
 						)}
 						{/* leave to home */}
-						<button className="button-stg execute" onClick={() => router.push("/home")}> Leave </button>
+						<button className="button-stg execute" onClick={leave}> Leave </button>
 
 					</div>
 				</div>
