@@ -829,8 +829,13 @@ export class ChatHttpService {
 			}
 		});
 
-		if (entries.length === 1) {
-			this.deleteChannel(userId, channelId);
+		try {
+			if (entries.length === 1) {
+				await this.deleteChannel(userId, channelId);
+			}
+		}
+		catch (err) {
+			throw ForbiddenException('invalid operation');
 		}
 	}
 
