@@ -7,7 +7,7 @@ export class avatarDto {
 
 	@IsDefined()
 	@IsString()
-	@Length(1, 255)
+	@Length(1, 200)
 	path: string;
 
 	@IsDefined()

@@ -6,9 +6,11 @@ export class AdditionalInfo {
 	@Matches(/^[a-zA-Z0-9]+$/, { message: 'Username should contain only letters and digits' })
 	nickname: string;
 
+	@Length(5, 50)
 	@IsString()
 	fullname: string;
 
+	@Matches(/^(male|female)$/)
 	@IsString()
 	gender: string;
 

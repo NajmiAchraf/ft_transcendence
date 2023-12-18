@@ -810,13 +810,7 @@ export class ChatHttpService {
 			}
 		}
 
-		// delete user from channel
-		await this.prismaService.user_channel.delete({
-			where: {
-				id: entry.id,
-			}
-		});
-
+		
 		// * decrement members_count
 		await this.prismaService.channel.update({
 			where: {
@@ -828,15 +822,25 @@ export class ChatHttpService {
 				}
 			}
 		});
-
+		
 		try {
 			if (entries.length === 1) {
 				await this.deleteChannel(userId, channelId);
+				return ;
 			}
 		}
 		catch (err) {
-			throw ForbiddenException('invalid operation');
+			console.log('heeeeeeeeereeee');
+			throw new ForbiddenException('invalid operation');
 		}
+
+		
+		// delete user from channel
+		await this.prismaService.user_channel.delete({
+			where: {
+				id: entry.id,
+			}
+		});
 	}
 
 	async deleteChannel(userId: number, channelId: number) {
@@ -848,10 +852,12 @@ export class ChatHttpService {
 		});
 
 		if (!entry) {
+			console.log('hellooooow')
 			throw new ForbiddenException('You are not in the channel');
 		}
 
 		if (entry.user_role !== 'owner') {
+			console.log('not owner helloooww')
 			throw new ForbiddenException('Only owners can delete the channel');
 		}
 

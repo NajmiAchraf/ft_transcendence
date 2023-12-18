@@ -27,6 +27,9 @@ export class TwoFactorGuard implements CanActivate {
 			},
 		});
 
+		if (!user)
+			return false;
+
 		if (user.two_factor_auth === true) {
 			return user.is_two_factor_authenticated === true;
 		}
