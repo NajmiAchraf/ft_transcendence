@@ -6,6 +6,8 @@ import { useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 
+import { useNavContext } from '@/app/(NavbarPages)/context/NavContext';
+
 import { useState } from 'react';
 
 import "@/app/(game)/ping-pong.css";
@@ -14,6 +16,8 @@ function SettingPingPong() {
 	const optionsContext = useOptionsContext();
 	const propsContext = usePropsContext();
 	const webContext = useWebSocketContext();
+
+	const navContext = useNavContext();
 
 	const router = useRouter();
 
@@ -96,7 +100,13 @@ function SettingPingPong() {
 		webContext.socketGame.disconnect();
 
 		// redirect to home
-		router.push("/home");
+		if (optionsContext.options.invite) {
+			//convert to string
+			const id: string = navContext.id.toString();
+			router.push("/chat/" + id);
+		}
+		else
+			router.push("/home");
 	}
 
 	return (

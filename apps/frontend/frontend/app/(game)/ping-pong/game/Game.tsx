@@ -201,6 +201,8 @@ export default class Game extends CanvasComponent {
 	lost: boolean = false;
 	winned: boolean = false;
 
+	drawGoal: () => void;
+
 	constructor(getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>, getProps: () => Props, getCanvas: () => Canvas, getDataPlayer: () => any) {
 		vars.z = 0;
 		if (!getCanvas())
@@ -218,14 +220,15 @@ export default class Game extends CanvasComponent {
 		this.player2 = new Player(this, "left", getProps().geometry, getProps().devMode)
 
 		console.log("readyToPlay");
-		this.getSocket().on("drawGoal", () => {
+		this.drawGoal = () => {
 			// move the camera to the winner side after a goal and back to the center
 			if (this.ball.velocityX < 0)
 				this.moveCameraSeries("left");
 			else if (this.ball.velocityX > 0)
 				this.moveCameraSeries("right");
+		};
 
-		});
+		this.getSocket().on("drawGoal", this.drawGoal);
 
 		this.getSocket().emit("readyToPlay");
 	}
@@ -374,6 +377,9 @@ export default class Game extends CanvasComponent {
 		if (this.stopped)
 			return;
 		this.stopped = true;
+
+		this.getSocket().off("drawGoal", this.drawGoal);
+
 		this.board.dispose();
 		this.ball.dispose();
 		this.player1.dispose();

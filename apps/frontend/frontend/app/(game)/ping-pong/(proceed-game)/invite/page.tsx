@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 
-import RootLayout from '@/app/(game)/layout';
 import Service from '@/app/(game)/ping-pong/(proceed-game)/service/Service';
 import { useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext';
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
@@ -37,13 +36,11 @@ const Invite = () => {
 	Service(setGameState);
 
 	return (
-		<RootLayout>
-			{<div id="root" style={{ backgroundColor: "#1a1c26" }}>
-				{gameState === "settings" && <SettingPingPong />}
-				{gameState === "wait" && <WaitPingPong />}
-				{gameState === "play" && <PlayPingPong />}
-			</div>}
-		</RootLayout>
+		<div id="root" style={{ backgroundColor: "#1a1c26" }}>
+			{gameState === "settings" && <SettingPingPong />}
+			{gameState === "wait" && <WaitPingPong />}
+			{gameState === "play" && <PlayPingPong />}
+		</div>
 	);
 };
 
