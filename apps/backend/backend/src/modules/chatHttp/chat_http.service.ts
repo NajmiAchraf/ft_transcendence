@@ -1131,7 +1131,7 @@ export class ChatHttpService {
 
 		const expiredIvitation = await this.prismaService.game_invitation.findFirst({
 			where: {
-				OR: [{ sender_id: userId, receiver_id: userId }],
+				OR: [{ sender_id: userId}, {receiver_id: userId }],
 				is_accepted: false,
 			}
 		})
@@ -1146,7 +1146,7 @@ export class ChatHttpService {
 
 		const profileExpiredInvitation = await this.prismaService.game_invitation.findFirst({
 			where: {
-				OR: [{ sender_id: profileId, receiver_id: profileId }],
+				OR: [{ sender_id: profileId}, {receiver_id: profileId }],
 				is_accepted: false,
 			}
 		})
