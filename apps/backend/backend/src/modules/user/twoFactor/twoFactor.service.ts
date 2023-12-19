@@ -39,7 +39,7 @@ export class TwoFactorService {
 		console.log('optauthUrl:', otpauthUrl);
 		console.log('qrCode:', qrCode);
 		// console.log(qrCode);
-		return { img: qrCode };
+		return qrCode;
 	}
 
 	async enableTwoFactor(userId: number, code: string) {

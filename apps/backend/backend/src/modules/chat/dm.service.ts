@@ -88,7 +88,7 @@ export class DmService {
 
 			client.emit('gameInvitationAccepted', messagePayload);
 			senderSockets.forEach(socket => {
-				socket.emit('gameInvitationAccepted', messagePayload);
+				server.to(socket).emit('gameInvitationAccepted', messagePayload);
 			});
 		} catch (err) {
 			server.to(client.id).emit('Invalid access', { error: "error occured" });
