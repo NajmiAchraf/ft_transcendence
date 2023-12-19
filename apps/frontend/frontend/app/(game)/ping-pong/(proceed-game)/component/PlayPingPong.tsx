@@ -10,6 +10,48 @@ import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 
 import { Text } from '@/app/(game)/ping-pong/game/Board';
+import { getCookie } from '@/app/components/errorChecks';
+
+async function getDatas(userId: string): Promise<any> {
+	// convert userId to number
+	const userID = parseInt(userId);
+	const data = await fetch("http://localhost:3001/user/personal_infos", {
+		method: "POST",
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${getCookie("AccessToken")}`
+		},
+		body: JSON.stringify({ profileId: userID })
+	});
+
+	if (!data.ok) {
+		throw new Error("Failed to fetch data");
+	}
+	const otherDataResult = await data.json()
+	return (otherDataResult)
+}
+
+async function fillPropsPlayers(propsContext: any) {
+	if (propsContext.props.player1ID === 'bot') {
+		propsContext.props.player1Name = "bot";
+		propsContext.props.player1Avatar = "/bot_" + propsContext.props.mode + ".jpg";
+	} else
+		await getDatas(propsContext.props.player1ID).then((data) => {
+			propsContext.props.player1Name = data.nickname;
+			propsContext.props.player1Avatar = data.avatar;
+		}
+		).catch((e) => console.log(e))
+
+	if (propsContext.props.player2ID === 'bot') {
+		propsContext.props.player2Name = "bot";
+		propsContext.props.player2Avatar = "/bot_" + propsContext.props.mode + ".jpg";
+	} else
+		await getDatas(propsContext.props.player2ID).then((data) => {
+			propsContext.props.player2Name = data.nickname;
+			propsContext.props.player2Avatar = data.avatar;
+		}
+		).catch((e) => console.log(e))
+}
 
 function PlayPingPong() {
 	const canvasContext = useCanvasContext();
@@ -24,6 +66,9 @@ function PlayPingPong() {
 
 	useEffect(() => {
 		async function Start() {
+			// fill propsContext players
+			await fillPropsPlayers(propsContext);
+			// load font
 			await Text.loadFont();
 			// set canvas
 			canvasContext.canvas = canvasRef.current;
@@ -68,7 +113,7 @@ function PlayPingPong() {
 			<canvas ref={canvasRef} id="PingPong"></canvas>
 			<div className="section1">
 				<div className="player p-right">
-					<img src="/img3.png" alt="player-right" />
+					<img src={propsContext.props.player2Avatar} alt="player-right" />
 				</div>
 				<div className="player p-left game-font">
 					<h3>{propsContext.props.player2Name}</h3>
@@ -80,7 +125,7 @@ function PlayPingPong() {
 					<h3>{propsContext.props.player1Name}</h3>
 				</div>
 				<div className="player p-left">
-					<img src="/img3.png" alt="player-left" />
+					<img src={propsContext.props.player1Avatar} alt="player-left" />
 				</div>
 			</div>
 			<div className='section2'>

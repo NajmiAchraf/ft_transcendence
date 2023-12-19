@@ -29,8 +29,12 @@ export type Props = {
 	mode: Mode,
 	side: Side,
 	playerType: PlayerType,
+	player1ID: string;
+	player2ID: string;
 	player1Name: string,
 	player2Name: string,
+	player1Avatar: any,
+	player2Avatar: any,
 }
 
 export type Options = {

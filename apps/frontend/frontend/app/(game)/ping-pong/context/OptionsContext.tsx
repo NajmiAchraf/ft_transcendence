@@ -23,10 +23,10 @@ export function useOptionsContext() {
 }
 
 // default options
-export function getDefaultOptions(): Options {
+export function getDefaultOptions(invite: boolean = false): Options {
 
 	const defaultOptions: Options = {
-		invite: false,
+		invite: invite,
 		readyPlay: false,
 		startPlay: false,
 		inGame: false,
@@ -38,13 +38,7 @@ export function getDefaultOptions(): Options {
 
 // context provider
 function OptionsContextProvider({ children }: { children: React.ReactNode }) {
-	const [options, setOptions] = useState<Options>({
-		invite: false,
-		readyPlay: false,
-		startPlay: false,
-		inGame: false,
-		endGame: false,
-	});
+	const [options, setOptions] = useState<Options>(getDefaultOptions());
 
 	const contextValue: IOptionsContext = {
 		options,

@@ -72,6 +72,13 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 			updateGameStates(false, false, true);
 
 			game.stop();
+
+			propsContext.props.player1ID = '0';
+			propsContext.props.player2ID = '0';
+			propsContext.props.player1Name = 'name';
+			propsContext.props.player2Name = 'name';
+			propsContext.props.player1Avatar = "/img3.png";
+			propsContext.props.player2Avatar = "/img3.png";
 		}
 	};
 
@@ -91,8 +98,8 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 	const handleDataPlayer = (data: any) => {
 		console.log('dataPlayer: ', data);
 		dataPlayer = data;
-		propsContext.props.player1Name = data.player1Name;
-		propsContext.props.player2Name = data.player2Name;
+		propsContext.props.player1ID = data.player1Name;
+		propsContext.props.player2ID = data.player2Name;
 	};
 
 	const handleAllowToPlay = (data: any) => {

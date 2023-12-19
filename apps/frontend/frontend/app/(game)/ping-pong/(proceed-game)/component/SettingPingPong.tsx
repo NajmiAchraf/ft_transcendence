@@ -7,6 +7,7 @@ import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 
 import { useNavContext } from '@/app/(NavbarPages)/context/NavContext';
+import { whoami } from '@/app/components/PersonalInfo';
 
 import { useState } from 'react';
 
@@ -95,14 +96,16 @@ function SettingPingPong() {
 		setButtonClicked(true);
 	}
 
-	const leave = () => {
+	const leave = async () => {
 		// disconnect socket after leave
 		webContext.socketGame.disconnect();
 
+		let id: string = (await whoami() as string);
+
 		// redirect to home
 		if (optionsContext.options.invite) {
-			//convert to string
-			const id: string = navContext.id.toString();
+			if (id === undefined)
+				id = navContext.id.toString();
 			router.push("/chat/" + id);
 		}
 		else
@@ -116,7 +119,6 @@ function SettingPingPong() {
 				<div className="background">
 					<div className="button-part">
 						{
-
 							// if npm run dev then show devMode button else hide
 							process.env.NODE_ENV === "development" && (
 								/* change dev mode on(true) off(false) */
