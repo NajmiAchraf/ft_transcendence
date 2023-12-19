@@ -32,8 +32,12 @@ export function getDefaultProps(): Props {
 		mode: "medium",
 		side: "right",
 		playerType: "player",
+		player1ID: '0',
+		player2ID: '0',
 		player1Name: "name",
 		player2Name: "name",
+		player1Avatar: "/img3.png",
+		player2Avatar: "/img3.png",
 	};
 
 	return defaultProps;
@@ -41,16 +45,7 @@ export function getDefaultProps(): Props {
 
 // context provider
 function PropsContextProvider({ children }: { children: React.ReactNode }) {
-	const [props, setProps] = useState<Props>({
-		devMode: 'none',
-		geometry: "cube",
-		reflection: true,
-		mode: "medium",
-		side: "right",
-		playerType: "player",
-		player1Name: "name",
-		player2Name: "name",
-	});
+	const [props, setProps] = useState<Props>(getDefaultProps());
 
 	const contextValue: IPropsContext = {
 		props,
