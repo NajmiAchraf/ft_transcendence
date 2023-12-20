@@ -13,7 +13,10 @@ clean: down
 
 re: clean all
 
-prune: clean
+clear: clean
+	-@docker rmi -f $$(docker images -q -a)
+
+prune: clear
 	@docker system prune --all --force
 
 backendlogs:
