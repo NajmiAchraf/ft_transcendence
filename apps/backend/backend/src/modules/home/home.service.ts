@@ -38,7 +38,11 @@ export class HomeService {
 			include: { winner: true, loser: true },
 		});
 
-		const RecentMatches = entries.map((match) => {
+		const filteredEntries = entries.filter(entry => {
+			return (entry.winner.id && entry.loser.id);
+		});
+
+		const RecentMatches = filteredEntries.map((match) => {
 			return {
 				winner: {
 					id: match.winner.id,
