@@ -45,7 +45,7 @@ const Matches = ({ userId }: { userId: number }) => {
                 <div className="matches">
                     {
                         matches.map((match: any, id: number) => (
-                            <Match key={id} name={match.nickname} image={match.avatar} time={`${match.duration}min`} myscore={match.goals.playerGoals} enemyscore={match.goals.opponentGoals} />
+                            <Match key={id} id={match.opponent_id} name={match.nickname} image={match.avatar} time={match.duration} myscore={match.goals.playerGoals} enemyscore={match.goals.opponentGoals} />
                         ))
                     }
                     {/*

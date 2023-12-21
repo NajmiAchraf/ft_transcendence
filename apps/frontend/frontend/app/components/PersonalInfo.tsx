@@ -104,11 +104,6 @@ const PersonalInfo = ({ userId, setisAllowed }: { userId: number, setisAllowed: 
         });
 
         if (!data.ok) {
-          if (data.status === 403 || data.status === 500) {
-            console.error("user is blocked")
-            setisAllowed(false)
-            return (null)
-          }
         }
 
         const personalInfoResult = await data.json();
@@ -122,6 +117,11 @@ const PersonalInfo = ({ userId, setisAllowed }: { userId: number, setisAllowed: 
         });
 
         if (!data2.ok) {
+          if (data.status === 403 || data.status === 500) {
+            console.error("user is blocked")
+            setisAllowed(false)
+            return (null)
+          }
           throw new Error("Failed to fetch data");
         }
         const otherDataResult = await data2.json()
@@ -154,11 +154,11 @@ const PersonalInfo = ({ userId, setisAllowed }: { userId: number, setisAllowed: 
           </div>
           <div className="p-info-sec">
             <h6>Win</h6>
-            <h4>{(userData.personalInfo.winPercentage ? userData.personalInfo.winPercentage : "0")}%</h4>
+            <h4>{(userData.personalInfo.winPercentage ? Math.floor(userData.personalInfo.winPercentage) : "0")}%</h4>
           </div>
           <div className="p-info-sec">
             <h6>Loss</h6>
-            <h4>{(userData.personalInfo.lossPercentage ? userData.personalInfo.lossPercentage : "0")}%</h4>
+            <h4>{(userData.personalInfo.lossPercentage ? Math.floor(userData.personalInfo.lossPercentage) : "0")}%</h4>
           </div>
         </div>
         <div className="player-image">

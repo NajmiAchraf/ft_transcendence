@@ -30,7 +30,6 @@ function SettingPingPong() {
 	const [reflection, setReflection] = useState(propsContext.props.reflection);
 	const [geometry, setGeometry] = useState(propsContext.props.geometry);
 
-
 	const changeDevMode = () => {
 		if (propsContext.props.devMode === 'none') {
 			propsContext.props.devMode = 'camera';
@@ -101,13 +100,12 @@ function SettingPingPong() {
 		webContext.socketGame.disconnect();
 
 		let id: string = (await whoami() as string);
+		if (id === undefined)
+			id = navContext.id.toString();
 
 		// redirect to home
-		if (optionsContext.options.invite) {
-			if (id === undefined)
-				id = navContext.id.toString();
+		if (optionsContext.options.invite && id !== undefined)
 			router.push("/chat/" + id);
-		}
 		else
 			router.push("/home");
 	}

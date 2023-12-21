@@ -164,3 +164,11 @@ function isSameDay(date1: Date, date2: Date): boolean {
         date1.getFullYear() === date2.getFullYear()
     );
 }
+export function formatGameTime(duration : number) {
+        const totalSeconds = Math.floor(duration / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        const formattedDuration = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        return formattedDuration;
+}
+      

@@ -174,9 +174,9 @@ export default class Room {
 		return this.idRoom.toString();
 	}
 
-	addPlayerInviteCreate(playerID: string, clientID: string): string | undefined {
+	addPlayerInviteCreate(playerID: string, clientID: string, otherPlayer: string): string | undefined {
 
-		const pair: PairType = [[playerID, clientID], ['', '']];
+		const pair: PairType = [[playerID, clientID], [otherPlayer, '']];
 		this.createRoom(pair);
 
 		this.pingPongGateway.server.to(clientID).emit("allowToWait", { message: "You are in pair" });
@@ -243,6 +243,10 @@ export default class Room {
 			delete this.game[room];
 		}
 
+		this.resetRoom(room);
+	}
+
+	resetRoom(room: string): void {
 		// Delete the room
 		delete this.room[room];
 		this.room[room] = [['', ''], ['', '']];

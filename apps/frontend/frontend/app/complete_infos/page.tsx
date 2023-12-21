@@ -27,12 +27,14 @@ const CompleteInfos = () => {
                 if (data.status == 401) {
                     TokenRefresher();
                 }
+                throw new Error("stupid ass game")
             }
 
             const res = await data.json()
             router.push(`/profile/${res.id}`)
         }
         catch (e) {
+            console.log(e)
         }
     }
     // console.log(localStorage.getItem("AccessToken"));

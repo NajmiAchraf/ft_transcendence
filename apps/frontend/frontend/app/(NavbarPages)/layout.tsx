@@ -14,17 +14,8 @@ export default function RootLayout({
 }) {
 
   const hover = useNavContext()
-  const changeHover = () => {
 
-    /*const el = e.target as HTMLElement;
-    const f = el.parentElement?.parentElement?.parentElement?.querySelectorAll("ion-icon");
-    f?.forEach((d, i) => {
-      d.parentElement?.classList?.remove("active");
-    });
-    el.parentElement?.classList.add("active");
-    console.log(el);
-    hover.setProps(el.getAttribute("data-cory") as string);*/
-    //let i: number = 0;
+  const changeHover = () => {
     const f = document.querySelectorAll(".navbar ion-icon");
     f.forEach((d, i) => {
       d.parentElement?.classList?.remove("active");
@@ -32,9 +23,6 @@ export default function RootLayout({
         d.parentElement?.classList.add("active");
       console.log(i.toString(), " ", hover.nav)
     });
-    /*d.parentElement?.classList.add("active");
-    console.log(el);*/
-    //hover.setProps(parameter);
   };
   useEffect(() => { changeHover(); }, [hover.nav]);
   useEffect(() => {
@@ -49,6 +37,7 @@ export default function RootLayout({
       }
     }
   }, [hover.isLoading]);
+
   useEffect(() => {
     const element: HTMLElement | null = document.querySelector("#hoverarea");
     if (element) {
@@ -58,25 +47,11 @@ export default function RootLayout({
       return () => { clearTimeout(id) }
     }
   }, [])
+
   return (
     <WebSocketContextProvider>
       <PrimaryChecks></PrimaryChecks>
       <div className="container">
-        <div className="invite-popup">
-        <div className="buttons">
-            <button type="button" className="verify-btn">Verify</button>
-            <div className="btn-container">
-              <button type="button" onClick={() => {
-                const el = document.querySelector(".invite-popup") as HTMLElement;
-                if (el) {
-                  el.style.animation = "fadeOut 0.3s forwards"
-                  setTimeout(() => { if (el) el.style.display = "none"; el.style.animation = "fadeInAnimation 0.5s ease forwards" }, 400)
-                }
-                hover.setTwoFACode("")
-              }} className='cancel-btn'>Cancel</button>
-            </div>
-          </div>
-        </div>
         <div className="loading-screen"><div className="loader"></div></div>
         <div className="navbar-overlay"></div>
         <div className="_2factor">

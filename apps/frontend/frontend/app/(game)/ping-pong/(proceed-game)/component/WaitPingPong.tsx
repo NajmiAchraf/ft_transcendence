@@ -1,24 +1,56 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 import * as IonIcons from 'ionicons/icons';
 import { IonIcon } from '@ionic/react';
 
+import { useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext';
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 
+import { useNavContext } from '@/app/(NavbarPages)/context/NavContext';
+import { whoami } from '@/app/components/PersonalInfo';
+
 function WaitPingPong() {
+	const optionsContext = useOptionsContext();
 	const propsContext = usePropsContext();
 	const webContext = useWebSocketContext();
 
-	const leavePair = () => {
+	const router = useRouter();
+
+	const navContext = useNavContext();
+
+	const leave = async () => {
+		// disconnect socket after leave
+		webContext.socketGame.disconnect();
+
+		let id: string = (await whoami() as string);
+
+		// redirect to home
+		if (optionsContext.options.invite) {
+			if (id === undefined)
+				id = navContext.id.toString();
+			router.push("/chat/" + id);
+		}
+		else
+			router.push("/home");
+	};
+
+	const leavePair = async () => {
 		if (propsContext.props.playerType === "player") {
-			console.log('leavePair');
-			webContext.socketGame.emit("leavePair");
+			if (!optionsContext.options.invite) {
+				console.log('leavePair');
+				webContext.socketGame.emit("leavePair");
+			}
+			else if (optionsContext.options.invite) {
+				await leave();
+			}
 		}
 	};
 
 	return (
-		<div className="Parent" id="Parent">
+		<div className="Parent">
 			<div className="section1">
 				<div className="player p-right">
 					<img src="/img3.png" alt="player-right" />

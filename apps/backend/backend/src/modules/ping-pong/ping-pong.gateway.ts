@@ -47,7 +47,6 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 
 		if (userId === undefined) {
 			this.server.to(client.id).emit('invalidAccess', { error: 'Invalid Access Token' });
-			//! route to authentication page
 			client.disconnect();
 			return;
 		}
@@ -86,18 +85,51 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 
 		if (userId === undefined) {
 			this.server.to(client.id).emit('invalidAccess', { error: 'Invalid Access Token' });
-			//! route to authentication page
 			return;
 		}
 
-		console.log('DELETE CONNECTION: ' + client.id + ' ' + userId);
-		if (this.rooms.deletePlayerRoom(userId.toString())) {
-			this.server.to(client.id).emit("leaveRoom");
+		// get room from database where player accepted invitation
+		const entry = await this.prismaService.game_invitation.findFirst({
+			where: {
+				OR: [
+					{
+						sender_id: userId,
+					},
+					{
+						receiver_id: userId,
+					},
+				],
+			}
+		});
+
+		if (entry) {
+			const other_user_id = entry.sender_id === userId ? entry.receiver_id : entry.sender_id;
+
+			const [other_client_id] = this.socketService.getSockets(other_user_id, 'ping-pong');
+
+			const room = this.rooms.fetchRoom(userId.toString());
+			if (room)
+				this.rooms.resetRoom(room);
+			else
+				await this.prismaService.game_invitation.delete({
+					where: {
+						id: entry.id,
+					},
+				});
+
+			this.server.to([client.id, other_client_id]).emit("invalidAccess", { error: "Player disconnected" });
+
+		} else {
+
+			console.log('DELETE CONNECTION: ' + client.id + ' ' + userId);
+			if (this.rooms.deletePlayerRoom(userId.toString())) {
+				this.server.to(client.id).emit("leaveRoom");
+			}
+			else if (this.rooms.deletePlayerPair(client.id)) {
+				this.server.to(client.id).emit("leaveQueue");
+			}
+			else console.log("Player not found in room or pair");
 		}
-		else if (this.rooms.deletePlayerPair(client.id)) {
-			this.server.to(client.id).emit("leaveQueue");
-		}
-		else console.log("Player not found in room or pair");
 
 		await this.cleanUP(client);
 		// delete connection
@@ -127,7 +159,6 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 
 		if (userId === undefined) {
 			this.server.to(client.id).emit('invalidAccess', { error: 'Invalid Access Token' });
-			//! route to authentication page
 			return;
 		}
 
@@ -149,18 +180,17 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		}
 	}
 
-	@SubscribeMessage("invitePlayer")
-	async invitePlayer(@ConnectedSocket() client: Socket) {
+	@SubscribeMessage("checkInvitation")
+	async checkInvite(@ConnectedSocket() client: Socket) {
 		// get user id from access token
 		const userId = await this.globalHelperService.getClientIdFromJwt(client);
 
 		if (userId === undefined) {
 			this.server.to(client.id).emit('invalidAccess', { error: 'Invalid Access Token' });
-			//! route to authentication page
 			return;
 		}
 
-		// get room from database were player accepted invitation
+		// get room from database where player accepted invitation
 		const entry = await this.prismaService.game_invitation.findFirst({
 			where: {
 				OR: [
@@ -179,31 +209,68 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 			this.cleanUP(client);
 			return;
 		}
+	}
 
-		const sender_id = entry.sender_id;
-		const receiver_id = entry.receiver_id;
+
+	@SubscribeMessage("invitePlayer")
+	async invitePlayer(@ConnectedSocket() client: Socket) {
+		// get user id from access token
+		const userId = await this.globalHelperService.getClientIdFromJwt(client);
+
+		if (userId === undefined) {
+			this.server.to(client.id).emit('invalidAccess', { error: 'Invalid Access Token' });
+			return;
+		}
+
+		// get room from database where player accepted invitation
+		const entry = await this.prismaService.game_invitation.findFirst({
+			where: {
+				OR: [
+					{
+						sender_id: userId,
+					},
+					{
+						receiver_id: userId,
+					},
+				],
+			}
+		});
+
+		if (!entry) {
+			client.emit('invalidAccess', { error: 'Other player left the game!' });
+			this.cleanUP(client);
+			return;
+		}
 
 		try {
-			const sender = this.rooms.checkRoom(sender_id.toString());
-			const receiver = this.rooms.checkRoom(receiver_id.toString());
-
 			let user = "-1";
-			let idRoom = "-1";
+			let other = "-1";
 
-			if (sender === true) {
-				user = sender_id.toString();
-				idRoom = this.rooms.fetchRoom(receiver_id.toString());
-			} else if (receiver === true) {
+			const sender_id: number = entry.sender_id;
+			const receiver_id: number = entry.receiver_id;
+
+			if (sender_id === userId) {
 				user = receiver_id.toString();
-				idRoom = this.rooms.fetchRoom(sender_id.toString());
+				other = sender_id.toString();
+			}
+			else if (receiver_id === userId) {
+				user = sender_id.toString();
+				other = receiver_id.toString();
 			}
 
-			if (user !== "-1") {
+			let idRoom = this.rooms.fetchRoom(user);
+
+			if (idRoom !== undefined) {
 				const room = this.rooms.room[idRoom];
-				this.rooms.room[idRoom] = [room[0], [userId.toString(), client.id]];
+				this.rooms.room[idRoom] = [room[0], [user, client.id]];
 				this.rooms.addPlayerInviteStart(idRoom, this.rooms.room[idRoom]);
+				await this.prismaService.game_invitation.delete({
+					where: {
+						id: entry.id,
+					},
+				});
 			} else {
-				const idRoom = this.rooms.addPlayerInviteCreate(userId.toString(), client.id);
+				idRoom = this.rooms.addPlayerInviteCreate(user, client.id, other);
 				if (idRoom)
 					console.log("	Room invite joined, id: " + idRoom);
 			}
@@ -217,7 +284,6 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 
 		if (userId === undefined) {
 			this.server.to(client.id).emit('invalidAccess', { error: 'Invalid Access Token' });
-			//! route to authentication page
 			return undefined;
 		}
 
@@ -230,7 +296,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 				in_game: false,
 			}
 		});
-		//! invitation delete
+		//! delete invitation in database
 
 		return userId;
 	}
