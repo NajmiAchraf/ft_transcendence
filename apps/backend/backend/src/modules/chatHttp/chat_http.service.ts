@@ -1130,12 +1130,23 @@ export class ChatHttpService {
 			throw new ForbiddenException('You can only invite friends');
 		}
 
+		const user = await this.prismaService.user.findFirst({
+			where: {
+				OR: [{id: userId}, {id: profileId}],
+				in_game: true,
+			},
+		});
+
+		if (user) {
+			throw new ForbiddenException("Both player should not be playing");
+		}
+
 		const expiredIvitation = await this.prismaService.game_invitation.findFirst({
 			where: {
 				OR: [{ sender_id: userId}, {receiver_id: userId }],
 				is_accepted: false,
 			}
-		})
+		});
 
 		if (expiredIvitation && Date.now() - expiredIvitation.created_at.getTime() < 1000 * 30) {
 			await this.prismaService.game_invitation.delete({
@@ -1186,6 +1197,17 @@ export class ChatHttpService {
 	async acceptGameInvitation(userId: number, profileId: number) {
 		if (!await this.globalHelperService.areFriends(userId, profileId)) {
 			throw new ForbiddenException('You can only invite friends');
+		}
+
+		const user = await this.prismaService.user.findFirst({
+			where: {
+				OR: [{id: userId}, {id: profileId}],
+				in_game: true,
+			},
+		});
+
+		if (user) {
+			throw new ForbiddenException("Both player should not be playing");
 		}
 
 		const entry = await this.prismaService.game_invitation.findFirst({
