@@ -211,6 +211,7 @@ export class ChatHttpService {
 				channel_id: entry.channel_id,
 				channel_name: entry.channel.channel_name,
 				avatar: entry.channel.avatar,
+				membersCount: entry.channel.members_count,
 				last_message: last_message.length !== 0 ? last_message[0].message_text : null,
 				sender_id: last_message.length !== 0 ? last_message[0].sender_id : null,
 				nickname: last_message.length !== 0 ? last_message[0].cm_sender.nickname : null,
