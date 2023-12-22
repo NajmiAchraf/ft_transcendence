@@ -209,6 +209,29 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 			this.cleanUP(client);
 			return;
 		}
+
+		const other_user_id = invite.sender_id === userId ? invite.receiver_id : invite.sender_id;
+
+		const entry = await this.prismaService.user.findUnique({
+			where: {
+				id: other_user_id,
+			},
+			select: {
+				status: true,
+			}
+		});
+
+		if (entry.status === "offline") {
+			client.emit('invalidAccess', { error: 'Other player not disconnected or redirected!' });
+			await this.prismaService.game_invitation.delete({
+				where: {
+					id: invite.id,
+				},
+			});
+			this.cleanUP(client);
+			return;
+		}
+
 		this.server.to(client.id).emit('allowToProceed');
 	}
 
