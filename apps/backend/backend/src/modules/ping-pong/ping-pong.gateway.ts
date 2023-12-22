@@ -106,9 +106,13 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 
 			const [other_client_id] = this.socketService.getSockets(other_user_id, 'ping-pong');
 
-			const room = this.rooms.fetchRoom(userId.toString());
-			if (room)
-				this.rooms.resetRoom(room);
+			const me_in_room = this.rooms.fetchRoom(userId.toString());
+			const other_in_room = this.rooms.fetchRoom(other_user_id.toString());
+
+			if (me_in_room !== undefined)
+				this.rooms.resetRoom(me_in_room);
+			else if (other_in_room !== undefined)
+				this.rooms.resetRoom(other_in_room);
 			else
 				await this.prismaService.game_invitation.delete({
 					where: {
