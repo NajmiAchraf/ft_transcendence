@@ -16,6 +16,7 @@ const InvitePopUp = (props: InviteProps) =>{
 
     const AcceptInvite = () =>{
         wsProvider.chat.emit("acceptGameInvitation", {profileId : props.senderId})
+        context.setisCountDown(false);
     }
     const disableInvitePopUp = async ()=>{
         try {

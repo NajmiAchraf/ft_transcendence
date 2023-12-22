@@ -6,7 +6,6 @@ import dynamic from 'next/dynamic';
 import Service from '@/app/(game)/ping-pong/(proceed-game)/service/Service';
 import { getDefaultOptions, useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext';
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
-import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 import { GameStates } from '@/app/(game)/ping-pong/common/Common';
 import '@/app/(game)/ping-pong.css'
 
@@ -17,7 +16,6 @@ const WaitPingPong = dynamic(() => import('@/app/(game)/ping-pong/(proceed-game)
 const Invite = () => {
 	const optionsContext = useOptionsContext();
 	const propsContext = usePropsContext();
-	const webContext = useWebSocketContext();
 	const [gameState, setGameState] = useState<GameStates>("settings");
 
 	optionsContext.options = getDefaultOptions(true);
@@ -29,8 +27,6 @@ const Invite = () => {
 
 	// run service for socket and game
 	Service(setGameState);
-
-	webContext.socketGame.emit('checkInvitation');
 
 	return (
 		<div className="Parent" style={{ backgroundColor: "#1a1c26" }}>

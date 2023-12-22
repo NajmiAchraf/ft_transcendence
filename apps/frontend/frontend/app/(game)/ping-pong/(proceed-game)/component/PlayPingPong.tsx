@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 import { useRef, useEffect, useState } from 'react'
 import * as IonIcons from 'ionicons/icons';
 import { IonIcon } from '@ionic/react';
@@ -11,6 +13,9 @@ import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketCon
 
 import { Text } from '@/app/(game)/ping-pong/game/Board';
 import { getCookie } from '@/app/components/errorChecks';
+
+import { useNavContext } from '@/app/(NavbarPages)/context/NavContext';
+import { whoami } from '@/app/components/PersonalInfo';
 
 async function getDatas(userId: string): Promise<any> {
 	// convert userId to number
@@ -59,6 +64,10 @@ function PlayPingPong() {
 	const propsContext = usePropsContext();
 	const webContext = useWebSocketContext();
 
+	const router = useRouter();
+
+	const navContext = useNavContext();
+
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
 	const startTime = useRef<number>(Date.now());
@@ -101,10 +110,31 @@ function PlayPingPong() {
 		}
 	}, 1000 / 60);
 
-	const leaveGame = () => {
+	const leave = async () => {
+		// disconnect socket after leave
+		webContext.socketGame.disconnect();
+
+		let id: string = (await whoami() as string);
+
+		// redirect to home
+		if (optionsContext.options.invite) {
+			if (id === undefined)
+				id = navContext.id.toString();
+			router.push("/chat/" + id);
+		}
+		else
+			router.push("/home");
+	}; //! need to be completed
+
+	const leaveGame = async () => {
 		if (optionsContext.options.startPlay) {
-			console.log('leaveGame');
-			webContext.socketGame.emit("leaveGame");
+			if (!optionsContext.options.invite) {
+				console.log('leaveGame');
+				webContext.socketGame.emit("leaveGame");
+			}
+			else if (optionsContext.options.invite) {
+				await leave();
+			}
 		}
 	};
 

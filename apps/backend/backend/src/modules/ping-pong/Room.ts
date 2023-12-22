@@ -174,9 +174,9 @@ export default class Room {
 		return this.idRoom.toString();
 	}
 
-	addPlayerInviteCreate(playerID: string, clientID: string, otherPlayer: string): string | undefined {
+	addPlayerInviteCreate(playerID: string, clientID: string): string | undefined {
 
-		const pair: PairType = [[playerID, clientID], [otherPlayer, '']];
+		const pair: PairType = [[playerID, clientID], ['', '']];
 		this.createRoom(pair);
 
 		this.pingPongGateway.server.to(clientID).emit("allowToWait", { message: "You are in pair" });

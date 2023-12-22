@@ -2,14 +2,14 @@
 
 import { useRouter } from 'next/navigation';
 
+import { useEffect, useState } from 'react';
+
 import { useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext';
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 
 import { useNavContext } from '@/app/(NavbarPages)/context/NavContext';
 import { whoami } from '@/app/components/PersonalInfo';
-
-import { useState } from 'react';
 
 import "@/app/(game)/ping-pong.css";
 
@@ -22,13 +22,30 @@ function SettingPingPong() {
 
 	const router = useRouter();
 
-	const [isButtonClicked, setButtonClicked] = useState(false);
+	const [isButtonClicked, setButtonClicked] = useState(true);
 
 	const [devMode, setDevMode] = useState(propsContext.props.devMode);
 	const [mode, setMode] = useState(propsContext.props.mode);
 	const [side, setSide] = useState(propsContext.props.side);
 	const [reflection, setReflection] = useState(propsContext.props.reflection);
 	const [geometry, setGeometry] = useState(propsContext.props.geometry);
+
+	const allowToProceed = () => {
+		if (optionsContext.options.invite)
+			setButtonClicked(false);
+	}
+
+	useEffect(() => {
+		webContext.socketGame.on("allowToProceed", allowToProceed);
+		if (optionsContext.options.invite)
+			webContext.socketGame.emit('checkInvitation');
+		else
+			setButtonClicked(false);
+
+		return () => {
+			webContext.socketGame.off("allowToProceed", allowToProceed);
+		};
+	}, []);
 
 	const changeDevMode = () => {
 		if (propsContext.props.devMode === 'none') {
