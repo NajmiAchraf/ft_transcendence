@@ -50,6 +50,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 			client.disconnect();
 			return;
 		}
+
 		// check if the user is already in game
 		const entry = await this.prismaService.user.findUnique({
 			where: {
@@ -67,7 +68,6 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		// insert new connection
 		this.socketService.insert(client.id, userId, 'ping-pong');
 
-
 		// set player in game
 		await this.prismaService.user.update({
 			where: {
@@ -77,7 +77,6 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 				in_game: true,
 			}
 		});
-		console.log('NEW CONNECTION: ' + client.id + ' ' + userId);
 	}
 
 	async handleDisconnect(client: Socket) {
@@ -89,7 +88,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		}
 
 		// get room from database where player accepted invitation
-		const entry = await this.prismaService.game_invitation.findFirst({
+		const invite = await this.prismaService.game_invitation.findFirst({
 			where: {
 				OR: [
 					{
@@ -102,8 +101,8 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 			}
 		});
 
-		if (entry) {
-			const other_user_id = entry.sender_id === userId ? entry.receiver_id : entry.sender_id;
+		if (invite) {
+			const other_user_id = invite.sender_id === userId ? invite.receiver_id : invite.sender_id;
 
 			const [other_client_id] = this.socketService.getSockets(other_user_id, 'ping-pong');
 
@@ -113,11 +112,12 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 			else
 				await this.prismaService.game_invitation.delete({
 					where: {
-						id: entry.id,
+						id: invite.id,
 					},
 				});
 
 			this.server.to([client.id, other_client_id]).emit("invalidAccess", { error: "Player disconnected" });
+			console.log("Player disconnected ", userId, " ", other_user_id);
 
 		} else {
 
@@ -191,7 +191,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		}
 
 		// get room from database where player accepted invitation
-		const entry = await this.prismaService.game_invitation.findFirst({
+		const invite = await this.prismaService.game_invitation.findFirst({
 			where: {
 				OR: [
 					{
@@ -204,13 +204,13 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 			}
 		});
 
-		if (!entry) {
+		if (!invite) {
 			client.emit('invalidAccess', { error: 'You were not invited!' });
 			this.cleanUP(client);
 			return;
 		}
+		this.server.to(client.id).emit('allowToProceed');
 	}
-
 
 	@SubscribeMessage("invitePlayer")
 	async invitePlayer(@ConnectedSocket() client: Socket) {
@@ -223,7 +223,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		}
 
 		// get room from database where player accepted invitation
-		const entry = await this.prismaService.game_invitation.findFirst({
+		const invite = await this.prismaService.game_invitation.findFirst({
 			where: {
 				OR: [
 					{
@@ -236,7 +236,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 			}
 		});
 
-		if (!entry) {
+		if (!invite) {
 			client.emit('invalidAccess', { error: 'Other player left the game!' });
 			this.cleanUP(client);
 			return;
@@ -246,19 +246,19 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 			let user = "-1";
 			let other = "-1";
 
-			const sender_id: number = entry.sender_id;
-			const receiver_id: number = entry.receiver_id;
+			const sender_id: number = invite.sender_id;
+			const receiver_id: number = invite.receiver_id;
 
 			if (sender_id === userId) {
-				user = receiver_id.toString();
-				other = sender_id.toString();
+				other = receiver_id.toString();
+				user = sender_id.toString();
 			}
 			else if (receiver_id === userId) {
-				user = sender_id.toString();
-				other = receiver_id.toString();
+				other = sender_id.toString();
+				user = receiver_id.toString();
 			}
 
-			let idRoom = this.rooms.fetchRoom(user);
+			let idRoom = this.rooms.fetchRoom(other);
 
 			if (idRoom !== undefined) {
 				const room = this.rooms.room[idRoom];
@@ -266,11 +266,11 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 				this.rooms.addPlayerInviteStart(idRoom, this.rooms.room[idRoom]);
 				await this.prismaService.game_invitation.delete({
 					where: {
-						id: entry.id,
+						id: invite.id,
 					},
 				});
 			} else {
-				idRoom = this.rooms.addPlayerInviteCreate(user, client.id, other);
+				idRoom = this.rooms.addPlayerInviteCreate(user, client.id);
 				if (idRoom)
 					console.log("	Room invite joined, id: " + idRoom);
 			}
@@ -296,7 +296,6 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 				in_game: false,
 			}
 		});
-		//! delete invitation in database
 
 		return userId;
 	}
