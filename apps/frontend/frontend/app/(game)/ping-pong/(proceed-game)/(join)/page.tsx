@@ -29,7 +29,7 @@ const Join = () => {
 	Service(setGameState);
 
 	return (
-		<div className="Parent" style={{ backgroundColor: "#1a1c26" }}>
+		<div className="Game">
 			{gameState === "settings" && <SettingPingPong />}
 			{gameState === "wait" && <WaitPingPong />}
 			{gameState === "play" && <PlayPingPong />}

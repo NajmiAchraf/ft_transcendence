@@ -209,7 +209,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		});
 
 		if (!invite) {
-			client.emit('invalidAccess', { error: 'You were not invited!' });
+			client.emit('invalidAccess', { error: 'There is no invitation for you!' });
 			this.cleanUP(client);
 			return;
 		}
@@ -226,7 +226,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		});
 
 		if (entry.status === "offline") {
-			client.emit('invalidAccess', { error: 'Other player not disconnected or redirected!' });
+			client.emit('invalidAccess', { error: 'Other player disconnected or not redirected!' });
 			await this.prismaService.game_invitation.delete({
 				where: {
 					id: invite.id,
@@ -355,7 +355,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		if (userId === undefined)
 			return;
 
-		if (this.rooms.deletePlayerPair(userId.toString())) {//! check if it's ok
+		if (this.rooms.deletePlayerPair(userId.toString())) {
 			this.server.to(client.id).emit("leaveQueue");
 		}
 	}

@@ -9,17 +9,6 @@
 	top: 0;
 	left: 0;
 	display: flex;
-	/* background-color: #1a1c26; */
-}
-
-.Parent
-{
-	position: absolute;
-	margin: 0;
-	padding: 0;
-	width: 100%;
-	height: 100%;
-	display: flex;
 	flex-direction: column;
 	background-color: #1a1c26;
 	animation: fadeInAnimation 1s ease forwards;
