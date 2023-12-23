@@ -9,9 +9,6 @@ import { useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 
-import { useNavContext } from '@/app/(NavbarPages)/context/NavContext';
-import { whoami } from '@/app/components/PersonalInfo';
-
 function WaitPingPong() {
 	const optionsContext = useOptionsContext();
 	const propsContext = usePropsContext();
@@ -19,22 +16,11 @@ function WaitPingPong() {
 
 	const router = useRouter();
 
-	const navContext = useNavContext();
-
 	const leave = async () => {
 		// disconnect socket after leave
 		webContext.socketGame.disconnect();
 
-		let id: string = (await whoami() as string);
-
-		// redirect to home
-		if (optionsContext.options.invite) {
-			if (id === undefined)
-				id = navContext.id.toString();
-			router.push("/chat/" + id);
-		}
-		else
-			router.push("/home");
+		router.push("/home");
 	};
 
 	const leavePair = async () => {

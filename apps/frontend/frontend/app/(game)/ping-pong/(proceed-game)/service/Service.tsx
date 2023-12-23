@@ -12,9 +12,6 @@ import { useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 
-import { useNavContext } from '@/app/(NavbarPages)/context/NavContext';
-import { whoami } from '@/app/components/PersonalInfo';
-
 function Service(setGameState: (setGameState: GameStates) => void): void {
 	const canvasContext = useCanvasContext();
 	const optionsContext = useOptionsContext();
@@ -22,7 +19,6 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 	const webSocketContext = useWebSocketContext();
 	const webSocketGame = webSocketContext.socketGame;
 
-	const navContext = useNavContext();
 
 	const router = useRouter();
 
@@ -121,15 +117,7 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 		// disconnect socket after leave
 		webSocketGame.disconnect();
 
-		let id: string = (await whoami() as string);
-		if (id === undefined)
-			id = navContext.id.toString();
-
-		// redirect to home
-		if (optionsContext.options.invite && id !== undefined)
-			router.push("/chat/" + id);
-		else
-			router.push("/home");
+		router.push("/home");
 	};
 
 	const handleDenyToPlay = (data: any) => {

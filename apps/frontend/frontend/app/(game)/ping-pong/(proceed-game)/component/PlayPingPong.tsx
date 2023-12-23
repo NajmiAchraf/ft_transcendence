@@ -14,9 +14,6 @@ import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketCon
 import { Text } from '@/app/(game)/ping-pong/game/Board';
 import { getCookie } from '@/app/components/errorChecks';
 
-import { useNavContext } from '@/app/(NavbarPages)/context/NavContext';
-import { whoami } from '@/app/components/PersonalInfo';
-
 async function getDatas(userId: string): Promise<any> {
 	// convert userId to number
 	const userID = parseInt(userId);
@@ -66,8 +63,6 @@ function PlayPingPong() {
 
 	const router = useRouter();
 
-	const navContext = useNavContext();
-
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
 	const startTime = useRef<number>(Date.now());
@@ -114,17 +109,8 @@ function PlayPingPong() {
 		// disconnect socket after leave
 		webContext.socketGame.disconnect();
 
-		let id: string = (await whoami() as string);
-
-		// redirect to home
-		if (optionsContext.options.invite) {
-			if (id === undefined)
-				id = navContext.id.toString();
-			router.push("/chat/" + id);
-		}
-		else
-			router.push("/home");
-	}; //! need to be completed
+		router.push("/home");
+	};
 
 	const leaveGame = async () => {
 		if (optionsContext.options.startPlay) {

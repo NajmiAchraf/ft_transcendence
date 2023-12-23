@@ -226,7 +226,7 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 		});
 
 		if (entry.status === "offline") {
-			client.emit('invalidAccess', { error: 'Other player disconnected or not redirected!' });
+			client.emit('invalidAccess', { error: 'Other player disconnected or not routed!' });
 			await this.prismaService.game_invitation.delete({
 				where: {
 					id: invite.id,
