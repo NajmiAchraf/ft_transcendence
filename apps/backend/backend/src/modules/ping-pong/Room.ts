@@ -225,8 +225,6 @@ export default class Room {
 
 		console.log("start: " + start + " end: " + end);
 
-		//! Set the state of the game {win or lose} {time} {score} {mode} {playerType}
-
 		const gameResult: GameResultType = {
 			winnerId: winnerID,
 			loserId: loserID,

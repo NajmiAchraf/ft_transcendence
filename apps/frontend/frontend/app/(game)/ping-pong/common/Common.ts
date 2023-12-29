@@ -10,7 +10,7 @@ export type GameStates = 'settings' | 'wait' | 'play';
 export type DevMode = 'none' | 'all' | 'camera' | 'paddle-bot';
 
 export let vars = {
-	speed_init: 600 / 120, //! depend on width
+	speed_init: 600 / 120,
 	width: 600,
 	height: 400,
 	depth: 4,
