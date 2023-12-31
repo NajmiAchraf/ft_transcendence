@@ -76,7 +76,7 @@ function PlayPingPong() {
 			await fillPropsPlayers(propsContext);
 			// load font
 			await Text.loadFont();
-			// load asset
+			// load asset texture
 			await CanvasComponent.loadAsset(propsContext.props.scene);
 			// set canvas
 			canvasContext.canvas = canvasRef.current;

@@ -92,6 +92,8 @@ function SettingPingPong() {
 		} else if (propsContext.props.scene === "space") {
 			propsContext.props.scene = "nebula";
 		} else if (propsContext.props.scene === "nebula") {
+			propsContext.props.scene = "none";
+		} else if (propsContext.props.scene === "none") {
 			propsContext.props.scene = "dast";
 		}
 		setScene(propsContext.props.scene)

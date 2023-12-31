@@ -36,17 +36,26 @@ export class CanvasComponent {
 
 	static assetTexture: THREE.Texture;
 
-	constructor(canvas: HTMLCanvasElement, devMode: DevMode) {
+	mesh: THREE.Mesh | undefined;
+	geometry: THREE.SphereGeometry | undefined;
+	material: THREE.Material | undefined;
+
+	constructor(canvas: HTMLCanvasElement, devMode: DevMode, scene: Scene) {
 		const fov = 75;
 		const planeAspectRatio = 4 / 3;
 
 		this.devMode = devMode;
 		this.canvas = canvas;
 		this.renderer = this.rendererSetup(canvas);
-		this.scene = this.sceneSetup();
-		this.envSetup();
+		this.scene = this.sceneSetup(scene);
+		if (scene !== "none") {
+			const { mesh, geometry, material } = this.envSetup();
+			this.mesh = mesh as THREE.Mesh;
+			this.geometry = geometry as THREE.SphereGeometry;
+			this.material = material as THREE.Material;
+		}
 
-		this.camera = this.cameraSetup(fov, planeAspectRatio, 0.1, 5000, new THREE.Vector3(0, 0, vars.height));
+		this.camera = this.cameraSetup(fov, planeAspectRatio, 0.1, 6000, new THREE.Vector3(0, 0, vars.height));
 
 		if (devMode === 'all' || devMode === 'camera') {
 			this.orbits = new OrbitControls(this.camera, this.renderer.domElement);
@@ -125,26 +134,44 @@ export class CanvasComponent {
 	}
 
 	static async loadAsset(scene: Scene) {
+		if (scene == "none")
+			return;
 		const hdrTextureUrl = '/assets/' + scene + '.hdr';
 		const loader = new RGBELoader();
 		CanvasComponent.assetTexture = await loader.loadAsync(hdrTextureUrl);
 	}
 
-	private async envSetup() {
-		const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
-		const envMap = pmremGenerator.fromEquirectangular(CanvasComponent.assetTexture).texture;
-		this.scene.background = envMap;
+	private envSetup(): { mesh: THREE.Mesh, geometry: THREE.SphereGeometry, material: THREE.Material } {
+		// Create a large sphere geometry
+		const geometry = new THREE.SphereGeometry(5000, 100, 100);
+		// Invert the geometry on the x-axis so that all of the faces point inward
+		geometry.scale(-1, 1, 1);
+
+		// Create a basic material and set the map to our environment map
+		const material = new THREE.MeshBasicMaterial({
+			map: CanvasComponent.assetTexture
+		});
+
+		// rotate the sphere
+		geometry.rotateZ(Math.PI / 2);
+
+		// Create a mesh with the sphere geometry and material
+		const mesh = new THREE.Mesh(geometry, material);
+		this.scene.add(mesh);
 
 		CanvasComponent.assetTexture.dispose();
-		pmremGenerator.dispose();
 
 		this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 		this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-		// this.renderer.toneMappingExposure = 1;
+
+		return { mesh, geometry, material }
 	}
 
-	private sceneSetup() {
+	private sceneSetup(sceneTexture: Scene) {
 		let scene = new THREE.Scene()
+		if (sceneTexture === "none") {
+			this.scene.background = new THREE.Color(0x1a1c26)
+		}
 		return scene
 	}
 
@@ -176,6 +203,14 @@ export class CanvasComponent {
 	}
 
 	protected dispose() {
+		// dispose scene sphere
+		if (this.geometry)
+			this.geometry.dispose();
+		if (this.material)
+			this.material.dispose();
+		if (this.mesh)
+			this.scene.remove(this.mesh);
+
 		window.removeEventListener('resize', this.onWindowResize);
 
 		while (this.scene.children.length > 0) {
@@ -230,7 +265,7 @@ export default class Game extends CanvasComponent {
 		vars.z = 0;
 		if (!getCanvas())
 			throw new Error("Canvas is not defined");
-		super(getCanvas() as HTMLCanvasElement, getProps().devMode)
+		super(getCanvas() as HTMLCanvasElement, getProps().devMode, getProps().scene);
 
 		this.getSocket = getSocket;
 		this.getDataPlayer = getDataPlayer;
