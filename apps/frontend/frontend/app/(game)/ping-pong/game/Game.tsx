@@ -170,7 +170,7 @@ export class CanvasComponent {
 	private sceneSetup(sceneTexture: Scene) {
 		let scene = new THREE.Scene()
 		if (sceneTexture === "none") {
-			this.scene.background = new THREE.Color(0x1a1c26)
+			scene.background = new THREE.Color(0x1a1c26)
 		}
 		return scene
 	}
