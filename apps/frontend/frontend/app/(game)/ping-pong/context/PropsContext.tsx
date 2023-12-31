@@ -29,6 +29,7 @@ export function getDefaultProps(): Props {
 		devMode: 'none',
 		geometry: "cube",
 		reflection: true,
+		scene: "dast",
 		mode: "medium",
 		side: "right",
 		playerType: "player",

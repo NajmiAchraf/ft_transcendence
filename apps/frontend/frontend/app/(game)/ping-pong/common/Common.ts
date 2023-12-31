@@ -4,6 +4,7 @@ export type Canvas = HTMLCanvasElement | null;
 export type Side = "left" | "right";
 export type Mode = "easy" | "medium" | "hard";
 export type Geometry = "cube" | "sphere";
+export type Scene = "dast" | "nebula" | "space";
 export type PlayerType = "player" | "bot";
 export type PlayStates = 'readyPlay' | 'startPlay' | 'endPlay';
 export type GameStates = 'settings' | 'wait' | 'play';
@@ -28,6 +29,7 @@ export type Props = {
 	reflection: boolean,
 	mode: Mode,
 	side: Side,
+	scene: Scene,
 	playerType: PlayerType,
 	player1ID: string;
 	player2ID: string;

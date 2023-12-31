@@ -24,6 +24,7 @@ function SettingPingPong() {
 	const [side, setSide] = useState(propsContext.props.side);
 	const [reflection, setReflection] = useState(propsContext.props.reflection);
 	const [geometry, setGeometry] = useState(propsContext.props.geometry);
+	const [scene, setScene] = useState(propsContext.props.scene);
 
 	const allowToProceed = () => {
 		if (optionsContext.options.invite)
@@ -85,6 +86,17 @@ function SettingPingPong() {
 		setGeometry(propsContext.props.geometry)
 	}
 
+	const changeScene = () => {
+		if (propsContext.props.scene === "dast") {
+			propsContext.props.scene = "space";
+		} else if (propsContext.props.scene === "space") {
+			propsContext.props.scene = "nebula";
+		} else if (propsContext.props.scene === "nebula") {
+			propsContext.props.scene = "dast";
+		}
+		setScene(propsContext.props.scene)
+	}
+
 	const joinGame = () => {
 		console.log("joinGame");
 
@@ -143,6 +155,9 @@ function SettingPingPong() {
 
 						{/* change geometry cube(sphere) */}
 						<button className="button-stg props" onClick={changeGeometry}>Geometry {geometry}</button>
+
+						{/* change scene */}
+						<button className="button-stg props" onClick={changeScene}>Scene {scene}</button>
 
 					</div>
 					<div className="button-part">

@@ -11,7 +11,9 @@ import { useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
 
+import { CanvasComponent } from '@/app/(game)/ping-pong/game/Game';
 import { Text } from '@/app/(game)/ping-pong/game/Board';
+
 import { getCookie } from '@/app/components/errorChecks';
 
 async function getDatas(userId: string): Promise<any> {
@@ -74,6 +76,8 @@ function PlayPingPong() {
 			await fillPropsPlayers(propsContext);
 			// load font
 			await Text.loadFont();
+			// load asset
+			await CanvasComponent.loadAsset(propsContext.props.scene);
 			// set canvas
 			canvasContext.canvas = canvasRef.current;
 			if (!canvasContext.canvas || !canvasRef.current) {
@@ -148,7 +152,7 @@ function PlayPingPong() {
 				<div className='center-sec'>
 					{!optionsContext.options.startPlay && (
 						<div className="waiting">
-							<h3>wait</h3>
+							<h3>loading</h3>
 						</div>
 					)}
 				</div>

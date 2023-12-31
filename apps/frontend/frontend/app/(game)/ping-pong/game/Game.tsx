@@ -7,16 +7,18 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+
 import { DefaultEventsMap } from "@socket.io/component-emitter";
 import { Socket } from "socket.io-client";
 
 import Ball from "@/app/(game)/ping-pong/game/Ball";
 import Board from "@/app/(game)/ping-pong/game/Board";
 import Player from "@/app/(game)/ping-pong/game/Player";
-import { vars, Side, Props, Canvas, DevMode } from '@/app/(game)/ping-pong/common/Common'
+import { vars, Side, Props, Canvas, DevMode, Scene } from '@/app/(game)/ping-pong/common/Common'
 
 
-class CanvasComponent {
+export class CanvasComponent {
 	canvas: HTMLCanvasElement;
 	protected renderer: THREE.WebGLRenderer;
 	scene: THREE.Scene;
@@ -32,6 +34,8 @@ class CanvasComponent {
 
 	devMode: DevMode;
 
+	static assetTexture: THREE.Texture;
+
 	constructor(canvas: HTMLCanvasElement, devMode: DevMode) {
 		const fov = 75;
 		const planeAspectRatio = 4 / 3;
@@ -40,6 +44,7 @@ class CanvasComponent {
 		this.canvas = canvas;
 		this.renderer = this.rendererSetup(canvas);
 		this.scene = this.sceneSetup();
+		this.envSetup();
 
 		this.camera = this.cameraSetup(fov, planeAspectRatio, 0.1, 5000, new THREE.Vector3(0, 0, vars.height));
 
@@ -119,9 +124,27 @@ class CanvasComponent {
 		return renderer;
 	}
 
+	static async loadAsset(scene: Scene) {
+		const hdrTextureUrl = '/assets/' + scene + '.hdr';
+		const loader = new RGBELoader();
+		CanvasComponent.assetTexture = await loader.loadAsync(hdrTextureUrl);
+	}
+
+	private async envSetup() {
+		const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
+		const envMap = pmremGenerator.fromEquirectangular(CanvasComponent.assetTexture).texture;
+		this.scene.background = envMap;
+
+		CanvasComponent.assetTexture.dispose();
+		pmremGenerator.dispose();
+
+		this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+		this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+		// this.renderer.toneMappingExposure = 1;
+	}
+
 	private sceneSetup() {
 		let scene = new THREE.Scene()
-		scene.background = new THREE.Color(0x1a1c26)
 		return scene
 	}
 
@@ -218,6 +241,13 @@ export default class Game extends CanvasComponent {
 		this.ball = new Ball(this, getProps().geometry)
 		this.player1 = new Player(this, "right", getProps().geometry, getProps().devMode)
 		this.player2 = new Player(this, "left", getProps().geometry, getProps().devMode)
+
+		this.scene.traverse((node: THREE.Object3D) => {
+			if (node instanceof THREE.Mesh && node.material instanceof THREE.MeshBasicMaterial) {
+				node.material.envMap = this.scene.environment;
+				node.material.needsUpdate = true;
+			}
+		});
 
 		console.log("readyToPlay");
 		this.drawGoal = () => {
