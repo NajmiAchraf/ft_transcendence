@@ -45,11 +45,11 @@ export default class Ball {
 		this.scale = vars.scale_width;
 
 		if (mode === "easy")
-			this.mode = 20;
+			this.mode = 12;
 		else if (mode === "medium")
-			this.mode = 15;
+			this.mode = 8;
 		else if (mode === "hard")
-			this.mode = 10;
+			this.mode = 4;
 		else
 			throw new Error("Invalid mode");
 

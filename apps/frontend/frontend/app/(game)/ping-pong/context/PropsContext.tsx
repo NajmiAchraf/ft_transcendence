@@ -28,7 +28,7 @@ export function getDefaultProps(): Props {
 	const defaultProps: Props = {
 		devMode: 'none',
 		geometry: "cube",
-		reflection: true,
+		style: "mirror",
 		scene: "dast",
 		mode: "medium",
 		side: "right",
