@@ -47,7 +47,7 @@ export class CanvasComponent {
 		this.devMode = devMode;
 		this.canvas = canvas;
 		this.renderer = this.rendererSetup(canvas);
-		this.scene = this.sceneSetup(scene);
+		this.scene = this.sceneSetup();
 		if (scene !== "none") {
 			const { mesh, geometry, material } = this.envSetup();
 			this.mesh = mesh as THREE.Mesh;
@@ -167,11 +167,9 @@ export class CanvasComponent {
 		return { mesh, geometry, material }
 	}
 
-	private sceneSetup(sceneTexture: Scene) {
+	private sceneSetup() {
 		let scene = new THREE.Scene()
-		if (sceneTexture === "none") {
-			scene.background = new THREE.Color(0x1a1c26)
-		}
+		scene.background = new THREE.Color(0x1a1c26)
 		return scene
 	}
 
@@ -199,15 +197,16 @@ export class CanvasComponent {
 	}
 
 	protected render() {
+		this.geometry?.rotateZ(0.001);
+		this.geometry?.rotateY(0.001);
+		this.geometry?.rotateX(0.001);
 		this.composer.render();
 	}
 
 	protected dispose() {
 		// dispose scene sphere
-		if (this.geometry)
-			this.geometry.dispose();
-		if (this.material)
-			this.material.dispose();
+		this.geometry?.dispose();
+		this.material?.dispose();
 		if (this.mesh)
 			this.scene.remove(this.mesh);
 

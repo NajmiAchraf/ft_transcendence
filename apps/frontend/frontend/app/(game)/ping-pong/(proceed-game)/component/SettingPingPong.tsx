@@ -133,25 +133,26 @@ function SettingPingPong() {
 		<div className="setting">
 			<div className="stg-section stg">
 				<div className="background">
-					<div className="button-part">
-						{
-							// if npm run dev then show devMode button else hide
-							process.env.NODE_ENV === "development" && (
-								/* change dev mode on(true) off(false) */
-								<button className="button-stg props" onClick={changeDevMode}>DevMode {devMode}</button>
-							)
-						}
 
-						{propsContext.props.playerType === "bot" && (
-							/* change mode three modes easy medium hard */
+					{/* if npm run dev then show devMode button else hide*/}
+					{process.env.NODE_ENV === "development" && (
+						<div className="button-part">
+							{/* change dev mode none all camera paddle-bot */}
+							<button className="button-stg props" onClick={changeDevMode}>DevMode {devMode}</button>
+						</div>
+					)}
+
+					{propsContext.props.playerType === "bot" && (
+						<div className="button-part">
+							{/* change mode three modes easy medium hard */}
 							<button className="button-stg props" onClick={changeMode}>Mode {mode}</button>
-						)}
 
-						{propsContext.props.playerType === "bot" && (
-							/* side of the paddle you play with */
+							{/* side of the paddle you play with */}
 							<button className="button-stg props" onClick={changeSide}>Side {side}</button>
-						)}
+						</div>
+					)}
 
+					<div className="button-part">
 						{/* change reflection on(true) off(false) */}
 						<button className="button-stg props" onClick={changeReflection}>Reflection {reflection ? "on" : "off"}</button>
 
@@ -160,8 +161,8 @@ function SettingPingPong() {
 
 						{/* change scene */}
 						<button className="button-stg props" onClick={changeScene}>Scene {scene}</button>
-
 					</div>
+
 					<div className="button-part">
 
 						{!optionsContext.options.invite ? (
