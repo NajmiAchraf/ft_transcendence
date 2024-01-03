@@ -271,3 +271,21 @@ body, html
 .setting .props:active {
 	background: linear-gradient(180deg, #947f18 0%, #134d8f 100%);
 }
+
+.setting img
+{
+	width: 502px;
+	height: 344px;
+	border-radius: 20px;
+	transition: 0.5s ease;
+}
+
+.setting .theme
+{
+	flex-basis: 40%;
+	display: flex;
+	gap: 1rem;
+	align-items: center;
+	font-size: 2rem;
+	justify-self: center;
+}

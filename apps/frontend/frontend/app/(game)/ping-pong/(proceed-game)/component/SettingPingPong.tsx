@@ -25,6 +25,7 @@ function SettingPingPong() {
 	const [style, setStyle] = useState(propsContext.props.style);
 	const [geometry, setGeometry] = useState(propsContext.props.geometry);
 	const [scene, setScene] = useState(propsContext.props.scene);
+	const [theme, setTheme] = useState("/theme/" + propsContext.props.geometry + propsContext.props.style + propsContext.props.scene + ".jpeg");
 
 	const allowToProceed = () => {
 		if (optionsContext.options.invite)
@@ -42,6 +43,10 @@ function SettingPingPong() {
 			webContext.socketGame.off("allowToProceed", allowToProceed);
 		};
 	}, []);
+
+	const changeTheme = () => {
+		setTheme("/theme/" + propsContext.props.geometry + propsContext.props.style + propsContext.props.scene + ".jpeg");
+	}
 
 	const changeDevMode = () => {
 		if (propsContext.props.devMode === 'none') {
@@ -85,11 +90,13 @@ function SettingPingPong() {
 			propsContext.props.style = "mirror";
 		}
 		setStyle(propsContext.props.style)
+		changeTheme();
 	}
 
 	const changeGeometry = () => {
 		propsContext.props.geometry = propsContext.props.geometry === "cube" ? "sphere" : "cube"
-		setGeometry(propsContext.props.geometry)
+		setGeometry(propsContext.props.geometry);
+		changeTheme();
 	}
 
 	const changeScene = () => {
@@ -102,7 +109,8 @@ function SettingPingPong() {
 		} else if (propsContext.props.scene === "none") {
 			propsContext.props.scene = "dast";
 		}
-		setScene(propsContext.props.scene)
+		setScene(propsContext.props.scene);
+		changeTheme();
 	}
 
 	const joinGame = () => {
@@ -167,6 +175,10 @@ function SettingPingPong() {
 
 						{/* change scene */}
 						<button className="button-stg props" onClick={changeScene}>Scene {scene}</button>
+					</div>
+
+					<div className="theme">
+						<img src={theme} />
 					</div>
 
 					<div className="button-part">
