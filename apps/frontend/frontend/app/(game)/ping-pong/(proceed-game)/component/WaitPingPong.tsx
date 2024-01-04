@@ -36,7 +36,7 @@ function WaitPingPong() {
 	};
 
 	return (
-		<div className="Parent">
+		<div className="Game">
 			<div className="section1">
 				<div className="player p-right">
 					<img src="/img3.png" alt="player-right" />

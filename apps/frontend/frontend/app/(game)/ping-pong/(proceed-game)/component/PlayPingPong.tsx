@@ -129,7 +129,7 @@ function PlayPingPong() {
 	};
 
 	return (
-		<div className="Parent">
+		<div className="Game">
 			<canvas ref={canvasRef} id="PingPong"></canvas>
 			<div className="section1">
 				<div className="player p-right">
