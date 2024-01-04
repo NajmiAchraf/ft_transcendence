@@ -81,6 +81,12 @@ function SettingPingPong() {
 		setSide(propsContext.props.side)
 	}
 
+	const changeGeometry = () => {
+		propsContext.props.geometry = propsContext.props.geometry === "cube" ? "sphere" : "cube"
+		setGeometry(propsContext.props.geometry);
+		changeTheme();
+	}
+
 	const changeStyle = () => {
 		if (propsContext.props.style === "mirror") {
 			propsContext.props.style = "glass";
@@ -90,12 +96,6 @@ function SettingPingPong() {
 			propsContext.props.style = "mirror";
 		}
 		setStyle(propsContext.props.style)
-		changeTheme();
-	}
-
-	const changeGeometry = () => {
-		propsContext.props.geometry = propsContext.props.geometry === "cube" ? "sphere" : "cube"
-		setGeometry(propsContext.props.geometry);
 		changeTheme();
 	}
 
@@ -167,11 +167,11 @@ function SettingPingPong() {
 					)}
 
 					<div className="button-part">
-						{/* change style mirror mate glass */}
-						<button className="button-stg props" onClick={changeStyle}>Style {style}</button>
-
 						{/* change geometry cube(sphere) */}
 						<button className="button-stg props" onClick={changeGeometry}>Geometry {geometry}</button>
+
+						{/* change style mirror mate glass */}
+						<button className="button-stg props" onClick={changeStyle}>Style {style}</button>
 
 						{/* change scene */}
 						<button className="button-stg props" onClick={changeScene}>Scene {scene}</button>

@@ -274,8 +274,8 @@ body, html
 
 .setting img
 {
-	width: 502px;
-	height: 344px;
+	width: 650px;
+	height: 350px;
 	border-radius: 20px;
 	transition: 0.5s ease;
 }
@@ -288,4 +288,6 @@ body, html
 	align-items: center;
 	font-size: 2rem;
 	justify-self: center;
+	margin-right: 2rem;
+	margin-left: 2rem;
 }
