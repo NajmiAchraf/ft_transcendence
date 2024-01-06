@@ -36,7 +36,6 @@ function MobileHeaderBar() {
   const [inputValue, setInputValue] = useState<string>("");
   const [SenderId, setSenderId] = useState(-1);
   const [isSender, setIsSender] = useState(false);
-  const [isPageVisible, setIsPageVisible] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [users, setUsers] = useState<User[] | null>(null);
   const navigation = [
@@ -46,17 +45,6 @@ function MobileHeaderBar() {
     { name: "Profile", href: "#", current: false },
     { name: "Settings", href: "#", current: false },
   ];
-  const handleVisibilityChange = () => {
-    setIsPageVisible(!document.hidden);
-  };
-
-  useEffect(() => {
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, []);
   
   useEffect(() => {
     const localwhoami = async () => {
@@ -66,6 +54,8 @@ function MobileHeaderBar() {
     localwhoami();
     const handleInvite = async (event: any) => {
       setIsSender(false);
+      if (document.hidden)
+        return ;
       if (event.receiver_id === (await whoami())) {
         setSenderId(event.sender_id);
         context.setisCountDown(true);
@@ -77,8 +67,10 @@ function MobileHeaderBar() {
     };
 
     const handleAccept = async (event: any) => {
+      if (document.hidden)
+        return ;
       const id = await whoami();
-      if ((event.receiver_id === id || event.sender_id === id) && isPageVisible)
+      if ((event.receiver_id === id || event.sender_id === id))
       {
         context.setisCountDown(false);
         router.push("/ping-pong/invite");

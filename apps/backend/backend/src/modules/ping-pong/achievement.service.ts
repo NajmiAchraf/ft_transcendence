@@ -12,7 +12,7 @@ export class AchievementService {
 		// check that the user has not already received the achievement
 		const entry = await this.prismaService.user_achievement.findFirst({
 			where: {
-				achievement_title: 'PingPongNovice',
+				achievement_title: 'Welcome',
 				user_id: userId,
 			},
 		});
@@ -23,7 +23,7 @@ export class AchievementService {
 		// insert achievement
 		const achievement = await this.prismaService.user_achievement.create({
 			data: {
-				achievement_title: 'PingPongNovice',
+				achievement_title: 'Welcome',
 				user_id: userId,
 			}
 		});
@@ -301,7 +301,7 @@ export class AchievementService {
 		// check that the user has not already received the achievement
 		const entry = await this.prismaService.user_achievement.findFirst({
 			where: {
-				achievement_title: 'Streaker',
+				achievement_title: 'GrandMaster',
 				user_id: winnerId,
 			}
 		});
@@ -338,7 +338,7 @@ export class AchievementService {
 		// insert achievement
 		const achievement = await this.prismaService.user_achievement.create({
 			data: {
-				achievement_title: 'Streaker',
+				achievement_title: 'GrandMaster',
 				user_id: winnerId,
 			},
 		});
