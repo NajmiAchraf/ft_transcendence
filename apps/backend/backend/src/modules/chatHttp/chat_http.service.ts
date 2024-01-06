@@ -1148,7 +1148,7 @@ export class ChatHttpService {
 			}
 		});
 
-		if (expiredIvitation && Date.now() - expiredIvitation.created_at.getTime() < 1000 * 30) {
+		if (expiredIvitation && Date.now() - expiredIvitation.created_at.getTime() < 1000 * 10) {
 			await this.prismaService.game_invitation.delete({
 				where: {
 					id: expiredIvitation.id,
@@ -1163,7 +1163,7 @@ export class ChatHttpService {
 			}
 		})
 
-		if (profileExpiredInvitation && Date.now() - profileExpiredInvitation.created_at.getTime() < 1000 * 30) {
+		if (profileExpiredInvitation && Date.now() - profileExpiredInvitation.created_at.getTime() < 1000 * 10) {
 			await this.prismaService.game_invitation.delete({
 				where: {
 					id: profileExpiredInvitation.id,

@@ -1,3 +1,4 @@
+"use client"
 import * as IonIcons from 'ionicons/icons';
 import { IonIcon } from '@ionic/react';
 import { getCookie } from './errorChecks';

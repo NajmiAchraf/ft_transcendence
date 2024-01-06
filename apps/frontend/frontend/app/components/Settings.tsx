@@ -1,3 +1,4 @@
+"use client"
 import React, { useEffect, useState } from "react";
 import { getCookie } from "./errorChecks";
 import { useNavContext } from "../(NavbarPages)/context/NavContext";

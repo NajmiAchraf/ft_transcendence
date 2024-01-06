@@ -1,3 +1,4 @@
+"use client"
 import { IonIcon } from '@ionic/react';
 import Link from 'next/link';
 import * as IonIcons from 'ionicons/icons';

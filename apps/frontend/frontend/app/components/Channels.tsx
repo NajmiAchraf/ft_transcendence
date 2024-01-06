@@ -1,3 +1,4 @@
+"use client"
 import { useState, useEffect } from 'react';
 import { getCookie } from './errorChecks';
 import Channel from './Channel';

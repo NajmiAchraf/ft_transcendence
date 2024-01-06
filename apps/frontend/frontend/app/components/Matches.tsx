@@ -1,3 +1,4 @@
+"use client"
 import Match from "./Match";
 import React from "react";
 import { useState, useEffect } from 'react';

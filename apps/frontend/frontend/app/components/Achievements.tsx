@@ -1,3 +1,4 @@
+"use client"
 import Achievement from "./Achievement";
 import { useState, useEffect } from "react";
 import { getCookie } from "./errorChecks";

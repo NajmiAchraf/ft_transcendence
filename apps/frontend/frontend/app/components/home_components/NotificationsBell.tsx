@@ -1,3 +1,4 @@
+"use client"
 import React, { useState, useEffect, useRef } from "react";
 import { getCookie } from "../errorChecks";
 const NotificationBell = ({svg}: any) => {
@@ -69,7 +70,8 @@ const NotificationBell = ({svg}: any) => {
 
       {isOpen && (
         <div className="absolute right-[-17px] top-[40px] w-72 bg-gray-700 border border-gray-900 divide-y divide-gray-400  rounded-[20px] shadow-lg overflow-hidden z-50 notification-section">
-          {notifications && notifications.map((notification) => (
+          {(notifications && notifications.length > 0 ?
+          (notifications.map((notification) => (
             <div
               key={notification.id}
               className={`p-5 ${
@@ -79,7 +81,7 @@ const NotificationBell = ({svg}: any) => {
               <p className="text-sm font-medium">{notification.content}</p>
               <p className="text-xs text-gray-400">{notification.time}</p>            
             </div>
-          ))}
+          ))) : <div className="no-notifications">You have no notifications at the moment</div>)}
         </div>
       )}
     </div>

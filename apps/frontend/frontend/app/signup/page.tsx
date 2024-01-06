@@ -217,7 +217,7 @@ const Signup = () => {
               CONTINUE WITH 42
             </div>
           </button>
-          <button className="flex items-center justify-center gap-[15px] relative w-full h-[53px] rounded-[15px] transition-all shadow-xl duration-500 bg-gradient-to-r to-[#d75433] via-[#412170]  from-[#d75433] to-[#412170] bg-size-200 bg-pos-0 hover:bg-pos-100">
+          {/*<button className="flex items-center justify-center gap-[15px] relative w-full h-[53px] rounded-[15px] transition-all shadow-xl duration-500 bg-gradient-to-r to-[#d75433] via-[#412170]  from-[#d75433] to-[#412170] bg-size-200 bg-pos-0 hover:bg-pos-100">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="32"
@@ -233,7 +233,7 @@ const Signup = () => {
             <div className="relative w-fit font-Inter font-black text-white text-[18px] text-center leading-[22.1px] whitespace-nowrap ">
               CONTINUE WITH DISCORD
             </div>
-          </button>
+          </button>*/}
         </div>
       </div>
       <div className=" hidden lg:flex w-[50%] ">

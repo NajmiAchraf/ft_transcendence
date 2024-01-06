@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useNavContext } from "@/app/(NavbarPages)/context/NavContext";
 import { deleteCookie, getCookie } from "../errorChecks";
 import { useRouter } from "next/navigation";
-
+import { whoami } from "../PersonalInfo";
 const dropdown = [
   {
     name: "My Profile",
@@ -34,7 +34,7 @@ function HeaderBar() {
   const [users, setUsers] = useState<User[] | null>(null);
   const [inputValue, setInputValue] = useState<string>("");
   const searchSecRef = useRef<HTMLDivElement>(null); // Specify the type here
-
+  const [userImage, setUserImage] = useState<string>("/profile.jpg");
   const showSearch = (option: number) => {
     let element: HTMLElement | null = document.querySelector(".headerbar-overlay")
     let element2: HTMLElement | null = document.querySelector(".search-results")
@@ -109,12 +109,30 @@ function HeaderBar() {
       document.removeEventListener('click', handleOutsideClick);
     };
   }, []);
+  useEffect(() =>{
+      const fetchImage = async () =>{
+      try{
+      const data2 = await fetch("http://localhost:3001/user/personal_infos", {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getCookie("AccessToken")}`
+          },
+          body: JSON.stringify({ profileId: await whoami() })
+        });
 
-  const avatar = {
-    backgroundImage: "url(/profile.jpg)",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-  };
+        if (!data2.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const otherDataResult = await data2.json()
+        setUserImage(otherDataResult.avatar);
+      }catch(e)
+      {
+        console.log(e);
+      }
+    }
+    fetchImage();
+  }, [])
   return (
     <div className="flex justify-between py-[15px]">
       <div className="relative flex items-center space-x-2">
@@ -183,7 +201,10 @@ function HeaderBar() {
               <>
                 <Popover.Button
                   className=" w-[62px] h-[62px] rounded-[20px] "
-                  style={avatar}
+                  style={{backgroundImage: `url(${userImage})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  }}
                 ></Popover.Button>
                 <Transition
                   as={Fragment}
@@ -207,11 +228,12 @@ function HeaderBar() {
                           onClick={() => {
                             if (context.infoSec !== "3")
                               context.setinfoSec("3");
-                            context.setNav("4");
+                            context.setNav("5")
                             const f = document.querySelectorAll("nav .item");
                             f?.forEach((d, i) => {
                               d.classList?.remove("active");
-                              if (i == 3) d.classList?.add("active");
+                              if (i == 3)
+                                d.classList?.add("active")
                             });
                           }}
                           href={`/profile/${context.id}`}

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getCookie } from "../components/errorChecks";
-// import { TokenRefresher } from "../components/errorChecks";
+import { TokenRefresher } from "../components/errorChecks";
 import { useRouter } from "next/navigation";
 const CompleteInfos = () => {
   const router = useRouter();
@@ -54,7 +54,7 @@ const CompleteInfos = () => {
       if (!data.ok) {
         console.log(await data.text())
         if (data.status == 401) {
-          // TokenRefresher();
+            TokenRefresher();
         }
         else if(data.status == 413)
           setError("Image Size Is Too Large.")

@@ -1,4 +1,4 @@
-
+"use client"
 import Friend from './Friend';
 import { useState, useEffect } from "react"
 import { getCookie } from './errorChecks';

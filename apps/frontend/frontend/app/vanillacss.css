@@ -372,6 +372,12 @@ nav ul li {
 .notification-section{
   animation: fadeInUp 0.3s forwards;
 }
+.no-notifications{
+  font-family: 'Montserrat';
+  padding: 15px;
+  font-size: 1rem;
+  color: #9b9b9b;
+}
 @media(min-width:1276px)
 {
   .notification-section{
