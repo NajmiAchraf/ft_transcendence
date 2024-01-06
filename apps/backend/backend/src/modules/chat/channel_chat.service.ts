@@ -211,6 +211,8 @@ export class ChannelChatService {
 			}
 
 			const userId = this.socketService.getUserId(client.id);
+			console.log('messageChannelId: ' + message.channelId);
+			console.log('Array: ' + server.adapter.rooms.get(message.channelId.toString()))
 			const connectedSocketIds = Array.from(server.adapter.rooms.get(message.channelId.toString()).values());
 			const connectedSockets = connectedSocketIds.map(socketId => server.sockets.get(socketId));
 			const filteredSockets = await this.socketService.filterSockets(userId, connectedSockets);
@@ -237,6 +239,33 @@ export class ChannelChatService {
 				else
 					socket.emit('leaveChannelOthers', messagePayload);
 			});
+		} catch (err) {
+			console.log('something went wrong-');
+			console.log(err);
+			server.to(client.id).emit('Invalid access', { error: "error occured" });
+		}
+	}
+
+	async createChannel(server: Namespace, client: Socket, message: any) {
+
+		try {
+			const res = await fetch(`${process.env.API_URL}/chatHttp/createChannel`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': 'Bearer ' + client.handshake.query['accessToken'],
+				},
+				body: JSON.stringify(message)
+			});
+			if (!res.ok) {
+				console.log('something went wrong');
+				server.to(client.id).emit('Invalid access', { error: "error occured" });
+				return;
+			}
+
+			// join channel room
+			client.join(message.channelId.toString());
+			client.emit('channelCreated', 'Channel created successfully!');
 		} catch (err) {
 			console.log('something went wrong-');
 			console.log(err);

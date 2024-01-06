@@ -19,6 +19,7 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 	const webSocketContext = useWebSocketContext();
 	const webSocketGame = webSocketContext.socketGame;
 
+
 	const router = useRouter();
 
 	let playState: PlayStates = "readyPlay";
@@ -72,6 +73,13 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 			updateGameStates(false, false, true);
 
 			game.stop();
+
+			propsContext.props.player1ID = '0';
+			propsContext.props.player2ID = '0';
+			propsContext.props.player1Name = 'name';
+			propsContext.props.player2Name = 'name';
+			propsContext.props.player1Avatar = "/img3.png";
+			propsContext.props.player2Avatar = "/img3.png";
 		}
 	};
 
@@ -91,8 +99,8 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 	const handleDataPlayer = (data: any) => {
 		console.log('dataPlayer: ', data);
 		dataPlayer = data;
-		propsContext.props.player1Name = data.player1Name;
-		propsContext.props.player2Name = data.player2Name;
+		propsContext.props.player1ID = data.player1Name;
+		propsContext.props.player2ID = data.player2Name;
 	};
 
 	const handleAllowToPlay = (data: any) => {
@@ -105,16 +113,27 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 		setGameState("wait");
 	};
 
+	const leave = async () => {
+		// disconnect socket after leave
+		webSocketGame.disconnect();
+
+		router.push("/home");
+	};
+
 	const handleDenyToPlay = (data: any) => {
 		console.log('denyToPlay: ', data.error);
 		if (data.error) {
 			alert(data.error);
-			router.push("/home");
+			leave();
 		}
 	};
 
 	const handleInvalidAccess = (data: any) => {
 		console.log('invalidAccess: ', data.error);
+		if (data.error) {
+			alert(data.error);
+			leave();
+		}
 	}
 
 	const handleLeaveRoom = (data: any) => {

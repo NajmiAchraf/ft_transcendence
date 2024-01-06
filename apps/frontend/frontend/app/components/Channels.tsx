@@ -7,8 +7,9 @@ const Channels = ({ userId }: { userId: number }) => {
   const [channels, setchannels] = useState<any>(null);
   const wsProvider = useWebSocketContext()
   useEffect(() => {
-    const UpdateData = () => {
-      fetchData()
+    const UpdateData = async () => {
+      console.log("because of me ?")
+      await fetchData()
     }
     wsProvider.chat.on("joined", UpdateData)
     wsProvider.chat.on("leaveChannelSelf", UpdateData)
@@ -16,7 +17,7 @@ const Channels = ({ userId }: { userId: number }) => {
       wsProvider.chat.off("joined", UpdateData)
       wsProvider.chat.off("leaveChannelSelf", UpdateData)
     }
-  })
+  }, [])
   const fetchData = async () => {
     try {
       const data = await fetch("http://localhost:3001/user/channels", {
@@ -44,7 +45,6 @@ const Channels = ({ userId }: { userId: number }) => {
 
     fetchData();
   }, [userId]);
-  console.log(channels)
   if (!channels) {
     return (null);
   }

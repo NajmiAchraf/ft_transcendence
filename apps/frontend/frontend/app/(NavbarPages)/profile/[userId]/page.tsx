@@ -37,7 +37,7 @@ const Profile = () => {
         <>
           <Matches userId={Number(urlParams.userId)} />
           <ExtraInfo changeInfoSec={changeInfoSec} infoSec={hover.infoSec} userId={Number(urlParams.userId)} />
-          <GlobalChat userId={Number(urlParams.userId)} />
+          <GlobalChat />
         </> : <div className="error-section"><img src="/astro.png"></img><h2>Something Went Wrong</h2> <Link href={`/profile/${hover.id}`}>Go back Home <span></span><span></span><span></span><span></span></Link></div>)}
     </div>
   );

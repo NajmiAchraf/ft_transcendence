@@ -4,13 +4,15 @@ export type Canvas = HTMLCanvasElement | null;
 export type Side = "left" | "right";
 export type Mode = "easy" | "medium" | "hard";
 export type Geometry = "cube" | "sphere";
+export type Style = "mirror" | "glass" | "mate";
+export type Scene = "dast" | "nebula" | "space" | "none";
 export type PlayerType = "player" | "bot";
 export type PlayStates = 'readyPlay' | 'startPlay' | 'endPlay';
 export type GameStates = 'settings' | 'wait' | 'play';
 export type DevMode = 'none' | 'all' | 'camera' | 'paddle-bot';
 
 export let vars = {
-	speed_init: 600 / 120, //! depend on width
+	speed_init: 600 / 120,
 	width: 600,
 	height: 400,
 	depth: 4,
@@ -25,12 +27,17 @@ export let vars = {
 export type Props = {
 	devMode: DevMode,
 	geometry: Geometry,
-	reflection: boolean,
+	style: Style,
 	mode: Mode,
 	side: Side,
+	scene: Scene,
 	playerType: PlayerType,
+	player1ID: string;
+	player2ID: string;
 	player1Name: string,
 	player2Name: string,
+	player1Avatar: any,
+	player2Avatar: any,
 }
 
 export type Options = {

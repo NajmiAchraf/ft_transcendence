@@ -3,9 +3,8 @@
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 
-import RootLayout from '@/app/(game)/layout';
 import Service from '@/app/(game)/ping-pong/(proceed-game)/service/Service';
-import { useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext';
+import { getDefaultOptions, useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext';
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { GameStates } from '@/app/(game)/ping-pong/common/Common';
 import '@/app/(game)/ping-pong.css'
@@ -19,14 +18,7 @@ const Join = () => {
 	const propsContext = usePropsContext();
 	const [gameState, setGameState] = useState<GameStates>("settings");
 
-	optionsContext.options = {
-		...optionsContext.options,
-		invite: false,
-		readyPlay: false,
-		startPlay: false,
-		endGame: false,
-		inGame: false,
-	};
+	optionsContext.options = getDefaultOptions();
 
 	propsContext.props = {
 		...propsContext.props,
@@ -37,13 +29,11 @@ const Join = () => {
 	Service(setGameState);
 
 	return (
-		<RootLayout>
-			{<div id="root" style={{ backgroundColor: "#1a1c26" }}>
-				{gameState === "settings" && <SettingPingPong />}
-				{gameState === "wait" && <WaitPingPong />}
-				{gameState === "play" && <PlayPingPong />}
-			</div>}
-		</RootLayout>
+		<div className="Game">
+			{gameState === "settings" && <SettingPingPong />}
+			{gameState === "wait" && <WaitPingPong />}
+			{gameState === "play" && <PlayPingPong />}
+		</div>
 	);
 };
 

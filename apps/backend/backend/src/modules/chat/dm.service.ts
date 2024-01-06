@@ -88,7 +88,7 @@ export class DmService {
 
 			client.emit('gameInvitationAccepted', messagePayload);
 			senderSockets.forEach(socket => {
-				socket.emit('gameInvitationAccepted', messagePayload);
+				server.to(socket).emit('gameInvitationAccepted', messagePayload);
 			});
 		} catch (err) {
 			server.to(client.id).emit('Invalid access', { error: "error occured" });
@@ -119,7 +119,7 @@ export class DmService {
 
 			client.emit('sendGameInvitation', messagePayload);
 			receiverSockets.forEach(socket => {
-				socket.emit('sendGameInvitation', messagePayload);
+				server.to(socket).emit('sendGameInvitation', messagePayload);
 			});
 		} catch (err) {
 			server.to(client.id).emit('Invalid access', { error: "error occured" });

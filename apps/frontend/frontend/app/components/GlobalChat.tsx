@@ -14,7 +14,7 @@ type MessageType = {
   created_at: string;
 };
 
-const GlobalChat = ({ userId }: { userId: number }) => {
+const GlobalChat = () => {
 
   const wsProvider = useWebSocketContext()
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -60,31 +60,17 @@ const GlobalChat = ({ userId }: { userId: number }) => {
         if (!data.ok)
           throw new Error("WTF");
         const res = await data.json();
-        console.log("RESULTS :", res)
         setMessages(messages.concat(res))
-        console.log("1")
-        /*await   res.forEach((msg : MessageType, key : number) =>{
-          console.log(key)
-          /*setMessages([...messages, msg]);
-          setMessages((prevMessages) => [...prevMessages, msg]);
-        })*/
       }
       catch (e) {
         console.log(e)
       }
-      /*data.forEach((message) => {
-        const chatDiv = document.getElementById('chat');
-        chatDiv.innerHTML += `<p>[id: ${message.sender_id}, nickname: ${message.nickname}] ${message.message_text} : ${message.create_at}</p>`;
-      });*/
     }
     getAllGlobalChat()
   }, []);
 
   useEffect(() => {
     wsProvider.chat.on("createChat", (event) => {
-      console.log("LOLOLOLOLOL")
-      console.log(event)
-      /*const data = JSON.parse(event.data);*/
       setMessages((prevMessages) => [event, ...prevMessages]);
     })
   }, []) 

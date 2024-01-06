@@ -1,23 +1,30 @@
-# VOLUMES_PATH = ~/ft-transcendence/volumes
+all: build_up
 
-all: up
-
-up:
+build_up:
 	@docker compose up -d --build
-#	@(cd /apps/backend/backend/database && npx prisma migrate dev && npx prisma studio)
 
+up: down build_up
+	
 down:
 	@docker compose down
-	-@docker image rm -f $$(docker images -q)
-	-@docker volume rm $$(docker volume ls -q)
-
-# volume:
-#  @mkdir -p $(VOLUMES_PATH)/postgresql/data $(VOLUMES_PATH)/uploads $(VOLUMES_PATH)/migrations
 
 clean: down
-#	@rm -rf $(VOLUMES_PATH)/postgresql
-#	@rm -rf $(VOLUMES_PATH)/uploads
-#	 @rm -rf $(VOLUMES_PATH)/migrations
+	-@docker compose down --rmi all
+
+re: clean all
+
+clear: clean
+	-@docker rm -f $$(docker rm -q)
+	-@docker rmi -f $$(docker images -q -a)
+
+prune: clear
 	@docker system prune --all --force
 
-re: down up
+backendlogs:
+	@docker logs backend
+
+frontlogs:
+	@docker logs frontend
+
+postlogs:
+	@docker logs postgresql

@@ -17,6 +17,8 @@ export interface INavContext {
     setIs2FA: React.Dispatch<React.SetStateAction<boolean>>;
     isUpdated: boolean;
     setisUpdated: React.Dispatch<React.SetStateAction<boolean>>;
+    isCountDown: boolean;
+    setisCountDown: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 //create context
@@ -43,6 +45,7 @@ function NavContextProvider({ children }: { children: any }) {
     const [TwoFACode, setTwoFACode] = useState("");
     const [is2FA, setIs2FA] = useState(false);
     const [isUpdated, setisUpdated] = useState(false);
+    const [isCountDown, setisCountDown] = useState(false);
     const contextValue: INavContext = {
         nav,
         setNav,
@@ -57,7 +60,9 @@ function NavContextProvider({ children }: { children: any }) {
         is2FA,
         setIs2FA,
         isUpdated,
-        setisUpdated
+        setisUpdated,
+        isCountDown,
+        setisCountDown
     }
 
     return (

@@ -11,8 +11,6 @@ const LeaderBoard = () => {
   useEffect(
     () => {
       hover.setNav("2")
-      const myid: NodeJS.Timeout = setTimeout(() => { hover.setIsLoading(false); }, 500);
-      return () => clearTimeout(myid);
     }
     , []);
   const [standings, setstandings] = useState<any>(null);
@@ -30,12 +28,6 @@ const LeaderBoard = () => {
           throw new Error("Failed to fetch data");
         }
         const standingsinfo = await data.json();
-        console.log(standingsinfo)
-        /*standingsinfo.array.forEach(async (element: any) => {
-
-          if (element.nickname === null && element.id == await whoami())
-            window.location.href = "/complete_infos"
-        });*/
         setstandings(standingsinfo)
       } catch (error) {
         console.error("Error fetching data:", error);

@@ -104,11 +104,6 @@ const PersonalInfo = ({ userId, setisAllowed }: { userId: number, setisAllowed: 
         });
 
         if (!data.ok) {
-          if (data.status === 403 || data.status === 500) {
-            console.error("user is blocked")
-            setisAllowed(false)
-            return (null)
-          }
         }
 
         const personalInfoResult = await data.json();
@@ -122,6 +117,11 @@ const PersonalInfo = ({ userId, setisAllowed }: { userId: number, setisAllowed: 
         });
 
         if (!data2.ok) {
+          if (data.status === 403 || data.status === 500) {
+            console.error("user is blocked")
+            setisAllowed(false)
+            return (null)
+          }
           throw new Error("Failed to fetch data");
         }
         const otherDataResult = await data2.json()
@@ -154,11 +154,11 @@ const PersonalInfo = ({ userId, setisAllowed }: { userId: number, setisAllowed: 
           </div>
           <div className="p-info-sec">
             <h6>Win</h6>
-            <h4>{(userData.personalInfo.winPercentage ? userData.personalInfo.winPercentage : "0")}%</h4>
+            <h4>{(userData.personalInfo.winPercentage ? Math.floor(userData.personalInfo.winPercentage) : "0")}%</h4>
           </div>
           <div className="p-info-sec">
             <h6>Loss</h6>
-            <h4>{(userData.personalInfo.lossPercentage ? userData.personalInfo.lossPercentage : "0")}%</h4>
+            <h4>{(userData.personalInfo.lossPercentage ? Math.floor(userData.personalInfo.lossPercentage) : "0")}%</h4>
           </div>
         </div>
         <div className="player-image">
@@ -199,7 +199,7 @@ const PersonalInfo = ({ userId, setisAllowed }: { userId: number, setisAllowed: 
             ))))}
       </div>
       <div className="levelpart">
-        <div className="level"><h5>Level {(userData.personalInfo.Level ? userData.personalInfo.Level : "0")}</h5> <div className="bar"><div style={{ width: `${(userData.personalInfo.LevelPercentage ? userData.personalInfo.LevelPercentage : "0")}%` }} className="bar-fill"></div><h5>{((userData.personalInfo.LevelPercentage ? userData.personalInfo.LevelPercentage : "0"))}%</h5></div></div>
+        <div className="level"><h5>Level {(userData.personalInfo.Level ? userData.personalInfo.Level : "0")}</h5> <div className="bar"><div style={{ width: `${(userData.otherData.level_percentage ? userData.otherData.level_percentage : "0")}%` }} className="bar-fill"></div><h5>{((userData.otherData.level_percentage ? userData.otherData.level_percentage : "0"))}%</h5></div></div>
       </div>
     </div>
   );

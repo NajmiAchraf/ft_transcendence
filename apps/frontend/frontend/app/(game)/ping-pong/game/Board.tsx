@@ -6,7 +6,7 @@ import { FontLoader, Font } from 'three/addons/loaders/FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 
 import Game from '@/app/(game)/ping-pong/game/Game'
-import { vars, Geometry } from '@/app/(game)/ping-pong/common/Common'
+import { vars, Geometry, Style } from '@/app/(game)/ping-pong/common/Common'
 
 const ReflectorShader = {
 
@@ -103,7 +103,7 @@ class Table {
 		this.depth = depth;
 	}
 
-	tableSetup() {
+	tableSetup(glass: boolean = false) {
 		const geometry = new THREE.BoxGeometry(this.width, this.height, this.depth);
 		this.material = new THREE.MeshPhysicalMaterial({
 			color: 0x000000,
@@ -112,7 +112,9 @@ class Table {
 			transmission: 0.9,
 			envMapIntensity: 1.0,
 			side: THREE.DoubleSide,
+			opacity: glass ? 0.5 : 1,
 		});
+		this.material.transparent = glass ? true : false;
 		this.table = new THREE.Mesh(geometry, this.material);
 		this.scene.add(this.table);
 		this.table.position.set(this.board.x, this.board.y, vars.z);
@@ -518,16 +520,16 @@ export default class Board {
 	x: number = 0;
 	y: number = 0;
 
-	reflector: boolean;
+	style: Style;
 
-	constructor(game: Game, width: number, height: number, depth: number, geometry: Geometry, reflector: boolean) {
+	constructor(game: Game, width: number, height: number, depth: number, geometry: Geometry, style: Style) {
 		this.game = game;
 		this.width = width;
 		this.height = height;
 		this.depth = depth;
 		this.geometry = geometry;
 
-		this.reflector = reflector;
+		this.style = style;
 
 		this.table = new Table(this, width, height, depth);
 		this.net = new Net(this, width, height, depth);
@@ -539,11 +541,12 @@ export default class Board {
 	}
 
 	setup() {
-		if (this.reflector) {
+		if (this.style === "mirror") {
 			this.table.tableSetup();
 			this.table.reflectorSetup(this.depth);
-		}
-		else
+		} else if (this.style === "glass") {
+			this.table.tableSetup(true);
+		} else if (this.style === "mate")
 			this.table.tableSetup();
 		this.net.setup(30);
 		this.border.borderSetup();

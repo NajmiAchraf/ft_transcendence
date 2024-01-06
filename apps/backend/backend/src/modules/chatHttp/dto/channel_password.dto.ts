@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString } from "class-validator";
+import { IsInt, IsOptional, IsString, Length } from "class-validator";
 
 export class ChannelPasswordDto {
 	@IsInt()
@@ -6,5 +6,6 @@ export class ChannelPasswordDto {
 
 	@IsOptional()
 	@IsString()
+	@Length(8, 20)
 	password: string;
 }

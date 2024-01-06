@@ -203,7 +203,6 @@ const Chat = () => {
             }
         } catch (error) {
             console.error("Error fetching data:", error);
-            //TokenRefresher();
         }
     }
 
@@ -286,6 +285,7 @@ const Chat = () => {
 
         const handleLeaveChannelSelf = async (event: any) => {
             router.push(`/chat/${context.id}`)
+            await fetchChannels()
         };
         wsProvider.chat.on("leaveChannelSelf", handleLeaveChannelSelf);
 
@@ -297,15 +297,8 @@ const Chat = () => {
         const handleJoinedEvent = async () => {
             await fetchChannels()
         }
-        const UpdateData = () => {
-            fetchChannels()
-        }
-        wsProvider.chat.on("joined", UpdateData)
-        wsProvider.chat.on("leaveChannelSelf", UpdateData)
         wsProvider.chat.on("joined", handleJoinedEvent)
         return () => {
-            wsProvider.chat.off("joined", UpdateData);
-            wsProvider.chat.off("leaveChannelSelf", UpdateData);
             wsProvider.chat.off("joined", handleJoinedEvent)
             wsProvider.chat.off("leaveChannelOthers", handleLeaveChannelOthers);
             wsProvider.chat.off("leaveChannelSelf", handleLeaveChannelSelf);
@@ -352,8 +345,12 @@ const Chat = () => {
         if (inputValue.trim() !== '') {
             const chatId = urlParams.chatId as string;
             let Id: Number = ((chatId).endsWith("_channel") ? Number(chatId.slice(0, -("_channel").length)) : Number(chatId))
+            console.log("Im in submit message")
             if ((urlParams.chatId as string).endsWith("_channel"))
+            {
                 wsProvider.chat.emit("channelCreateChat", { channelId: Id, message: inputValue })
+                console.log("I submitted a message")
+            }
             else {
                 wsProvider.chat.emit("directCreateChat", { profileId: Id, message: inputValue })
             }
@@ -615,7 +612,10 @@ const Chat = () => {
                 {((urlParams.chatId as string).endsWith("_channel") ? 
                     <IonIcon onClick={leaveChannel} icon={IonIcons.logOut}></IonIcon>
                     :<IonIcon onClick={() =>{
-                        wsProvider.chat.emit("invitePlayer", {senderId: context.id, receiverid : (urlParams.chatId as string)})
+                        const id : number = Number(urlParams.chatId as string)
+                        console.log(typeof id, " ", id)
+                        wsProvider.chat.emit("sendGameInvitation", {profileId: id})
+                        console.log("SENT !")
                     }}icon={IonIcons.addCircle}></IonIcon>
                 )}
                 <div className="results">

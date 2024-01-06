@@ -7,16 +7,18 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+
 import { DefaultEventsMap } from "@socket.io/component-emitter";
 import { Socket } from "socket.io-client";
 
 import Ball from "@/app/(game)/ping-pong/game/Ball";
 import Board from "@/app/(game)/ping-pong/game/Board";
 import Player from "@/app/(game)/ping-pong/game/Player";
-import { vars, Side, Props, Canvas, DevMode } from '@/app/(game)/ping-pong/common/Common'
+import { vars, Side, Props, Canvas, DevMode, Scene } from '@/app/(game)/ping-pong/common/Common'
 
 
-class CanvasComponent {
+export class CanvasComponent {
 	canvas: HTMLCanvasElement;
 	protected renderer: THREE.WebGLRenderer;
 	scene: THREE.Scene;
@@ -32,7 +34,13 @@ class CanvasComponent {
 
 	devMode: DevMode;
 
-	constructor(canvas: HTMLCanvasElement, devMode: DevMode) {
+	static assetTexture: THREE.Texture;
+
+	mesh: THREE.Mesh | undefined;
+	geometry: THREE.SphereGeometry | undefined;
+	material: THREE.Material | undefined;
+
+	constructor(canvas: HTMLCanvasElement, devMode: DevMode, scene: Scene) {
 		const fov = 75;
 		const planeAspectRatio = 4 / 3;
 
@@ -40,8 +48,14 @@ class CanvasComponent {
 		this.canvas = canvas;
 		this.renderer = this.rendererSetup(canvas);
 		this.scene = this.sceneSetup();
+		if (scene !== "none") {
+			const { mesh, geometry, material } = this.envSetup();
+			this.mesh = mesh as THREE.Mesh;
+			this.geometry = geometry as THREE.SphereGeometry;
+			this.material = material as THREE.Material;
+		}
 
-		this.camera = this.cameraSetup(fov, planeAspectRatio, 0.1, 5000, new THREE.Vector3(0, 0, vars.height));
+		this.camera = this.cameraSetup(fov, planeAspectRatio, 0.1, 6000, new THREE.Vector3(0, 0, vars.height));
 
 		if (devMode === 'all' || devMode === 'camera') {
 			this.orbits = new OrbitControls(this.camera, this.renderer.domElement);
@@ -119,6 +133,40 @@ class CanvasComponent {
 		return renderer;
 	}
 
+	static async loadAsset(scene: Scene) {
+		if (scene == "none")
+			return;
+		const hdrTextureUrl = '/assets/' + scene + '.hdr';
+		const loader = new RGBELoader();
+		CanvasComponent.assetTexture = await loader.loadAsync(hdrTextureUrl);
+	}
+
+	private envSetup(): { mesh: THREE.Mesh, geometry: THREE.SphereGeometry, material: THREE.Material } {
+		// Create a large sphere geometry
+		const geometry = new THREE.SphereGeometry(5000, 100, 100);
+		// Invert the geometry on the x-axis so that all of the faces point inward
+		geometry.scale(-1, 1, 1);
+
+		// Create a basic material and set the map to our environment map
+		const material = new THREE.MeshBasicMaterial({
+			map: CanvasComponent.assetTexture
+		});
+
+		// rotate the sphere
+		geometry.rotateZ(Math.PI / 2);
+
+		// Create a mesh with the sphere geometry and material
+		const mesh = new THREE.Mesh(geometry, material);
+		this.scene.add(mesh);
+
+		CanvasComponent.assetTexture.dispose();
+
+		this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+		this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+		return { mesh, geometry, material }
+	}
+
 	private sceneSetup() {
 		let scene = new THREE.Scene()
 		scene.background = new THREE.Color(0x1a1c26)
@@ -149,10 +197,19 @@ class CanvasComponent {
 	}
 
 	protected render() {
+		this.geometry?.rotateZ(0.001);
+		this.geometry?.rotateY(0.001);
+		this.geometry?.rotateX(0.001);
 		this.composer.render();
 	}
 
 	protected dispose() {
+		// dispose scene sphere
+		this.geometry?.dispose();
+		this.material?.dispose();
+		if (this.mesh)
+			this.scene.remove(this.mesh);
+
 		window.removeEventListener('resize', this.onWindowResize);
 
 		while (this.scene.children.length > 0) {
@@ -201,31 +258,41 @@ export default class Game extends CanvasComponent {
 	lost: boolean = false;
 	winned: boolean = false;
 
+	drawGoal: () => void;
+
 	constructor(getSocket: () => Socket<DefaultEventsMap, DefaultEventsMap>, getProps: () => Props, getCanvas: () => Canvas, getDataPlayer: () => any) {
 		vars.z = 0;
 		if (!getCanvas())
 			throw new Error("Canvas is not defined");
-		super(getCanvas() as HTMLCanvasElement, getProps().devMode)
+		super(getCanvas() as HTMLCanvasElement, getProps().devMode, getProps().scene);
 
 		this.getSocket = getSocket;
 		this.getDataPlayer = getDataPlayer;
 		this.getProps = getProps;
 		this.room = getDataPlayer().room;
 
-		this.board = new Board(this, vars.width, vars.height, vars.depth, getProps().geometry, getProps().reflection)
+		this.board = new Board(this, vars.width, vars.height, vars.depth, getProps().geometry, getProps().style)
 		this.ball = new Ball(this, getProps().geometry)
 		this.player1 = new Player(this, "right", getProps().geometry, getProps().devMode)
 		this.player2 = new Player(this, "left", getProps().geometry, getProps().devMode)
 
+		this.scene.traverse((node: THREE.Object3D) => {
+			if (node instanceof THREE.Mesh && node.material instanceof THREE.MeshBasicMaterial) {
+				node.material.envMap = this.scene.environment;
+				node.material.needsUpdate = true;
+			}
+		});
+
 		console.log("readyToPlay");
-		this.getSocket().on("drawGoal", () => {
+		this.drawGoal = () => {
 			// move the camera to the winner side after a goal and back to the center
 			if (this.ball.velocityX < 0)
 				this.moveCameraSeries("left");
 			else if (this.ball.velocityX > 0)
 				this.moveCameraSeries("right");
+		};
 
-		});
+		this.getSocket().on("drawGoal", this.drawGoal);
 
 		this.getSocket().emit("readyToPlay");
 	}
@@ -374,6 +441,9 @@ export default class Game extends CanvasComponent {
 		if (this.stopped)
 			return;
 		this.stopped = true;
+
+		this.getSocket().off("drawGoal", this.drawGoal);
+
 		this.board.dispose();
 		this.ball.dispose();
 		this.player1.dispose();

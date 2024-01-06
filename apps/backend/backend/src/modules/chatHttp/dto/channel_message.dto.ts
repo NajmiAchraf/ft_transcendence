@@ -1,4 +1,4 @@
-import { IsInt, IsString, Matches } from "class-validator";
+import { IsInt, IsString, Matches, Length } from "class-validator";
 
 export class ChannelMessageDto {
 	@IsInt()
@@ -6,5 +6,6 @@ export class ChannelMessageDto {
 	channelId: string;
 
 	@IsString()
+	@Length(1, 200)
 	message: string;
 }

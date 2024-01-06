@@ -211,6 +211,7 @@ export class ChatHttpService {
 				channel_id: entry.channel_id,
 				channel_name: entry.channel.channel_name,
 				avatar: entry.channel.avatar,
+				membersCount: entry.channel.members_count,
 				last_message: last_message.length !== 0 ? last_message[0].message_text : null,
 				sender_id: last_message.length !== 0 ? last_message[0].sender_id : null,
 				nickname: last_message.length !== 0 ? last_message[0].cm_sender.nickname : null,
@@ -810,13 +811,7 @@ export class ChatHttpService {
 			}
 		}
 
-		// delete user from channel
-		await this.prismaService.user_channel.delete({
-			where: {
-				id: entry.id,
-			}
-		});
-
+		
 		// * decrement members_count
 		await this.prismaService.channel.update({
 			where: {
@@ -828,10 +823,25 @@ export class ChatHttpService {
 				}
 			}
 		});
-
-		if (entries.length === 1) {
-			this.deleteChannel(userId, channelId);
+		
+		try {
+			if (entries.length === 1) {
+				await this.deleteChannel(userId, channelId);
+				return ;
+			}
 		}
+		catch (err) {
+			console.log('heeeeeeeeereeee');
+			throw new ForbiddenException('invalid operation');
+		}
+
+		
+		// delete user from channel
+		await this.prismaService.user_channel.delete({
+			where: {
+				id: entry.id,
+			}
+		});
 	}
 
 	async deleteChannel(userId: number, channelId: number) {
@@ -843,10 +853,12 @@ export class ChatHttpService {
 		});
 
 		if (!entry) {
+			console.log('hellooooow')
 			throw new ForbiddenException('You are not in the channel');
 		}
 
 		if (entry.user_role !== 'owner') {
+			console.log('not owner helloooww')
 			throw new ForbiddenException('Only owners can delete the channel');
 		}
 
@@ -1118,12 +1130,23 @@ export class ChatHttpService {
 			throw new ForbiddenException('You can only invite friends');
 		}
 
+		const user = await this.prismaService.user.findFirst({
+			where: {
+				OR: [{id: userId}, {id: profileId}],
+				in_game: true,
+			},
+		});
+
+		if (user) {
+			throw new ForbiddenException("Both player should not be playing");
+		}
+
 		const expiredIvitation = await this.prismaService.game_invitation.findFirst({
 			where: {
-				OR: [{ sender_id: userId, receiver_id: userId }],
+				OR: [{ sender_id: userId}, {receiver_id: userId }],
 				is_accepted: false,
 			}
-		})
+		});
 
 		if (expiredIvitation && Date.now() - expiredIvitation.created_at.getTime() < 1000 * 30) {
 			await this.prismaService.game_invitation.delete({
@@ -1135,7 +1158,7 @@ export class ChatHttpService {
 
 		const profileExpiredInvitation = await this.prismaService.game_invitation.findFirst({
 			where: {
-				OR: [{ sender_id: profileId, receiver_id: profileId }],
+				OR: [{ sender_id: profileId}, {receiver_id: profileId }],
 				is_accepted: false,
 			}
 		})
@@ -1174,6 +1197,17 @@ export class ChatHttpService {
 	async acceptGameInvitation(userId: number, profileId: number) {
 		if (!await this.globalHelperService.areFriends(userId, profileId)) {
 			throw new ForbiddenException('You can only invite friends');
+		}
+
+		const user = await this.prismaService.user.findFirst({
+			where: {
+				OR: [{id: userId}, {id: profileId}],
+				in_game: true,
+			},
+		});
+
+		if (user) {
+			throw new ForbiddenException("Both player should not be playing");
 		}
 
 		const entry = await this.prismaService.game_invitation.findFirst({

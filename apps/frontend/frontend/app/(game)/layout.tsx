@@ -19,7 +19,7 @@ export default function RootLayout({
 			<PropsContextProvider>
 				<OptionsContextProvider>
 					<CanvasContextProvider>
-						<div className="div"> {children} </div>
+						{children}
 					</CanvasContextProvider>
 				</OptionsContextProvider>
 			</PropsContextProvider>

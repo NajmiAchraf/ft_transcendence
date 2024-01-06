@@ -33,6 +33,10 @@ export class VisibilityCheckGuard implements CanActivate {
 			}
 		});
 
+		if (!user) {
+			return false;
+		}
+
 		// if public, let the request pass
 		if (user.visibility === 'public') {
 			return true;

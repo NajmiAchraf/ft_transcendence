@@ -2,11 +2,11 @@
 
 import { useRouter } from 'next/navigation';
 
+import { useEffect, useState } from 'react';
+
 import { useOptionsContext } from '@/app/(game)/ping-pong/context/OptionsContext';
 import { usePropsContext } from '@/app/(game)/ping-pong/context/PropsContext';
 import { useWebSocketContext } from '@/app/(game)/ping-pong/context/WebSocketContext';
-
-import { useState } from 'react';
 
 import "@/app/(game)/ping-pong.css";
 
@@ -17,14 +17,36 @@ function SettingPingPong() {
 
 	const router = useRouter();
 
-	const [isButtonClicked, setButtonClicked] = useState(false);
+	const [isButtonClicked, setButtonClicked] = useState(true);
 
 	const [devMode, setDevMode] = useState(propsContext.props.devMode);
 	const [mode, setMode] = useState(propsContext.props.mode);
 	const [side, setSide] = useState(propsContext.props.side);
-	const [reflection, setReflection] = useState(propsContext.props.reflection);
+	const [style, setStyle] = useState(propsContext.props.style);
 	const [geometry, setGeometry] = useState(propsContext.props.geometry);
+	const [scene, setScene] = useState(propsContext.props.scene);
+	const [theme, setTheme] = useState("/theme/" + propsContext.props.geometry + propsContext.props.style + propsContext.props.scene + ".jpeg");
 
+	const allowToProceed = () => {
+		if (optionsContext.options.invite)
+			setButtonClicked(false);
+	}
+
+	useEffect(() => {
+		webContext.socketGame.on("allowToProceed", allowToProceed);
+		if (optionsContext.options.invite)
+			webContext.socketGame.emit('checkInvitation');
+		else
+			setButtonClicked(false);
+
+		return () => {
+			webContext.socketGame.off("allowToProceed", allowToProceed);
+		};
+	}, []);
+
+	const changeTheme = () => {
+		setTheme("/theme/" + propsContext.props.geometry + propsContext.props.style + propsContext.props.scene + ".jpeg");
+	}
 
 	const changeDevMode = () => {
 		if (propsContext.props.devMode === 'none') {
@@ -59,14 +81,36 @@ function SettingPingPong() {
 		setSide(propsContext.props.side)
 	}
 
-	const changeReflection = () => {
-		propsContext.props.reflection = !propsContext.props.reflection
-		setReflection(propsContext.props.reflection)
-	}
-
 	const changeGeometry = () => {
 		propsContext.props.geometry = propsContext.props.geometry === "cube" ? "sphere" : "cube"
-		setGeometry(propsContext.props.geometry)
+		setGeometry(propsContext.props.geometry);
+		changeTheme();
+	}
+
+	const changeStyle = () => {
+		if (propsContext.props.style === "mirror") {
+			propsContext.props.style = "glass";
+		} else if (propsContext.props.style === "glass") {
+			propsContext.props.style = "mate";
+		} else if (propsContext.props.style === "mate") {
+			propsContext.props.style = "mirror";
+		}
+		setStyle(propsContext.props.style)
+		changeTheme();
+	}
+
+	const changeScene = () => {
+		if (propsContext.props.scene === "dast") {
+			propsContext.props.scene = "space";
+		} else if (propsContext.props.scene === "space") {
+			propsContext.props.scene = "nebula";
+		} else if (propsContext.props.scene === "nebula") {
+			propsContext.props.scene = "none";
+		} else if (propsContext.props.scene === "none") {
+			propsContext.props.scene = "dast";
+		}
+		setScene(propsContext.props.scene);
+		changeTheme();
 	}
 
 	const joinGame = () => {
@@ -91,11 +135,10 @@ function SettingPingPong() {
 		setButtonClicked(true);
 	}
 
-	const leave = () => {
+	const leave = async () => {
 		// disconnect socket after leave
 		webContext.socketGame.disconnect();
 
-		// redirect to home
 		router.push("/home");
 	}
 
@@ -104,33 +147,40 @@ function SettingPingPong() {
 		<div className="setting">
 			<div className="stg-section stg">
 				<div className="background">
-					<div className="button-part">
-						{
 
-							// if npm run dev then show devMode button else hide
-							process.env.NODE_ENV === "development" && (
-								/* change dev mode on(true) off(false) */
-								<button className="button-stg props" onClick={changeDevMode}>DevMode {devMode}</button>
-							)
-						}
+					{/* if npm run dev then show devMode button else hide*/}
+					{process.env.NODE_ENV === "development" && (
+						<div className="button-part">
+							{/* change dev mode none all camera paddle-bot */}
+							<button className="button-stg props" onClick={changeDevMode}>DevMode {devMode}</button>
+						</div>
+					)}
 
-						{propsContext.props.playerType === "bot" && (
-							/* change mode three modes easy medium hard */
+					{propsContext.props.playerType === "bot" && (
+						<div className="button-part">
+							{/* change mode three modes easy medium hard */}
 							<button className="button-stg props" onClick={changeMode}>Mode {mode}</button>
-						)}
 
-						{propsContext.props.playerType === "bot" && (
-							/* side of the paddle you play with */
+							{/* side of the paddle you play with */}
 							<button className="button-stg props" onClick={changeSide}>Side {side}</button>
-						)}
+						</div>
+					)}
 
-						{/* change reflection on(true) off(false) */}
-						<button className="button-stg props" onClick={changeReflection}>Reflection {reflection ? "on" : "off"}</button>
-
+					<div className="button-part">
 						{/* change geometry cube(sphere) */}
 						<button className="button-stg props" onClick={changeGeometry}>Geometry {geometry}</button>
 
+						{/* change style mirror mate glass */}
+						<button className="button-stg props" onClick={changeStyle}>Style {style}</button>
+
+						{/* change scene */}
+						<button className="button-stg props" onClick={changeScene}>Scene {scene}</button>
 					</div>
+
+					<div className="theme">
+						<img src={theme} />
+					</div>
+
 					<div className="button-part">
 
 						{!optionsContext.options.invite ? (
