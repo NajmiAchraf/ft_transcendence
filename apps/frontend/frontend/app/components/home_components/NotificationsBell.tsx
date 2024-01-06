@@ -9,7 +9,7 @@ const NotificationBell = ({svg}: any) => {
   
   const fetchData = async () => {
     try {
-      const data = await fetch("http://localhost:3001/user/notifications", {
+      const data = await fetch(`${process.env.API_URL}/user/notifications`, {
         headers: {
           Authorization: `Bearer ${getCookie("AccessToken")}`
         }

@@ -84,7 +84,7 @@ export default function RootLayout({
               onClick={async (e) => {
                 try {
                   const data = await fetch(
-                    "http://localhost:3001/user/enable2factor",
+                    `${process.env.API_URL}/user/enable2factor`,
                     {
                       method: "POST",
                       headers: {

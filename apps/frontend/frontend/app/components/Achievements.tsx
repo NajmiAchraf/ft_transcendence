@@ -28,7 +28,7 @@ const Achievements = ({ userId }: { userId: number }) => {
   useEffect(() => {
     const fetchAchievements = async () => {
       try {
-        const data = await fetch('http://localhost:3001/user/achievements', {
+        const data = await fetch(`${process.env.API_URL}/user/achievements`, {
           method: "POST",
           headers: {
             'Content-Type': 'application/json',

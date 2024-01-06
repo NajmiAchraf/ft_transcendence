@@ -76,7 +76,7 @@ const NavBar = () => {
           <svg className="logout-svg"
             onClick={async () =>{
               try {
-                const data = await fetch("http://localhost:3001/auth/logout",
+                const data = await fetch(`${process.env.API_URL}/auth/logout`,
                     {
                         headers: {
                             Authorization: `Bearer ${getCookie("AccessToken")}`

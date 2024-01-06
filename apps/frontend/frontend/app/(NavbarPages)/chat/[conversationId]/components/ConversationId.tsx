@@ -81,7 +81,7 @@ function ConversationId({
             conversationId = conversationId.slice(0, -suffix.length);
             url = "channel_message_history";
           }
-          const data = await fetch(`http://localhost:3001/chatHttp/${url}`, {
+          const data = await fetch(`${process.env.API_URL}/chatHttp/${url}`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

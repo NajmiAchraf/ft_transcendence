@@ -8,7 +8,7 @@ import { useNavContext } from '../(NavbarPages)/context/NavContext';
 import Link from 'next/link';
 export async function whoami() {
   try {
-    const data = await fetch("http://localhost:3001/home/whoami", {
+    const data = await fetch(`${process.env.API_URL}/home/whoami`, {
       headers: {
         Authorization: `Bearer ${getCookie("AccessToken")}`
       }
@@ -55,7 +55,7 @@ const PersonalInfo = ({ userId, setisAllowed }: { userId: number, setisAllowed: 
   const [userData, setUserData] = useState<{ personalInfo: any; otherData: any } | null>(null);
   const UserEvent = async (url: string) => {
     try {
-      const data = await fetch(`http://localhost:3001/user/${url}`, {
+      const data = await fetch(`${process.env.API_URL}/user/${url}`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ const PersonalInfo = ({ userId, setisAllowed }: { userId: number, setisAllowed: 
     console.log(String(userId), " : ", friendRequestResponse)
     console.log(typeof String(userId), " : ", typeof friendRequestResponse)
     try {
-      const data = await fetch(`http://localhost:3001/user/respond_to_friend_request`, {
+      const data = await fetch(`${process.env.API_URL}/user/respond_to_friend_request`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ const PersonalInfo = ({ userId, setisAllowed }: { userId: number, setisAllowed: 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetch("http://localhost:3001/user/pf_infos", {
+        const data = await fetch(`${process.env.API_URL}/user/pf_infos`, {
           method: "POST",
           headers: {
             'Content-Type': 'application/json',
@@ -108,7 +108,7 @@ const PersonalInfo = ({ userId, setisAllowed }: { userId: number, setisAllowed: 
         }
 
         const personalInfoResult = await data.json();
-        const data2 = await fetch("http://localhost:3001/user/personal_infos", {
+        const data2 = await fetch(`${process.env.API_URL}/user/personal_infos`, {
           method: "POST",
           headers: {
             'Content-Type': 'application/json',

@@ -61,7 +61,7 @@ function HeaderBar() {
     if (inputValue.trim() !== '') {
       const fetchUsers = async () => {
         try {
-          const response = await fetch('http://localhost:3001/home/search', {
+          const response = await fetch(`${process.env.API_URL}/home/search`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -112,7 +112,7 @@ function HeaderBar() {
   useEffect(() =>{
       const fetchImage = async () =>{
       try{
-      const data2 = await fetch("http://localhost:3001/user/personal_infos", {
+      const data2 = await fetch(`${process.env.API_URL}/user/personal_infos`, {
           method: "POST",
           headers: {
             'Content-Type': 'application/json',
@@ -247,7 +247,7 @@ function HeaderBar() {
                           onClick={async () => {
                             try {
                               const data = await fetch(
-                                "http://localhost:3001/auth/logout",
+                                `${process.env.API_URL}/auth/logout`,
                                 {
                                   headers: {
                                     Authorization: `Bearer ${getCookie(

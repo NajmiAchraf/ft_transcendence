@@ -31,7 +31,7 @@ const Header = ({ isChannelProtected, getMembers, conversation, secondId }: any)
         -"_channel".length
       );
       const res = await fetch(
-        "http://localhost:3001/chatHttp/inviteToChannelList",
+        `${process.env.API_URL}/chatHttp/inviteToChannelList`,
         {
           method: "POST",
           headers: {

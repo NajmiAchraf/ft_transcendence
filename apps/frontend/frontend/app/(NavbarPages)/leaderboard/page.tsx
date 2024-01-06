@@ -18,7 +18,7 @@ const LeaderBoard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetch("http://localhost:3001/home/standings", {
+        const data = await fetch(`${process.env.API_URL}/home/standings`, {
           headers: {
             Authorization: `Bearer ${getCookie("AccessToken")}`
           }

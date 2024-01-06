@@ -249,21 +249,6 @@ export class ChannelChatService {
 	async createChannel(server: Namespace, client: Socket, message: any) {
 
 		try {
-			const res = await fetch(`${process.env.API_URL}/chatHttp/createChannel`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': 'Bearer ' + client.handshake.query['accessToken'],
-				},
-				body: JSON.stringify(message)
-			});
-			if (!res.ok) {
-				console.log('something went wrong');
-				server.to(client.id).emit('Invalid access', { error: "error occured" });
-				return;
-			}
-
-			// join channel room
 			client.join(message.channelId.toString());
 			client.emit('channelCreated', 'Channel created successfully!');
 		} catch (err) {

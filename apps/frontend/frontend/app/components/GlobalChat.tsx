@@ -52,7 +52,7 @@ const GlobalChat = () => {
   useEffect(() => {
     const getAllGlobalChat = async () => {
       try {
-        const data = await fetch('http://localhost:3001/chatHttp/findAllGlobalChat', {
+        const data = await fetch(`${process.env.API_URL}/chatHttp/findAllGlobalChat`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${getCookie("AccessToken")}`,

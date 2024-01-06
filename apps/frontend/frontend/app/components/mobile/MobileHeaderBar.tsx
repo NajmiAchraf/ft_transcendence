@@ -85,7 +85,7 @@ function MobileHeaderBar() {
   }, []);
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:3001/home/search', {
+      const response = await fetch(`${process.env.API_URL}/home/search`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -236,7 +236,7 @@ function MobileHeaderBar() {
                         <p className="cursor-pointer block px-3 py-2 text-base font-medium transition-all duration-500 text-red-800" onClick={async () => {
                             try {
                               const data = await fetch(
-                                "http://localhost:3001/auth/logout",
+                                `${process.env.API_URL}/auth/logout`,
                                 {
                                   headers: {
                                     Authorization: `Bearer ${getCookie(

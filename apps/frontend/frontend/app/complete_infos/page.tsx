@@ -44,7 +44,7 @@ const CompleteInfos = () => {
     }
 
     try {
-      const data = await fetch("http://localhost:3001/user/info", {
+      const data = await fetch(`${process.env.API_URL}/user/info`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${getCookie("AccessToken")}`,

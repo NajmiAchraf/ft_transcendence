@@ -11,7 +11,7 @@ const Signup = () => {
   const SignupFunction = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:3001/auth/local/signup", {
+      const res = await fetch(`${process.env.API_URL}/auth/local/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -55,7 +55,7 @@ const Signup = () => {
     e.preventDefault();
     try {
       console.log("hi");
-      const res = await fetch("http://localhost:3001/auth/local/signin", {
+      const res = await fetch(`${process.env.API_URL}/auth/local/signin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

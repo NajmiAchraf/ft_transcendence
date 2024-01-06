@@ -11,7 +11,7 @@ const Matches = ({ userId }: { userId: number }) => {
         console.log("kan fetch bhada :", userId)
         const fetchData = async () => {
             try {
-                const data = await fetch("http://localhost:3001/user/match_history", {
+                const data = await fetch(`${process.env.API_URL}/user/match_history`, {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/json',

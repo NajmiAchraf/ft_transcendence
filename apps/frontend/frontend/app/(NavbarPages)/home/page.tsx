@@ -77,7 +77,7 @@ export default function Home() {
   useEffect(() => {
     const getAllGlobalChat = async () => {
       try {
-        const data = await fetch('http://localhost:3001/chatHttp/findAllGlobalChat', {
+        const data = await fetch(`${process.env.API_URL}/chatHttp/findAllGlobalChat`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${getCookie("AccessToken")}`,
@@ -129,7 +129,7 @@ export default function Home() {
     const [recentMatchesData, setRecentMatchesData] = useState<MatchType[]>([]);
     const fetchFriendList = async () => {
       try {
-        const res = await fetch("http://localhost:3001/home/friends_list", {
+        const res = await fetch(`${process.env.API_URL}/home/friends_list`, {
           headers: {
             Authorization: `Bearer ${getCookie("AccessToken")}`,
           },
@@ -148,7 +148,7 @@ export default function Home() {
   useEffect(() => {
     const fetchRecentMatches = async () => {
       try {
-        const res = await fetch("http://localhost:3001/home/recent_4_matches", {
+        const res = await fetch(`${process.env.API_URL}/home/recent_4_matches`, {
           headers: {
             Authorization: `Bearer ${getCookie("AccessToken")}`,
           },
