@@ -1,4 +1,4 @@
-"use client"
+/*"use client"
 import { deleteCookie } from './errorChecks';
 import { IonIcon } from '@ionic/react';
 import Link from 'next/link';
@@ -22,6 +22,7 @@ const NavBar = () => {
   const router = useRouter()
   const context = useNavContext()
   const [SenderId, setSenderId] = useState(-1)
+  const [isSender, setIsSender] = useState(false)
   const [isPageVisible, setIsPageVisible] = useState(true);
   const searchSecRef = useRef<HTMLDivElement>(null); // Specify the type here
 
@@ -49,6 +50,11 @@ const NavBar = () => {
         setSenderId(event.sender_id)
         context.setisCountDown(true)
       }
+      else if (event.sender_id === await whoami()){
+        setSenderId(event.sender_id)
+        setIsSender(true)
+        context.setisCountDown(true)
+      }
     }
 
     const handleAccept = async (event : any) =>{
@@ -58,13 +64,13 @@ const NavBar = () => {
     }
     wsProvider.chat.on("sendGameInvitation", handleInvite)
     wsProvider.chat.on("gameInvitationAccepted", handleAccept)
-
+    
   }, []);
 
   const showSearch = (option: number) => {
     let element: HTMLElement | null = document.querySelector(".navbar-overlay")
     let element2: HTMLElement | null = document.querySelector(".search-results")
-    let element3: HTMLElement | null = document.querySelector(".search-sec")
+    let element3: HTMLElement | null = document.querySelector(".max-screen-search")
     if (element && element2 && element3) {
       if (option) {
         element3.style.zIndex = "1000"
@@ -86,7 +92,6 @@ const NavBar = () => {
   const [users, setUsers] = useState<User[] | null>(null);
 
   useEffect(() => {
-    console.log(typeof (inputValue))
     if (inputValue.trim() !== '') {
       const fetchUsers = async () => {
         try {
@@ -187,7 +192,7 @@ const NavBar = () => {
               </li>
               <div className="hoveredarea" style={{ transform: `translateY(calc( 120px * ${context.nav} - 40px))` }} id="hoverarea"></div>
             </ul>
-          </nav>
+          </nav> 
           <div className='logout'>
             <IonIcon onClick={async () =>{
                   try {
@@ -235,4 +240,4 @@ const NavBar = () => {
   );
 }
 
-export default NavBar;
+export default NavBar;*/

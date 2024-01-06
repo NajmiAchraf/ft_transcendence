@@ -28,37 +28,49 @@ const Channel = (props: channelprops) => {
   const [password, setPassword] = useState("")
   const [showPassSection, setShowPassSection] = useState(false)
   const wsProvider = useWebSocketContext()
+
+  const closeUp =() =>{
+    const el = document.querySelector(".channel .password-section") as HTMLElement;
+    if (el) {
+      el.style.animation = "fadeOut 0.3s forwards";
+      setTimeout(() => {
+        el.style.animation = "animation: fadeInAnimation 1s ease forwards;";
+        setShowPassSection(false)
+      }, 400);
+    }
+  }
   const joinChannel = () => {
     if (props.privacy === "protected") {
       wsProvider.chat.emit('joinChannel', { channelId: props.id, password })
-      setShowPassSection(false)
+      closeUp()
     }
     else
       wsProvider.chat.emit('joinChannel', { channelId: props.id })
-    console.log(wsProvider.chat.id)
   }
   const leaveChannel = () => {
     wsProvider.chat.emit('leaveChannel', { channelId: Number(props.id) })
   }
-
   return (
     <div className="channel">
       {(showPassSection ?
-        <div className="pass-overlay">
-          <div className="section">
-            <IonIcon onClick={() => setShowPassSection(false)} icon={IonIcons.closeCircle}></IonIcon>
-            <h3>this Channel requires a password to join :</h3>
-            <input onChange={(e) => setPassword(e.target.value)} type="password" placeholder="enter the channel's password" />
-            <button onClick={joinChannel}>Join</button>
+      <div className="password-section">
+        <img src="/password.png"></img>
+        <label>A Password is required !</label>
+        <input onChange={(e) => setPassword(e.target.value)} type="password" placeholder="enter the channel's password" />
+      <div className="buttons">
+          <button type="button" onClick={joinChannel} className="verify-btn">Accept</button>
+          <div className="btn-container">
+          <button type="button" onClick={closeUp} className='cancel-btn'>Cancel</button>
           </div>
-        </div>
+      </div>
+  </div>
         : "")}
       <div className="background">
         <img src={props.image} />
       </div>
       <div className="content">
         <div className="details">
-          <h4>{props.name}</h4>
+          <h4>{props.name.slice(0, 7)}</h4>
           <h6>{props.members} member</h6>
         </div>
         <div className="buttons">

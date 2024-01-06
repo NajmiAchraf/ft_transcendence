@@ -13,17 +13,6 @@ type extrainfoprops = {
 const ExtraInfo = (props: extrainfoprops) => {
   const nav = useNavContext();
   const [navWidth, setNavWidth] = useState(0);
-  /*const navRef = useRef<HTMLDivElement>(null);*/
-  /*useEffect(() => {
-    if (navRef.current) {
-      const itemElements = navRef.current.querySelectorAll('.extra-info nav .item');
-      setNavWidth(itemElements.length);
-    }
-  }, [navRef, nav.id, props.userId]);
-
-  useEffect(() => {
-    console.log("OPTION:", navWidth);
-  }, [navWidth]);*/
   useEffect(() => {
 
     if (props.userId == nav.id) {

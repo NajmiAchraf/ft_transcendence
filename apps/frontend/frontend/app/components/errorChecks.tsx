@@ -2,7 +2,14 @@
 import { useNavContext } from "../(NavbarPages)/context/NavContext";
 import { whoami } from "./PersonalInfo";
 import { useRouter } from "next/navigation";
-
+export function getValidDate(_date : string)
+{
+    const GameDate = new Date(_date)
+    let month : number = GameDate.getMonth() + 1;
+    let date : number = GameDate.getDate();
+    let year : number = GameDate.getFullYear() % 100;
+    return (month + "/" + date + "/" + year);
+}
 export function getCookie(name: string) {
     if (typeof document === 'undefined') {
         return null;
@@ -37,7 +44,7 @@ export async function LogOut() {
     router.push("/signup")
 }
 
-export const TokenRefresher = async () => {
+export async function TokenRefresher(){
     const router = useRouter()
     try {
         console.log(getCookie("RefreshToken"))
@@ -58,6 +65,16 @@ export const TokenRefresher = async () => {
         deleteCookie("RefreshToken");
         router.push("/signup")
     }
+}
+
+export async function ExpirationDate(day : number)
+{
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + day);
+
+// Convert the date to a string in the required format
+    const formattedExpirationDate = expirationDate.toUTCString();
+    return formattedExpirationDate;
 }
 export async function CheckNickname() {
     const router = useRouter()

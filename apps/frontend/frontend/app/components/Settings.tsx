@@ -91,7 +91,6 @@ const Settings = ({ userId }: { userId: number }) => {
         }
     };
     const SubmitSettings = async () => {
-        console.log(previewSrc)
         const formData = new FormData(document.getElementById('settingsform') as HTMLFormElement);
         let obj = null;
         formData.forEach((value, key) => {
@@ -99,6 +98,7 @@ const Settings = ({ userId }: { userId: number }) => {
                 obj = value;
             console.log(key, " : ", value)
         })
+        console.log(formData)
         const url: string = (previewSrc === defaultData?.avatar ? "http://localhost:3001/user/settings" : "http://localhost:3001/user/settingsAvatar")
         try {
             console.log("ha ach kansift :", JSON.stringify({ avatar: (previewSrc === defaultData?.avatar ? previewSrc : obj), privacy: privacy, nickname, two_factor_auth: nav.is2FA ? "ON" : "OFF" }))
@@ -117,20 +117,28 @@ const Settings = ({ userId }: { userId: number }) => {
                 body: formData
             }))
             if (!data.ok) {
-                console.log("XD?")
-                if (data.status == 500) {
-                    console.log("ERROR HAHA")
-                    /*console.log(data.m)*/
-                    throw new Error("500 internal server error")
+                if (data.status == 400)
+                {
+                    const el = document.querySelector(".nickname-input") as HTMLElement
+                    if (el)
+                    {
+                        el.style.animation = "none";
+                        setTimeout(() =>{el.style.animation = "shakeX 1s forwards";}, 200)
+                    }
                 }
+                else if (data.status == 413)
+                {
+                    const el = document.querySelector(".picture-section .picture") as HTMLElement
+                    if (el)
+                    {
+                        el.style.animation = "none";
+                        setTimeout(() =>{el.style.animation = "shakeX 1s forwards";}, 200)
+                    }
+                }
+                throw new Error("something went wrong")
             }
             const res = await data.json()
-            if (res) {
-                console.log("refreshed")
-                router.push(`/updated/${nav.id}`)
-            }
-
-
+            router.push(`/updated/${nav.id}`)
         }
         catch (e) {
             if (e instanceof Error)
@@ -138,7 +146,7 @@ const Settings = ({ userId }: { userId: number }) => {
         }
     }
     return (
-        <form id="settingsform" className="settings-form">
+        <form onSubmit={(e) => e.preventDefault()} id="settingsform" className="settings-form">
             <div className="picture-section">
                 <div className="picture">
                     <img src={previewSrc as string} />
@@ -151,7 +159,7 @@ const Settings = ({ userId }: { userId: number }) => {
             <div className="personal-info">
                 <h3>{defaultData?.username}</h3>
                 <label>Nickname :</label>
-                <input name="nickname" type="text" placeholder="Username" value={nickname} onChange={(e) => setNickname(e.target.value)} />
+                <input className="nickname-input" name="nickname" type="text" placeholder="Username" value={nickname} onChange={(e) => setNickname(e.target.value)} />
                 <label>Privacy :</label>
                 <div className="custom-select">
                     <select name="privacy" value={privacy} onChange={(e) => setprivacy(e.target.value)}>

@@ -199,7 +199,7 @@ const PersonalInfo = ({ userId, setisAllowed }: { userId: number, setisAllowed: 
             ))))}
       </div>
       <div className="levelpart">
-        <div className="level"><h5>Level {(userData.personalInfo.Level ? userData.personalInfo.Level : "0")}</h5> <div className="bar"><div style={{ width: `${(userData.personalInfo.LevelPercentage ? userData.personalInfo.LevelPercentage : "0")}%` }} className="bar-fill"></div><h5>{((userData.personalInfo.LevelPercentage ? userData.personalInfo.LevelPercentage : "0"))}%</h5></div></div>
+        <div className="level"><h5>Level {(userData.personalInfo.Level ? userData.personalInfo.Level : "0")}</h5> <div className="bar"><div style={{ width: `${(userData.otherData.level_percentage ? userData.otherData.level_percentage : "0")}%` }} className="bar-fill"></div><h5>{((userData.otherData.level_percentage ? userData.otherData.level_percentage : "0"))}%</h5></div></div>
       </div>
     </div>
   );

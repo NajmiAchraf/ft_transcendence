@@ -1,21 +1,48 @@
-/*@tailwind base;
+
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+
+@font-face {
+	font-family: 'Ethnocentric';
+	src: url('../public/font/ethnocentricrgit.otf') format('truetype');
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+@font-face {
+	font-family: 'Montserrat';
+	src: url('../public/font/Montserrat.ttf') format('truetype');
+}
+@font-face {
+	font-family: 'Inter';
+	src: url('../public/font/Inter.ttf') format('truetype');
+}
+
+
+@layer utilities {
+	.font-Ethnocentric {
+		font-family: 'Ethnocentric', sans-serif;
+	}
+    .font-Montserrat {
+		font-family: 'Montserrat', sans-serif;
+	}
+    .font-Inter {
+		font-family: 'Inter', sans-serif;
+	}
   }
-}
-*/
-body {
-  margin: 0;
-}
+
+
+  @layer utilities {
+    @variants responsive {
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      .no-scrollbar::-webkit-scrollbar {
+          display: none;
+      }
+
+      /* Hide scrollbar for IE, Edge and Firefox */
+      .no-scrollbar {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+      }
+    }
+  }

@@ -6,17 +6,18 @@ import { whoami } from "./PersonalInfo";
 import { useWebSocketContext } from "../context/WebSocketContext";
 
 type InviteProps = {
+    isSender : boolean;
     senderId : number;
 };
 const InvitePopUp = (props: InviteProps) =>{
     const context = useNavContext()
     const wsProvider = useWebSocketContext()
-    const [secondsRemaining, setSecondsRemaining] = useState(30);
+    const [secondsRemaining, setSecondsRemaining] = useState(10);
     const [divHeight, setDivHeight] = useState(100);
 
     const AcceptInvite = () =>{
         wsProvider.chat.emit("acceptGameInvitation", {profileId : props.senderId})
-        context.setisCountDown(false);
+        context.setisCountDown(false)
     }
     const disableInvitePopUp = async ()=>{
         try {
@@ -30,19 +31,14 @@ const InvitePopUp = (props: InviteProps) =>{
                 profileId: Number(props.senderId),
               }),
             });
-  
-            if (response.ok) {
-                const el = document.querySelector(".invite-popup") as HTMLElement;
+            const el = document.querySelector(".invite-popup") as HTMLElement;
                 if (el) {
                   el.style.animation = "fadeOut 0.3s forwards"
                   setTimeout(() => { 
                       el.style.animation = "fadeInAnimation 0.5s ease forwards"
                       context.setisCountDown(false)
                   }, 400)
-                }
-            } else {
-              console.error('Error fetching users');
-            }
+              }
           } catch (error) {
             console.error('Error fetching users', error);
           }
@@ -52,7 +48,7 @@ const InvitePopUp = (props: InviteProps) =>{
     const timer = setInterval(() => {
       setSecondsRemaining((prevCountdown) =>{
         const newCountdown = prevCountdown - 1;
-        setDivHeight((prevHeight) => (newCountdown / 30) * 100);
+        setDivHeight((prevHeight) => (newCountdown / 10) * 100);
         return newCountdown;
       })
     }, 1000);
@@ -75,12 +71,14 @@ const InvitePopUp = (props: InviteProps) =>{
                     {secondsRemaining}
                     </div>
             </div>
+            { props.isSender ? <div>Waiting for the other player to accept...</div> :
             <div className="buttons">
                 <button type="button" onClick={AcceptInvite} className="verify-btn">Accept</button>
                 <div className="btn-container">
                 <button type="button" onClick={disableInvitePopUp} className='cancel-btn'>Reject</button>
                 </div>
             </div>
+          }
         </div>
     );
 }

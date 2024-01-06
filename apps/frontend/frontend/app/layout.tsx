@@ -1,8 +1,8 @@
 import React from 'react'
 
-import './globals.css'
 import './vanillacss.css'
 
+import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import NavContextProvider from './(NavbarPages)/context/NavContext'
