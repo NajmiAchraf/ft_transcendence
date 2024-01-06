@@ -64,10 +64,10 @@ export class HomeService {
 		const filteredRecentMatches = [];
 
 		for (let i = 0; i < RecentMatches.length; i++) {
-			if (!await this.globalHelperService.isBlocked(userId, RecentMatches[i].winner.id)
-				&& !await this.globalHelperService.isBlocked(userId, RecentMatches[i].loser.id)) {
+			const adversaryId = userId === RecentMatches[i].winner.id ? RecentMatches[i].loser.id : RecentMatches[i].winner.id;
+			if (!await this.globalHelperService.isBlocked(userId, adversaryId))
 				filteredRecentMatches.push(RecentMatches[i]);
-			}
+
 		}
 
 		return filteredRecentMatches;

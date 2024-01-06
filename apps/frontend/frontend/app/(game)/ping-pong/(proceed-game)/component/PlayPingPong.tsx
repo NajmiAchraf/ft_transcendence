@@ -16,10 +16,10 @@ import { Text } from '@/app/(game)/ping-pong/game/Board';
 
 import { getCookie } from '@/app/components/errorChecks';
 
-async function getDatas(userId: string): Promise<any> {
+async function getData(userId: string): Promise<any> {
 	// convert userId to number
 	const userID = parseInt(userId);
-	const data = await fetch("http://localhost:3001/user/personal_infos", {
+	const data = await fetch("http://localhost:3001/user/player_data", {
 		method: "POST",
 		headers: {
 			'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ async function fillPropsPlayers(propsContext: any) {
 		propsContext.props.player1Name = "bot";
 		propsContext.props.player1Avatar = "/bot_" + propsContext.props.mode + ".jpg";
 	} else
-		await getDatas(propsContext.props.player1ID).then((data) => {
+		await getData(propsContext.props.player1ID).then((data) => {
 			propsContext.props.player1Name = data.nickname;
 			propsContext.props.player1Avatar = data.avatar;
 		}
@@ -50,7 +50,7 @@ async function fillPropsPlayers(propsContext: any) {
 		propsContext.props.player2Name = "bot";
 		propsContext.props.player2Avatar = "/bot_" + propsContext.props.mode + ".jpg";
 	} else
-		await getDatas(propsContext.props.player2ID).then((data) => {
+		await getData(propsContext.props.player2ID).then((data) => {
 			propsContext.props.player2Name = data.nickname;
 			propsContext.props.player2Avatar = data.avatar;
 		}

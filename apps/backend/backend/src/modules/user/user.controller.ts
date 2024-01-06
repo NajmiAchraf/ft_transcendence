@@ -38,6 +38,14 @@ export class UserController {
 		return this.userService.getPersonalInfos(userId, profileId);
 	}
 
+	@BlockPublic()
+	@Post('player_data')
+	async getPlayerData(@Body() body: ProfileId, @Req() req: Request) {
+		const profileId = +body.profileId;
+		const userId = req.user['sub'];
+		return this.userService.getPersonalInfos(userId, profileId);
+	}
+
 	@UseGuards(VisibilityCheckGuard)
 	@Post('friends_list')
 	async getFriendList(@Body() body: ProfileId, @Req() req: Request) {
@@ -153,7 +161,7 @@ export class UserController {
 	async getTwoFactorQr(@Req() req: Request) {
 		const userId = req.user['sub'];
 		const username = req.user['username'];
-		return {img: await this.twoFactorService.getTwoFactorQr(userId, username)};
+		return { img: await this.twoFactorService.getTwoFactorQr(userId, username) };
 	}
 
 	@BlockPublic()
