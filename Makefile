@@ -14,10 +14,7 @@ clean: down
 re: clean all
 
 clear: clean
-<<<<<<< HEAD
-=======
 	-@docker rm -f $$(docker rm -q)
->>>>>>> ismaildocker
 	-@docker rmi -f $$(docker images -q -a)
 
 prune: clear
