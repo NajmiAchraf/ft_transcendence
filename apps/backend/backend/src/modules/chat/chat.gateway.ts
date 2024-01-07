@@ -146,6 +146,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		return this.channelChatService.banChannelMember(this.server, client, message);
 	}
 
+	@SubscribeMessage('muteChannelMember')
+	async muteChannelMember(@ConnectedSocket() client: Socket, @MessageBody() message: any) {
+		const userId = await this.globalHelperService.getClientIdFromJwt(client);
+
+		if (userId === undefined) {
+			this.server.to(client.id).emit('Invalid access', { error: 'Invalid Access Token' });
+			return;
+		}
+		return this.channelChatService.muteChannelMember(this.server, client, message);
+	}
+
 	// ** Direct Chat **
 	@SubscribeMessage('directCreateChat')
 	async directCreateChat(@ConnectedSocket() client: Socket, @MessageBody() message: any) {

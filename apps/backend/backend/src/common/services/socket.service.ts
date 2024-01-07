@@ -84,18 +84,10 @@ export class SocketService {
 
 		for (let i = 0; i < connectedSockets.length; i++) {
 			const socketUserId = this.getUserId(connectedSockets[i].id);
-
-			const blocked = await this.globalHelperService.isBlocked(userId, socketUserId);
-			const blocker = await this.globalHelperService.isBlocked(socketUserId, userId);
-			console.log(`userId: ${userId}, socketusrid: ${socketUserId} | blocked: ${blocked};   blocker: ${blocker}`);
 			if (!(await this.globalHelperService.isBlocked(userId, socketUserId) || await this.globalHelperService.isBlocked(socketUserId, userId))) {
 				filteredSockets.push(connectedSockets[i]);
 			}
 		}
-
-		filteredSockets.forEach((socket) => {
-			console.log(`will emit *** ${this.getUserId(socket.id)}: ${socket.id}`);
-		});
 		return filteredSockets;
 	}
 }

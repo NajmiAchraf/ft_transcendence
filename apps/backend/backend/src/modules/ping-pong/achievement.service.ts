@@ -327,7 +327,7 @@ export class AchievementService {
 			take: 30,
 		});
 
-		if (matches.length !== 3)
+		if (matches.length !== 30)
 			return;
 
 		if (matches[0].winner_id !== winnerId

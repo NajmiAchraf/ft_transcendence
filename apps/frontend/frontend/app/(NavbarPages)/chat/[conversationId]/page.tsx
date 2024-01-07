@@ -32,6 +32,7 @@ type messageType = {
 };
 
 type channelType = {
+  membersCount: string;
   channel_id: string;
   channel_name: string;
   avatar: string;

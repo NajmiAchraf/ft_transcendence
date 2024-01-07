@@ -29,6 +29,7 @@ type dmType = {
   isSender: boolean;
 };
 type channelType = {
+  membersCount: string;
   channel_id: string;
   channel_name: string;
   avatar: string;
@@ -61,7 +62,7 @@ function ConversationId({
     statusText: "Active",
     members: [],
   };
-  const router = useRouter(); 
+  const router = useRouter();
   const urlParams = useParams();
   const context = useNavContext();
   const wsProvider = useWebSocketContext();
@@ -110,13 +111,13 @@ function ConversationId({
   useEffect(() => {
     wsProvider.chat.on("receiveChannelMessage", async (event) => {
       //await fetchChannels()
-      if ((urlParams.conversationId as string).endsWith("_channel"))
+      if ((urlParams.conversationId as string).endsWith("_channel") && event.channel_id == Number((urlParams.conversationId as string).slice(0, -"_channel".length)))
         setMessages((prevMessages) => [event, ...prevMessages]);
     });
 
     wsProvider.chat.on("receiveDM", async (event) => {
       await fetchDMS();
-      if (!(urlParams.conversationId as string).endsWith("_channel"))
+      if (!(urlParams.conversationId as string).endsWith("_channel") && (event.sender_id == Number(urlParams.conversationId as string) || event.sender_id == context.id))
         setMessages((prevMessages) => [event, ...prevMessages]);
     });
   }, []);
@@ -127,7 +128,7 @@ function ConversationId({
         SenderOBJ = {
           avatar: channel.avatar,
           nickname: channel.channel_name,
-          status: "test",
+          status: channel.membersCount + " Members",
         };
       return;
     });
@@ -142,8 +143,7 @@ function ConversationId({
       }
     });
   }
-  if (Object.keys(SenderOBJ).length === 0 && context.id != Number(urlParams.conversationId as string))
-  {
+  if (Object.keys(SenderOBJ).length === 0 && context.id != Number(urlParams.conversationId as string)) {
     return (
       <div className="error-section error-chat"><img src="/astro.png"></img><h2>Seems like this User is Unavailable !</h2> <Link href={`/chat/${context.id}`}>Go back<span></span><span></span><span></span><span></span></Link></div>
     );
@@ -152,14 +152,14 @@ function ConversationId({
     <div>
       <div className="relative h-[84vh]">
         {Number(urlParams.conversationId as string) == context.id ? (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex place-items-center w-[476px] text-center text-white text-2xl font-bold font-['Montserrat'] leading-[40.80px]">Hi There 👋 <br/>Add a Friend and Enjoy the conversation.</div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex place-items-center w-[476px] text-center text-white text-2xl font-bold font-['Montserrat'] leading-[40.80px]">Hi There 👋 <br />Add a Friend and Enjoy the conversation.</div>
         ) :
           <div className="flex flex-col h-full justify-between ">
-            <Header isChannelProtected={isChannelProtected} getMembers={getMembers} conversation={SenderOBJ} secondId = {urlParams.conversationId as string} />
+            <Header isChannelProtected={isChannelProtected} getMembers={getMembers} conversation={SenderOBJ} secondId={urlParams.conversationId as string} />
             <Body messages={messages} />
             <Form />
           </div>
-      }
+        }
       </div>
     </div>
   );

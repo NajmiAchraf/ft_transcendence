@@ -21,7 +21,7 @@ export class ChannelChatService {
 			});
 			if (!res.ok) {
 				const data = await res.json();
-				console.log(data);
+				// console.log(data);
 				console.log('something went wrong');
 				server.to(client.id).emit('Invalid access', { error: "error occured" });
 				return;
@@ -31,8 +31,6 @@ export class ChannelChatService {
 			const socketIds = this.socketService.getSockets(userId, 'chat');
 
 			socketIds.forEach(socketId => {
-				console.log(socketId);
-				console.log(server.sockets.get(socketId));
 				server.sockets.get(socketId).join(message.channelId.toString());
 			});
 
@@ -211,8 +209,7 @@ export class ChannelChatService {
 			}
 
 			const userId = this.socketService.getUserId(client.id);
-			console.log('messageChannelId: ' + message.channelId);
-			console.log('Array: ' + server.adapter.rooms.get(message.channelId.toString()))
+
 			const connectedSocketIds = Array.from(server.adapter.rooms.get(message.channelId.toString()).values());
 			const connectedSockets = connectedSocketIds.map(socketId => server.sockets.get(socketId));
 			const filteredSockets = await this.socketService.filterSockets(userId, connectedSockets);

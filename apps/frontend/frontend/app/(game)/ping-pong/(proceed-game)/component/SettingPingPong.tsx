@@ -183,6 +183,9 @@ function SettingPingPong() {
 
 					<div className="button-part">
 
+						{/* leave to home */}
+						<button className="button-stg execute" onClick={leave}> Leave </button>
+
 						{!optionsContext.options.invite ? (
 							/* join game */
 							<button className="button-stg execute" onClick={joinGame} disabled={isButtonClicked}> Join Game </button>
@@ -190,8 +193,6 @@ function SettingPingPong() {
 							/* invite player */
 							<button className="button-stg execute" onClick={invitePlayer} disabled={isButtonClicked}> Proceed </button>
 						)}
-						{/* leave to home */}
-						<button className="button-stg execute" onClick={leave}> Leave </button>
 
 					</div>
 				</div>
