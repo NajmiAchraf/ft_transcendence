@@ -1,4 +1,4 @@
-
+"use client"
 import Friend from './Friend';
 import { useState, useEffect } from "react"
 import { getCookie } from './errorChecks';
@@ -10,7 +10,7 @@ const FriendList = ({ userId }: { userId: number }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const data = await fetch("http://localhost:3001/user/friends_list", {
+                const data = await fetch(`${process.env.API_URL}/user/friends_list`, {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/json',

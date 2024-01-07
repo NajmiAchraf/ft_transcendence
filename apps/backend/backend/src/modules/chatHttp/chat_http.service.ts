@@ -493,6 +493,7 @@ export class ChatHttpService {
 					user_id: userId,
 				}
 			});
+			return channel;
 		} catch (error) {
 			throw new ForbiddenException('Channel name already exists');
 		}
@@ -1127,6 +1128,7 @@ export class ChatHttpService {
 
 	async sendGameInvitation(userId: number, profileId: number) {
 		if (!await this.globalHelperService.areFriends(userId, profileId)) {
+			console.log("error 1");
 			throw new ForbiddenException('You can only invite friends');
 		}
 
@@ -1138,6 +1140,7 @@ export class ChatHttpService {
 		});
 
 		if (user) {
+			console.log("error 2");
 			throw new ForbiddenException("Both player should not be playing");
 		}
 
@@ -1148,7 +1151,7 @@ export class ChatHttpService {
 			}
 		});
 
-		if (expiredIvitation && Date.now() - expiredIvitation.created_at.getTime() < 1000 * 30) {
+		if (expiredIvitation && Date.now() - expiredIvitation.created_at.getTime() >= 1000 * 10) {
 			await this.prismaService.game_invitation.delete({
 				where: {
 					id: expiredIvitation.id,
@@ -1163,7 +1166,7 @@ export class ChatHttpService {
 			}
 		})
 
-		if (profileExpiredInvitation && Date.now() - profileExpiredInvitation.created_at.getTime() < 1000 * 30) {
+		if (profileExpiredInvitation && Date.now() - profileExpiredInvitation.created_at.getTime() >= 1000 * 10) {
 			await this.prismaService.game_invitation.delete({
 				where: {
 					id: profileExpiredInvitation.id,
@@ -1183,6 +1186,7 @@ export class ChatHttpService {
 		});
 
 		if (entry) {
+			console.log("error 3");
 			throw new ForbiddenException('You can only either send or receive one invitation at a time');
 		}
 

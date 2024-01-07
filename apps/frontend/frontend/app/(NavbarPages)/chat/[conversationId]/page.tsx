@@ -99,10 +99,6 @@ function Chat() {
   }, [])
   const createChannel = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    let avatar = null;
-    let channelName = "";
-    let privacy = "";
-    let password = "";
     const formData = new FormData(
       document.getElementById("addChannelFrom") as HTMLFormElement
     );
@@ -117,19 +113,8 @@ function Chat() {
       // Append the default avatar to the FormData
       formData.append("avatar", defaultAvatarFile);
     }
-    formData.forEach((value, key)=>{
-      console.log(key," : ", value)
-      if (key === "avatar")
-        avatar = value;
-      else if (key === "channelName")
-        channelName = value as string
-      else if (key === "privacy")
-        privacy = value as string
-      else if (key === "password")
-        password = value as string
-    })
     try {
-      /*const data = await fetch("http://localhost:3001/chatHttp/createChannel", {
+      const data = await fetch(`${process.env.API_URL}/chatHttp/createChannel`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${getCookie("AccessToken")}`,
@@ -138,8 +123,12 @@ function Chat() {
       });
       if (!data.ok) {
         throw new Error("something went wrong");
-      }*/
-      wsProvider.chat.emit("createChannel", {avatar, channelName, privacy, password});
+      }
+      const res = await data.json()
+      console.log("ha ana fin hhh\n", res.id);
+      wsProvider.chat.emit("createChannel", {channelId : res.id});
+
+      router.push(`/chat/${res.id}_channel`)
     } catch (e) { }
   };
   const changeTab = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -153,7 +142,7 @@ function Chat() {
   };
   const fetchChannels = async () => {
     try {
-      const data = await fetch("http://localhost:3001/chatHttp/channels", {
+      const data = await fetch(`${process.env.API_URL}/chatHttp/channels`, {
         headers: {
           Authorization: `Bearer ${getCookie("AccessToken")}`,
         },
@@ -168,7 +157,7 @@ function Chat() {
   };
   const fetchDMS = async () => {
     try {
-      const data = await fetch("http://localhost:3001/chatHttp/dms", {
+      const data = await fetch(`${process.env.API_URL}/chatHttp/dms`, {
         headers: {
           Authorization: `Bearer ${getCookie("AccessToken")}`,
         },
@@ -287,7 +276,7 @@ function Chat() {
       }
 
       const data = await fetch(
-        "http://localhost:3001/chatHttp/channel_members",
+        `${process.env.API_URL}/chatHttp/channel_members`,
         {
           method: "POST",
           headers: {

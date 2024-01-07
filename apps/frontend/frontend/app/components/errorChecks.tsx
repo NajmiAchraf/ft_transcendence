@@ -29,7 +29,7 @@ export function deleteCookie(name: string) {
 export async function LogOut() {
     const router = useRouter()
     try {
-        const data = await fetch("http://localhost:3001/auth/logout",
+        const data = await fetch(`${process.env.API_URL}/auth/logout`,
             {
                 headers: {
                     Authorization: `Bearer ${getCookie("AccessToken")}`
@@ -48,7 +48,7 @@ export async function TokenRefresher(){
     const router = useRouter()
     try {
         console.log(getCookie("RefreshToken"))
-        const data = await fetch("http://localhost:3001/auth/refresh", {
+        const data = await fetch(`${process.env.API_URL}/auth/refresh`, {
             headers: {
                 Authorization: `Bearer ${getCookie("RefreshToken")}`
             }
@@ -86,7 +86,7 @@ export async function CheckNickname() {
             router.push("/signup")
         }
         else {
-            const data2 = await fetch("http://localhost:3001/user/personal_infos", {
+            const data2 = await fetch(`${process.env.API_URL}/user/personal_infos`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',

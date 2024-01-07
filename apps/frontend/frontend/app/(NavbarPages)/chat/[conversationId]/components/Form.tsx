@@ -1,3 +1,4 @@
+"use client"
 import React, {useState, useEffect} from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { useWebSocketContext } from "@/app/context/WebSocketContext";

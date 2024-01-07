@@ -508,6 +508,36 @@ export class UserService {
 				}
 			});
 		}
+
+		// create the message
+		await this.prismaService.direct_message.create({
+			data: {
+				message_text: "👋👋",
+				sender_id: profileId,
+				receiver_id: userId,
+			}
+		});
+	}
+
+	async getNotifications(userId: number) {
+		const entries = await this.prismaService.friendship_request.findMany({
+			where: {
+				added_user_id: userId,
+			},
+			include: {
+				adding_user: true,
+			}
+		});
+
+		const newentries =entries.map((entry) => {
+			return {
+				id: entry.adding_user.id,
+				nickname: entry.adding_user.nickname,
+				created_at: entry.created_at,
+			};
+		});
+
+		return newentries;
 	}
 
 	async removeFriend(profileId: number, userId: number) {

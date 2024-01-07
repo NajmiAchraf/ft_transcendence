@@ -24,20 +24,7 @@ const NavBar = () => {
   const context = useNavContext()
   const [SenderId, setSenderId] = useState(-1)
   const [isSender, setIsSender] = useState(false)
-  const [isPageVisible, setIsPageVisible] = useState(true);
   const searchSecRef = useRef<HTMLDivElement>(null); // Specify the type here
-
-  const handleVisibilityChange = () => {
-    setIsPageVisible(!document.hidden);
-  };
-
-  useEffect(() => {
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
   
   useEffect(() => {
     const localwhoami = async () => {
@@ -47,6 +34,8 @@ const NavBar = () => {
     localwhoami()
     const handleInvite = async (event : any) =>{
       setIsSender(false)
+      if (document.hidden)
+        return ;
       if (event.receiver_id === await whoami())
       {
         setSenderId(event.sender_id)
@@ -60,8 +49,10 @@ const NavBar = () => {
     }
 
     const handleAccept = async (event : any) =>{
+      if (document.hidden)
+        return ;
       const id = await whoami()
-      if ((event.receiver_id === id || event.sender_id === id) && isPageVisible)
+      if ((event.receiver_id === id || event.sender_id === id))
       {
         context.setisCountDown(false);
         router.push("/ping-pong/invite");
@@ -85,7 +76,7 @@ const NavBar = () => {
           <svg className="logout-svg"
             onClick={async () =>{
               try {
-                const data = await fetch("http://localhost:3001/auth/logout",
+                const data = await fetch(`${process.env.API_URL}/auth/logout`,
                     {
                         headers: {
                             Authorization: `Bearer ${getCookie("AccessToken")}`

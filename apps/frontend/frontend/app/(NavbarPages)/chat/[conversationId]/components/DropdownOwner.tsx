@@ -1,3 +1,4 @@
+"use client"
 import { Fragment, useState } from 'react'
 import { Menu, Transition } from '@headlessui/react'
 import { EllipsisHorizontalIcon  } from '@heroicons/react/20/solid'
@@ -19,7 +20,7 @@ function Dropdown({isChannelProtected, getMembers} : {isChannelProtected : boole
     const [isOpen, setIsOpen] = useState(false);
     const removePassword = async () => {
         try {
-            const data = await fetch('http://localhost:3001/chatHttp/removeChannelPassword',
+            const data = await fetch(`${process.env.API_URL}/chatHttp/removeChannelPassword`,
                 {
                     method: "POST",
                     headers: {
@@ -41,7 +42,7 @@ function Dropdown({isChannelProtected, getMembers} : {isChannelProtected : boole
         if (password.length <= 1 || passUpdateState.length <= 1)
             return;
         try {
-            const data = await fetch(`http://localhost:3001/chatHttp/${passUpdateState}`,
+            const data = await fetch(`${process.env.API_URL}/chatHttp/${passUpdateState}`,
                 {
                     method: "POST",
                     headers: {
@@ -71,7 +72,7 @@ function Dropdown({isChannelProtected, getMembers} : {isChannelProtected : boole
     }
     const deleteChannel = async () => {
         try {
-            const data = await fetch('http://localhost:3001/chatHttp/deleteChannel',
+            const data = await fetch(`${process.env.API_URL}/chatHttp/deleteChannel`,
                 {
                     method: "POST",
                     headers: {

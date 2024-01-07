@@ -1,3 +1,4 @@
+"use client"
 import { useState, useEffect } from 'react';
 import { getCookie } from './errorChecks';
 import Channel from './Channel';
@@ -20,7 +21,7 @@ const Channels = ({ userId }: { userId: number }) => {
   }, [])
   const fetchData = async () => {
     try {
-      const data = await fetch("http://localhost:3001/user/channels", {
+      const data = await fetch(`${process.env.API_URL}/user/channels`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',

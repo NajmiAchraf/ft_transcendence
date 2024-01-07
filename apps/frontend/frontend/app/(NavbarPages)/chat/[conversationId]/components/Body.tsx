@@ -1,3 +1,4 @@
+"use client"
 import { useNavContext } from "@/app/(NavbarPages)/context/NavContext";
 import { formatChatDate } from "@/app/components/errorChecks";
 import React, { useRef, useEffect } from "react";

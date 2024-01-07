@@ -10,7 +10,7 @@ const TwoFactor = () => {
     const router = useRouter()
     const submitCode = async () => {
         try {
-            const data = await fetch("http://localhost:3001/user/check2factor", {
+            const data = await fetch(`${process.env.API_URL}/user/check2factor`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',

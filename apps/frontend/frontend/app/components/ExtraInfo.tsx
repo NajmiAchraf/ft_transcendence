@@ -1,3 +1,4 @@
+"use client"
 import FriendList from './FriendList';
 import Channels from './Channels';
 import Achievements from './Achievements';

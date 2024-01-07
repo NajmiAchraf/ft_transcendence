@@ -1,3 +1,4 @@
+"use client"
 import { getValidDate } from "@/app/components/errorChecks";
 import React from "react";
 type PlayerType = {

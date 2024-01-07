@@ -24,7 +24,7 @@ function useWebSocketContext() {
 }
 
 function WebSocketContextProvider({ children }: { children: React.ReactNode }) {
-	const game = io('http://localhost:3001/ping-pong', {
+	const game = io(`${process.env.API_URL}/ping-pong`, {
 		transports: ['websocket'],
 		query: {
 			accessToken: getCookie("AccessToken"),

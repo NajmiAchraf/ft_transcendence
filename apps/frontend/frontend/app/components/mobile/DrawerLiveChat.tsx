@@ -1,3 +1,4 @@
+"use client"
 import React from "react";
 import {
   Drawer,
@@ -32,7 +33,7 @@ function DrawerLiveChat() {
   useEffect(() => {
     const getAllGlobalChat = async () => {
       try {
-        const data = await fetch('http://localhost:3001/chatHttp/findAllGlobalChat', {
+        const data = await fetch(`${process.env.API_URL}/chatHttp/findAllGlobalChat`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${getCookie("AccessToken")}`,
@@ -127,6 +128,7 @@ function DrawerLiveChat() {
               {messages.slice().reverse().map((message, index) => (
                 <LiveChat
                   key={index}
+                  id={message.sender_id}
                   Username={message.nickname}
                   Avatar={message.avatar}
                   Message={message.message_text}

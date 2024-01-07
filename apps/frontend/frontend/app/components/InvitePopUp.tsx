@@ -21,7 +21,7 @@ const InvitePopUp = (props: InviteProps) =>{
     }
     const disableInvitePopUp = async ()=>{
         try {
-            const response = await fetch('http://localhost:3001/chatHttp/rejectGameInvitation', {
+            const response = await fetch(`${process.env.API_URL}/chatHttp/rejectGameInvitation`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

@@ -24,7 +24,7 @@ function useWebSocketContext() {
 }
 
 function WebSocketContextProvider({ children }: { children: React.ReactNode }) {
-	const chat = io('http://localhost:3001/chat', {
+	const chat = io(`${process.env.API_URL}/chat`, {
 		transports: ['websocket'],
 		query: {
 			accessToken: getCookie("AccessToken"),

@@ -1,17 +1,13 @@
+"use client"
 import React from 'react'
 
 import './vanillacss.css'
 
 import './globals.css'
-import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import NavContextProvider from './(NavbarPages)/context/NavContext'
 const inter = Inter({ subsets: ['latin'] })
 import PrimaryChecks from './components/PrimaryChecks'
-export const metadata: Metadata = {
-	title: 'PingPong',
-	description: 'PingPong',
-}
 
 export default function RootLayout({
 	children,
@@ -20,6 +16,9 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="en">
+			<head>
+				<title>PingPong</title>
+			</head>
 			<PrimaryChecks></PrimaryChecks>
 			<NavContextProvider>
 				<body className={inter.className}> {children} </body>

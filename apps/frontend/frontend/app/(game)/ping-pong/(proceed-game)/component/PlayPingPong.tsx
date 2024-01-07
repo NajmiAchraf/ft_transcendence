@@ -19,7 +19,7 @@ import { getCookie } from '@/app/components/errorChecks';
 async function getData(userId: string): Promise<any> {
 	// convert userId to number
 	const userID = parseInt(userId);
-	const data = await fetch("http://localhost:3001/user/player_data", {
+	const data = await fetch(`${process.env.API_URL}/user/personal_infos`, {
 		method: "POST",
 		headers: {
 			'Content-Type': 'application/json',

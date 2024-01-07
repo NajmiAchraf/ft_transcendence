@@ -1,3 +1,4 @@
+"use client"
 import * as IonIcons from 'ionicons/icons';
 import Link from 'next/link';
 import { IonIcon } from '@ionic/react';
@@ -13,7 +14,7 @@ const Friend = (props: friendprops) => {
     const context = useNavContext()
     const UserEvent = async (url: string) => {
         try {
-          const data = await fetch(`http://localhost:3001/user/${url}`, {
+          const data = await fetch(`${process.env.API_URL}/user/${url}`, {
             method: "POST",
             headers: {
               'Content-Type': 'application/json',

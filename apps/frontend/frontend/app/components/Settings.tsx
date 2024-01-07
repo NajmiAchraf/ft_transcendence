@@ -1,3 +1,4 @@
+"use client"
 import React, { useEffect, useState } from "react";
 import { getCookie } from "./errorChecks";
 import { useNavContext } from "../(NavbarPages)/context/NavContext";
@@ -45,7 +46,7 @@ const Settings = ({ userId }: { userId: number }) => {
     useEffect(() => {
         const fetchDefaultSettings = async () => {
             try {
-                const data = await fetch("http://localhost:3001/user/defaultSettings", {
+                const data = await fetch(`${process.env.API_URL}/user/defaultSettings`, {
                     headers: {
                         Authorization: `Bearer ${getCookie("AccessToken")}`,
                     },
@@ -73,7 +74,7 @@ const Settings = ({ userId }: { userId: number }) => {
         if (e.target.value === "ON" && !defaultData?.two_factor_auth) {
             try {
                 console.log("XDXDXDXD")
-                const data = await fetch("http://localhost:3001/user/2factorQr", {
+                const data = await fetch(`${process.env.API_URL}/user/2factorQr`, {
                     headers: {
                         Authorization: `Bearer ${getCookie("AccessToken")}`,
                     },
@@ -99,7 +100,7 @@ const Settings = ({ userId }: { userId: number }) => {
             console.log(key, " : ", value)
         })
         console.log(formData)
-        const url: string = (previewSrc === defaultData?.avatar ? "http://localhost:3001/user/settings" : "http://localhost:3001/user/settingsAvatar")
+        const url: string = (previewSrc === defaultData?.avatar ? `${process.env.API_URL}/user/settings` : `${process.env.API_URL}/user/settingsAvatar`)
         try {
             console.log("ha ach kansift :", JSON.stringify({ avatar: (previewSrc === defaultData?.avatar ? previewSrc : obj), privacy: privacy, nickname, two_factor_auth: nav.is2FA ? "ON" : "OFF" }))
             const data = await fetch(url, (previewSrc === defaultData?.avatar ? {

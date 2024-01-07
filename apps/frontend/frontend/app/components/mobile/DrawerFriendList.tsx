@@ -1,3 +1,4 @@
+"use client"
 import React from "react";
 import {
   Drawer,
@@ -22,7 +23,7 @@ function DrawerFriendList() {
   useEffect(() => {
     const fetchFriendList = async () => {
       try {
-        const res = await fetch("http://localhost:3001/home/friends_list", {
+        const res = await fetch(`${process.env.API_URL}/home/friends_list`, {
           headers: {
             Authorization: `Bearer ${getCookie("AccessToken")}`,
           },
