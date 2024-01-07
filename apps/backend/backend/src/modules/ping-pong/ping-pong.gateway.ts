@@ -36,8 +36,8 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 	rooms: Room;
 
 	constructor(readonly pingPongService: PingPongService,
+		readonly globalHelperService: GlobalHelperService,
 		private readonly prismaService: PrismaService,
-		private readonly globalHelperService: GlobalHelperService,
 		private readonly socketService: SocketService) {
 		this.rooms = new Room(this);
 	}

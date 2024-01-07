@@ -38,7 +38,6 @@ export class UserController {
 		return this.userService.getPersonalInfos(userId, profileId);
 	}
 
-	@BlockPublic()
 	@Post('player_data')
 	async getPlayerData(@Body() body: ProfileId, @Req() req: Request) {
 		const profileId = +body.profileId;

@@ -44,14 +44,17 @@ class Pair {
 
 	deletePlayer(playerID: string): boolean {
 		if (this.fetchPair(playerID) !== undefined) {
-			this.pair = [['', ''], ['', '']];
-			this.count = 0;
-
-			console.log("Player deleted from the pair and pair cleared");
+			this.clearPair();
 			return true;
 		}
 		console.log("Player not found in the pair");
 		return false;
+	}
+
+	clearPair(): void {
+		this.pair = [['', ''], ['', '']];
+		this.count = 0;
+		console.log("Player deleted from the pair and pair cleared");
 	}
 }
 
@@ -135,13 +138,19 @@ export default class Room {
 		this.game[idRoom] = new Game(this, [player1[1], player2[1]], player1Type, player2Type, mode, idRoom);
 	}
 
-	//TODO: Add invitation system across the socket beside the pair
-	addPlayer(playerID: string, clientID: string): string | undefined {
+	async addPlayer(playerID: string, clientID: string): Promise<string | undefined> {
 		const pair = this.pair.addPlayer(playerID, clientID);
 		// emit to client that he is in pair
 		this.pingPongGateway.server.to(clientID).emit("allowToWait", { message: "You are in pair" });
 
 		if (pair) {
+			if (await this.pingPongGateway.globalHelperService.isBlocked(parseInt(pair[0][0]), parseInt(pair[1][0])) ||
+				await this.pingPongGateway.globalHelperService.isBlocked(parseInt(pair[1][0]), parseInt(pair[0][0]))) {
+				this.pair.clearPair();
+				this.pingPongGateway.server.to([pair[0][1], pair[1][1]]).emit("invalidAccess", { error: "Something went wrong" });
+				return undefined;
+			}
+
 			const idRoom = this.createRoom(pair);
 			this.createGame(idRoom, pair, "player", "player", "medium");
 
