@@ -263,7 +263,7 @@ export default class Room {
 		const room = this.fetchRoom(playerID);
 
 		console.log("this.room " + room);
-		if (room) {
+		if (room !== undefined) {
 			const loser = this.room[room].findIndex((player) => player[0] === playerID);
 			const roomID = this.room[room].map((player) => player[1]);
 

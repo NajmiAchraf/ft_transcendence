@@ -12,7 +12,7 @@ async function bootstrap() {
   app.useGlobalGuards(new AtGuard(reflector));
   app.useGlobalGuards(new TwoFactorGuard(reflector));
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: process.env.FRONT_URL,
     credentials: true,
   });
 

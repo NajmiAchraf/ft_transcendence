@@ -88,14 +88,14 @@ function Chat() {
     () => {
       context.setNav("1")
     }
-  , []);
-  useEffect(() =>{
-    const ChannelCreated = ()=>{
+    , []);
+  useEffect(() => {
+    const ChannelCreated = () => {
       setShowModal(false)
       fetchChannels();
     }
     wsProvider.chat.on("channelCreated", ChannelCreated)
-    return () =>{wsProvider.chat.off("channelCreated", ChannelCreated)}
+    return () => { wsProvider.chat.off("channelCreated", ChannelCreated) }
   }, [])
   const createChannel = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -107,9 +107,9 @@ function Chat() {
       // If no file is selected, set a default avatar
       const defaultAvatarUrl = "/3ziya.png"; // Replace with the actual path to your default avatar image
       const defaultAvatarBlob = await fetch(defaultAvatarUrl).then((res) => res.blob());
-    
+
       const defaultAvatarFile = new File([defaultAvatarBlob], "default-avatar.png", { type: "image/png" });
-    
+
       // Append the default avatar to the FormData
       formData.append("avatar", defaultAvatarFile);
     }
@@ -126,7 +126,7 @@ function Chat() {
       }
       const res = await data.json()
       console.log("ha ana fin hhh\n", res.id);
-      wsProvider.chat.emit("createChannel", {channelId : res.id});
+      wsProvider.chat.emit("createChannel", { channelId: res.id });
 
       router.push(`/chat/${res.id}_channel`)
     } catch (e) { }
@@ -176,14 +176,14 @@ function Chat() {
   const displayImage = (event: React.ChangeEvent<HTMLInputElement>) => {
     const input = event.target;
     if (input.files && input.files[0]) {
-        const file = input.files[0];
-        const reader = new FileReader();
+      const file = input.files[0];
+      const reader = new FileReader();
 
-        reader.onload = function (e) {
-            if (e.target) setPreviewSrc(e.target.result);
-        };
+      reader.onload = function (e) {
+        if (e.target) setPreviewSrc(e.target.result);
+      };
 
-        reader.readAsDataURL(file);
+      reader.readAsDataURL(file);
     }
   };
   useEffect(() => {
@@ -317,9 +317,9 @@ function Chat() {
                 <a
                   key={item}
                   className={`cursor-pointer flex-grow block p-4 text-decoration-none font-montserrat ${item === "Settings" &&
-                      !(urlParams.conversationId as string).endsWith("_channel")
-                      ? "pointer-events-none"
-                      : ""
+                    !(urlParams.conversationId as string).endsWith("_channel")
+                    ? "pointer-events-none"
+                    : ""
                     } ${selectedTab === item ? "text-white" : "text-[#A4A4A4]"}`}
                   onClick={changeTab}
                   data-tab={item}
@@ -343,7 +343,7 @@ function Chat() {
                         <LiveChat
                           Username={message.nickname}
                           Avatar={message.avatar}
-                          Message={`${message.isSender ? "You : " : ""}${message.message_text
+                          Message={`${message.isSender ? "You : " : ""}${message.message_text.slice(0, 25)
                             }`}
                           Time={formatChatDate(new Date(message.created_at))}
                           status={message.status}
@@ -500,7 +500,7 @@ function Chat() {
                       <div className="channel-avatar">
                         <img src={previewSrc as string} />
                         <input name="avatar" id="upload-photo" type="file" placeholder="xd" onChange={displayImage} accept="image/*"></input>
-                    </div>
+                      </div>
                       <label className="block text-sm font-medium text-white">Channel Name</label>
                       <input name="channelName" className="border-none rounded-xl text-white text-sm bg-[#1A1C26] shadow-md font-Montserrat font-medium p-[15px]"
                         placeholder="Enter channel name"
@@ -528,22 +528,22 @@ function Chat() {
                         />
                       ) : (
                         ""
-                      )}  
+                      )}
                       <div className="flex items-center justify-end gap-2 p-6 border-t border-solid border-gray-500 rounded-b">
-                      <button
-                        className="channel-cancel-btn block w-24 h-10  px-4 text-sm font-extrabold font-Montserrat capitalize leading-[38px] text-red-500 rounded-md hover:bg-red-700 hover:text-white"
-                        type="button"
-                        onClick={() => setShowModal(false)}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        className="w-24 h-10 transition-all duration-500 bg-gradient-to-l to-[#d75433] via-[#412170]  from-[#d75433] to-[#412170] bg-size-200 bg-pos-0 hover:bg-pos-100 rounded-md shadow-md text-white/90 font-bold font-Montserrat text-sm"
-                        type="submit"
-                      >
-                        Add
-                      </button>
-                    </div>                     
+                        <button
+                          className="channel-cancel-btn block w-24 h-10  px-4 text-sm font-extrabold font-Montserrat capitalize leading-[38px] text-red-500 rounded-md hover:bg-red-700 hover:text-white"
+                          type="button"
+                          onClick={() => setShowModal(false)}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          className="w-24 h-10 transition-all duration-500 bg-gradient-to-l to-[#d75433] via-[#412170]  from-[#d75433] to-[#412170] bg-size-200 bg-pos-0 hover:bg-pos-100 rounded-md shadow-md text-white/90 font-bold font-Montserrat text-sm"
+                          type="submit"
+                        >
+                          Add
+                        </button>
+                      </div>
                     </form>
                   </div>
                 </div>

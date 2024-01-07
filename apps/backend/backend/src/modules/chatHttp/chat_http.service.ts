@@ -257,12 +257,14 @@ export class ChatHttpService {
 			},
 		});
 
-		const filteredEntries = await Promise.all(entries.filter(async entry => {
-			if (entry.sender_id === userId || (!await this.globalHelperService.isBlocked(userId, entry.sender_id) && !await this.globalHelperService.isBlocked(entry.sender_id, userId))) {
-				return true;
+		const filteredEntries = [];
+
+		for (let i = 0; i < entries.length; i++) {
+			const message = entries[i];
+			if (!(await this.globalHelperService.isBlocked(userId, message.sender_id) || await this.globalHelperService.isBlocked(message.sender_id, userId))) {
+				filteredEntries.push(message);
 			}
-			return false;
-		}));
+		}
 
 		const messages = filteredEntries.map(entry => {
 			return {
@@ -404,54 +406,20 @@ export class ChatHttpService {
 		});
 
 		// filter messages that the user is blocked by the sender or the sender is blocked by the user
-		const filteredMessagesPromises = messages.filter(async (message) => {
-			return !(await this.globalHelperService.isBlocked(userId, message.sender_id) || await this.globalHelperService.isBlocked(message.sender_id, userId));
-		});
+		// const filteredMessagesPromises = messages.filter(async (message) => {
+		// 	return !(await this.globalHelperService.isBlocked(userId, message.sender_id) || await this.globalHelperService.isBlocked(message.sender_id, userId));
+		// });
 
-		return await Promise.all(filteredMessagesPromises);
-	}
+		const filteredMessages = [];
 
-	async findChannelChat(userId: number, channelId: number) {
-		const entry = await this.prismaService.user_channel.findFirst({
-			where: {
-				channel_id: channelId,
-				user_id: userId,
-			},
-		});
-
-		if (!entry) {
-			throw new ForbiddenException('You are not in the channel');
+		for (let i = 0; i < messages.length; i++) {
+			const message = messages[i];
+			if (!(await this.globalHelperService.isBlocked(userId, message.sender_id) || await this.globalHelperService.isBlocked(message.sender_id, userId))) {
+				filteredMessages.push(message);
+			}
 		}
 
-		const entries = await this.prismaService.channels_message.findMany({
-			where: {
-				channel_id: channelId,
-			},
-			include: {
-				cm_sender: true,
-			},
-			orderBy: {
-				created_at: 'desc',
-			},
-		});
-
-		const messages = entries.map(entry => {
-			return {
-				sender_id: entry.sender_id,
-				nickname: entry.cm_sender.nickname,
-				message_text: entry.message_text,
-				avatar: entry.cm_sender.avatar,
-				status: entry.cm_sender.status,
-				created_at: entry.created_at,
-			}
-		});
-
-		// filter messages that the user is blocked by the sender or the sender is blocked by the user
-		const filteredMessagesPromises = messages.filter(async (message) => {
-			return !(await this.globalHelperService.isBlocked(userId, message.sender_id) || await this.globalHelperService.isBlocked(message.sender_id, userId));
-		});
-
-		return await Promise.all(filteredMessagesPromises);
+		return filteredMessages;
 	}
 
 	async createChannel(body: CreateChannelDto, userId: number) {
@@ -812,7 +780,7 @@ export class ChatHttpService {
 			}
 		}
 
-		
+
 		// * decrement members_count
 		await this.prismaService.channel.update({
 			where: {
@@ -824,11 +792,11 @@ export class ChatHttpService {
 				}
 			}
 		});
-		
+
 		try {
 			if (entries.length === 1) {
 				await this.deleteChannel(userId, channelId);
-				return ;
+				return;
 			}
 		}
 		catch (err) {
@@ -836,7 +804,7 @@ export class ChatHttpService {
 			throw new ForbiddenException('invalid operation');
 		}
 
-		
+
 		// delete user from channel
 		await this.prismaService.user_channel.delete({
 			where: {
@@ -1134,7 +1102,7 @@ export class ChatHttpService {
 
 		const user = await this.prismaService.user.findFirst({
 			where: {
-				OR: [{id: userId}, {id: profileId}],
+				OR: [{ id: userId }, { id: profileId }],
 				in_game: true,
 			},
 		});
@@ -1146,7 +1114,7 @@ export class ChatHttpService {
 
 		const expiredIvitation = await this.prismaService.game_invitation.findFirst({
 			where: {
-				OR: [{ sender_id: userId}, {receiver_id: userId }],
+				OR: [{ sender_id: userId }, { receiver_id: userId }],
 				is_accepted: false,
 			}
 		});
@@ -1161,7 +1129,7 @@ export class ChatHttpService {
 
 		const profileExpiredInvitation = await this.prismaService.game_invitation.findFirst({
 			where: {
-				OR: [{ sender_id: profileId}, {receiver_id: profileId }],
+				OR: [{ sender_id: profileId }, { receiver_id: profileId }],
 				is_accepted: false,
 			}
 		})
@@ -1205,7 +1173,7 @@ export class ChatHttpService {
 
 		const user = await this.prismaService.user.findFirst({
 			where: {
-				OR: [{id: userId}, {id: profileId}],
+				OR: [{ id: userId }, { id: profileId }],
 				in_game: true,
 			},
 		});

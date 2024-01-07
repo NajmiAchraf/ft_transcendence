@@ -4,7 +4,7 @@ import { Tokens } from './types';
 import { AuthenticationService } from './authentication/authentication.service';
 import { TokenService } from './token/token.service';
 import { Request, Response } from 'express';
-import { IntraGuard, RtGuard, GithubGuard } from 'src/common/guards';
+import { IntraGuard, RtGuard } from 'src/common/guards';
 import { AtPublic, TwoFactorPublic } from 'src/common/Decorators';
 import { AuthorizationService } from './authorization/authorization.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -49,54 +49,54 @@ export class AuthController {
     }
 
     // * github open authorization routes
-    @AtPublic()
-    @TwoFactorPublic()
-    @UseGuards(GithubGuard)
-    @Get('github/login')
-    async githubLogin() {
+    // @AtPublic()
+    // @TwoFactorPublic()
+    // @UseGuards(GithubGuard)
+    // @Get('github/login')
+    // async githubLogin() {
 
-    }
+    // }
 
-    @AtPublic()
-    @TwoFactorPublic()
-    @UseGuards(GithubGuard)
-    @Get('github/redirect')
-    async githubRedirect(@Req() req: Request, @Res() res: Response) {
-        const user = req.user;
-        const tokens = await this.authorizationService.OAuth({ username: user['username'], avatar: user['avatar'] }, 'github');
-        console.log("TOKENS : ", tokens);
-        res.cookie('AccessToken', tokens.accessToken);
-        res.cookie('RefreshToken', tokens.refreshToken);
-        const username = user['username'] + '_github'
+    // @AtPublic()
+    // @TwoFactorPublic()
+    // @UseGuards(GithubGuard)
+    // @Get('github/redirect')
+    // async githubRedirect(@Req() req: Request, @Res() res: Response) {
+    //     const user = req.user;
+    //     const tokens = await this.authorizationService.OAuth({ username: user['username'], avatar: user['avatar'] }, 'github');
+    //     console.log("TOKENS : ", tokens);
+    //     res.cookie('AccessToken', tokens.accessToken);
+    //     res.cookie('RefreshToken', tokens.refreshToken);
+    //     const username = user['username'] + '_github'
 
-        const entry = await this.prismaService.user.findUnique({
-            where: {
-                username: username,
-            },
-            select: {
-                nickname: true,
-                two_factor_auth: true,
-            },
-        });
+    //     const entry = await this.prismaService.user.findUnique({
+    //         where: {
+    //             username: username,
+    //         },
+    //         select: {
+    //             nickname: true,
+    //             two_factor_auth: true,
+    //         },
+    //     });
 
-        if (entry.two_factor_auth === true) {
-            // ! redirect to the front end 2factor page
-            const entry = await this.prismaService.user.update({
-                where: {
-                    username: username,
-                },
-                data: {
-                    is_two_factor_authenticated: false,
-                }
-            });
-            return res.redirect(`${process.env.FRONTEND_URL}/2factor`);
-        }
+    //     if (entry.two_factor_auth === true) {
+    //         // ! redirect to the front end 2factor page
+    //         const entry = await this.prismaService.user.update({
+    //             where: {
+    //                 username: username,
+    //             },
+    //             data: {
+    //                 is_two_factor_authenticated: false,
+    //             }
+    //         });
+    //         return res.redirect(`${process.env.FRONTEND_URL}/2factor`);
+    //     }
 
-        if (entry.nickname)
-            res.redirect(`${process.env.FRONTEND_URL}/home`)
-        else
-            res.redirect(`${process.env.FRONTEND_URL}/complete_infos`)
-    }
+    //     if (entry.nickname)
+    //         res.redirect(`${process.env.FRONTEND_URL}/home`)
+    //     else
+    //         res.redirect(`${process.env.FRONTEND_URL}/complete_infos`)
+    // }
 
     @AtPublic()
     @TwoFactorPublic()
@@ -128,6 +128,14 @@ export class AuthController {
             }
         });
 
+        await this.prismaService.user.update({
+            where: {
+                username: username,
+            },
+            data: {
+                in_game: false,
+            }
+        });
         if (entry.two_factor_auth === true) {
             // ! redirect to the front end 2factor page
             const entry = await this.prismaService.user.update({
@@ -138,16 +146,16 @@ export class AuthController {
                     is_two_factor_authenticated: false,
                 }
             });
-            return res.redirect(`http://localhost:3000/2factor`);
-            // return res.redirect(`${process.env.FRONTEND_URL}/2factor`);
+            return res.redirect(`${process.env.FRONT_URL}/2factor`);
+            // return res.redirect(`http://localhost:3000/2factor`);
         }
 
         if (entry.nickname)
-            res.redirect('http://localhost:3000/home')
-        // res.redirect(`${process.env.FRONTEND_URL}/home`)
+            res.redirect(`${process.env.FRONT_URL}/home`)
+        // res.redirect('http://localhost:3000/home')
         else
-            res.redirect('http://localhost:3000/complete_infos')
-        // res.redirect(`${process.env.FRONTEND_URL}/complete_infos`)
+            res.redirect(`${process.env.FRONT_URL}/complete_infos`)
+        // res.redirect('http://localhost:3000/complete_infos')
     }
 
     @AtPublic()

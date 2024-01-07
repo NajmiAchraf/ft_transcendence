@@ -10,7 +10,7 @@ export class GlobalHelperService {
 	constructor(private readonly prismaService: PrismaService) { }
 
 	async isBlocked(checkedId: number, blockingId: number): Promise<boolean> {
-		console.log(`checkedId: ${checkedId}, blockingId: ${blockingId}`);
+		// console.log(`checkedId: ${checkedId}, blockingId: ${blockingId}`);
 		// checking if user is blocked
 		const entry = await this.prismaService.blocked.findFirst({
 			where: {

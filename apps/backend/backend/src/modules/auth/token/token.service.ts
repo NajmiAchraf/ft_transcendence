@@ -76,6 +76,7 @@ export class TokenService {
             data: {
                 refresh_token: null,
                 is_two_factor_authenticated: false,
+                status: "offline",
             },
         });
         console.log('logged out');

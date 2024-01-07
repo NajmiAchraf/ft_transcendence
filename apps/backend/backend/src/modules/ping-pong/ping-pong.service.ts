@@ -106,7 +106,7 @@ export class PingPongService {
 		let newLevelPercentage = levelPercentage;
 
 		if (isWinner) {
-			newLevelPercentage += 10;
+			newLevelPercentage += 50;
 			newLevelPercentage += 10 / (score + 1);
 
 			if (newLevelPercentage >= 100) {

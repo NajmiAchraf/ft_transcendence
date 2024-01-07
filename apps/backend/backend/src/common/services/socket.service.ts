@@ -70,13 +70,32 @@ export class SocketService {
 	// filter sockets by checking if client that uiser trying to emit is blocked
 	async filterSockets(userId: number, connectedSockets: Socket[]): Promise<Socket[]> {
 
-		const filteredSocketsPromises = connectedSockets.filter(async (socket) => {
-			const socketUserId = this.getUserId(socket.id);
+		// const filteredSocketsPromises = connectedSockets.filter(async (socket) => {
+		// 	const socketUserId = this.getUserId(socket.id);
+		// 	console.log(socketUserId);
 
-			return !(await this.globalHelperService.isBlocked(userId, socketUserId) || await this.globalHelperService.isBlocked(socketUserId, userId));
+		// 	const blocked = await this.globalHelperService.isBlocked(userId, socketUserId);
+		// 	const blocker = await this.globalHelperService.isBlocked(socketUserId, userId);
+		// 	console.log(`userId: ${userId}, socketusrid: ${socketUserId} | blocked: ${blocked};   blocker: ${blocker}`);
+		// 	return !(await this.globalHelperService.isBlocked(userId, socketUserId) || await this.globalHelperService.isBlocked(socketUserId, userId));
+		// });
+
+		const filteredSockets = [];
+
+		for (let i = 0; i < connectedSockets.length; i++) {
+			const socketUserId = this.getUserId(connectedSockets[i].id);
+
+			const blocked = await this.globalHelperService.isBlocked(userId, socketUserId);
+			const blocker = await this.globalHelperService.isBlocked(socketUserId, userId);
+			console.log(`userId: ${userId}, socketusrid: ${socketUserId} | blocked: ${blocked};   blocker: ${blocker}`);
+			if (!(await this.globalHelperService.isBlocked(userId, socketUserId) || await this.globalHelperService.isBlocked(socketUserId, userId))) {
+				filteredSockets.push(connectedSockets[i]);
+			}
+		}
+
+		filteredSockets.forEach((socket) => {
+			console.log(`will emit *** ${this.getUserId(socket.id)}: ${socket.id}`);
 		});
-
-		const filteredSockets = await Promise.all(filteredSocketsPromises);
 		return filteredSockets;
 	}
 }

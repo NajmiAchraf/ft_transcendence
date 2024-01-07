@@ -110,10 +110,7 @@ function PlayPingPong() {
 	}, 1000 / 60);
 
 	const leave = async () => {
-		// disconnect socket after leave
-		webContext.socketGame.disconnect();
-
-		router.push("/home");
+		webContext.socketGame.emit("leaveInvite");
 	};
 
 	const leaveGame = async () => {

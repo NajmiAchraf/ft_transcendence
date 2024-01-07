@@ -18,8 +18,7 @@ const Signup = () => {
         },
         body: JSON.stringify({ username, password }),
       });
-      if (!res.ok)
-      {
+      if (!res.ok) {
         if (res.status == 400)
           setError("Invalid Password Or Username !");
         else if (res.status == 403)
@@ -62,8 +61,7 @@ const Signup = () => {
         },
         body: JSON.stringify({ username, password }),
       });
-      if (!res.ok)
-      {
+      if (!res.ok) {
         if (res.status == 400 || res.status == 403)
           setError("Invalid Password Or Username !");
         throw new Error("SOMETHING WENT WRONG");
@@ -80,10 +78,10 @@ const Signup = () => {
   };
   return (
     <div className="relative flex w-[100%] h-screen  text-white bg-[#272932]">
-      {error ?(
-      <div className="Error-message">
-        {error}
-      </div>
+      {error ? (
+        <div className="Error-message">
+          {error}
+        </div>
       ) : ""}
       <div className="grid w-screen items-center place-content-center  gap-y-8 lg:w-[50%]">
         <div className="">
@@ -183,7 +181,7 @@ const Signup = () => {
         <div className="flex flex-col gap-[19px] justify-items-center items-center">
           <button
             onClick={() => {
-              router.push("http://localhost:3001/auth/intra/redirect");
+              router.push(`${process.env.API_URL}/auth/intra/redirect`);
             }}
             className="flex items-center justify-center gap-[15px] relative w-full h-[53px] rounded-[15px] shadow-xl  transition-all duration-500 bg-gradient-to-l to-[#d75433] via-[#412170]  from-[#d75433] to-[#412170] bg-size-200 bg-pos-0 hover:bg-pos-100"
           >

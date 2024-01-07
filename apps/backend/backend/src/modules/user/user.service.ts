@@ -43,16 +43,6 @@ export class UserService {
 		});
 	}
 
-	async getNotifications(userId: number) {
-		const entries = await this.prismaService.friendship_request.findMany({
-			where: {
-				added_user_id: userId,
-			}
-		});
-
-		return entries;
-	}
-
 	async getPersonalInfos(userId: number, profileId: number) {
 		const user = await this.prismaService.user.findUnique({
 			where: {
@@ -451,6 +441,7 @@ export class UserService {
 		});
 
 		if (entry) {
+			// console.log('Already Sent!')
 			throw new BadRequestException('Friendship request already sent');
 		}
 
@@ -529,7 +520,7 @@ export class UserService {
 			}
 		});
 
-		const newentries =entries.map((entry) => {
+		const newentries = entries.map((entry) => {
 			return {
 				id: entry.adding_user.id,
 				nickname: entry.adding_user.nickname,

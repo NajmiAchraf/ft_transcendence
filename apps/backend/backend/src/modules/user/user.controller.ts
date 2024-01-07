@@ -53,13 +53,6 @@ export class UserController {
 		return this.userService.getFriendList(userId, profileId);
 	}
 
-	@Get('notifications')
-	async getNotifications(@Req() req: Request) {
-		const userId = req.user['sub'];
-
-		return this.userService.getNotifications(userId);
-	}
-
 	@Post('send_friend_request')
 	async sendFriendRequest(@Body() body: ProfileId, @Req() req: Request) {
 		const profileId = +body.profileId;
@@ -75,7 +68,7 @@ export class UserController {
 
 		return this.userService.getNotifications(userId);
 	}
-	
+
 	@Post('cancel_friend_request')
 	async cancelFriendRequest(@Body() body: ProfileId, @Req() req: Request) {
 		const profileId = +body.profileId;

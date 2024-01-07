@@ -147,6 +147,12 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 		setGameState("settings");
 	};
 
+	const handleLeaveInvitation = (data: any) => {
+		console.log('leaveInvitation: ', data);
+		stopGame();
+		leave();
+	};
+
 	const handleRoomConstruction = (data: any) => {
 		console.log('roomConstruction: ', data);
 		initGame();
@@ -182,6 +188,7 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 		webSocketGame.on('invalidAccess', handleInvalidAccess);
 		webSocketGame.on('leaveRoom', handleLeaveRoom);
 		webSocketGame.on('leaveQueue', handleLeaveQueue);
+		webSocketGame.on('leaveInvitation', handleLeaveInvitation);
 		webSocketGame.on('roomConstruction', handleRoomConstruction);
 		webSocketGame.on('startPlay', handleStartPlay);
 		webSocketGame.on('roomDestruction', handleRoomDestruction);
@@ -198,6 +205,7 @@ function Service(setGameState: (setGameState: GameStates) => void): void {
 			webSocketGame.off('invalidAccess', handleInvalidAccess);
 			webSocketGame.off('leaveRoom', handleLeaveRoom);
 			webSocketGame.off('leaveQueue', handleLeaveQueue);
+			webSocketGame.off('leaveInvitation', handleLeaveInvitation);
 			webSocketGame.off('roomConstruction', handleRoomConstruction);
 			webSocketGame.off('startPlay', handleStartPlay);
 			webSocketGame.off('roomDestruction', handleRoomDestruction);

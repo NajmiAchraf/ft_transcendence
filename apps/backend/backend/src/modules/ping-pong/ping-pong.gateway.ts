@@ -359,4 +359,16 @@ export default class PingPongGateway implements OnGatewayInit, OnGatewayConnecti
 			this.server.to(client.id).emit("leaveQueue");
 		}
 	}
+
+	@SubscribeMessage("leaveInvite")
+	async leaveInvite(client: Socket) {
+		console.log('leaveInvite : ' + client.id);
+
+		const userId = await this.globalHelperService.getClientIdFromJwt(client);
+
+		if (userId === undefined)
+			return;
+
+		this.server.to(client.id).emit("leaveInvitation");
+	}
 }

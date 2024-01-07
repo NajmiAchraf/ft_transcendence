@@ -378,7 +378,7 @@ nav ul li {
   font-size: 1rem;
   color: #9b9b9b;
 }
-@media(min-width:1276px)
+@media(min-width:1366px)
 {
   .notification-section{
     right: 144px!important;

@@ -34,12 +34,11 @@ export class HomeService {
 	async getRecentMatches(userId: number) {
 		const entries = await this.prismaService.game.findMany({
 			orderBy: { created_at: 'desc' },
-			take: 4,
 			include: { winner: true, loser: true },
 		});
 
 		const filteredEntries = entries.filter(entry => {
-			return (entry.winner.id && entry.loser.id);
+			return (entry.winner_id && entry.loser_id);
 		});
 
 		const RecentMatches = filteredEntries.map((match) => {
@@ -61,16 +60,16 @@ export class HomeService {
 		});
 
 		// filtering out blocked users
-		const filteredRecentMatches = [];
+		// const filteredRecentMatches = [];
 
-		for (let i = 0; i < RecentMatches.length; i++) {
-			const adversaryId = userId === RecentMatches[i].winner.id ? RecentMatches[i].loser.id : RecentMatches[i].winner.id;
-			if (!await this.globalHelperService.isBlocked(userId, adversaryId))
-				filteredRecentMatches.push(RecentMatches[i]);
+		// for (let i = 0; i < RecentMatches.length; i++) {
+		// 	const adversaryId = userId === RecentMatches[i].winner.id ? RecentMatches[i].loser.id : RecentMatches[i].winner.id;
+		// 	if (!await this.globalHelperService.isBlocked(userId, adversaryId))
+		// 		filteredRecentMatches.push(RecentMatches[i]);
+		// }
 
-		}
-
-		return filteredRecentMatches;
+		// return filteredRecentMatches;
+		return RecentMatches.slice(0, 4);
 	}
 
 	async getStandings(userId: number) {

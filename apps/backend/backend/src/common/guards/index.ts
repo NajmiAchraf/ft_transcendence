@@ -1,6 +1,5 @@
 export * from './at.guard'
 export * from './rt.guard'
-export * from './github.guard'
 export * from './intra.guard'
 export * from './block_check.guard'
 export * from './chat_block_check.guard'

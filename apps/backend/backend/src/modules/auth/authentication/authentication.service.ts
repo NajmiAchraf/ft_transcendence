@@ -34,6 +34,15 @@ export class AuthenticationService {
             const tokens = await this.tokenService.generateToken(newUser.id, newUser.username);
 
             await this.tokenService.updateRefreshToken(newUser.id, tokens.refreshToken);
+
+            await this.prismaService.user.update({
+                where: {
+                    id: newUser.id,
+                },
+                data: {
+                    in_game: false,
+                }
+            });
             return tokens;
         }
         catch (error) {
@@ -71,6 +80,15 @@ export class AuthenticationService {
         }
         const tokens = await this.tokenService.generateToken(user.id, user.username);
         await this.tokenService.updateRefreshToken(user.id, tokens.refreshToken);
+
+        await this.prismaService.user.update({
+            where: {
+                id: user.id,
+            },
+            data: {
+                in_game: false,
+            }
+        });
         return {
             ...tokens,
             isTwoFaRequired: user.two_factor_auth,
