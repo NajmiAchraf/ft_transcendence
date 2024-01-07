@@ -493,6 +493,7 @@ export class ChatHttpService {
 					user_id: userId,
 				}
 			});
+			return channel;
 		} catch (error) {
 			throw new ForbiddenException('Channel name already exists');
 		}

@@ -219,6 +219,9 @@ function HeaderBar() {
                     <div className="overflow-hidden rounded-lg shadow-lg ring-1 ring-black/5">
                       <div className="relative  bg-[#272932] shadow-xl text-white p-7 ">
                         <Link
+                          onClick={() =>{
+                            context.setNav("3");
+                          }}
                           href={`/profile/${context.id}`}
                           className="-mx-3 flex items-center rounded-lg p-2 transition duration-150 ease-in-out border-2 border-[#272932] hover:border-[#D75433] focus-visible:ring focus-visible:ring-orange-500/50"
                         >

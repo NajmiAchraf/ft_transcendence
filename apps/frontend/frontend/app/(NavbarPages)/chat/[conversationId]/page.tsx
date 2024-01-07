@@ -99,10 +99,6 @@ function Chat() {
   }, [])
   const createChannel = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    let avatar = null;
-    let channelName = "";
-    let privacy = "";
-    let password = "";
     const formData = new FormData(
       document.getElementById("addChannelFrom") as HTMLFormElement
     );
@@ -128,10 +124,11 @@ function Chat() {
       if (!data.ok) {
         throw new Error("something went wrong");
       }
-
       const res = await data.json()
-      router.push(`/chat/${res.id}_channel`)
+      console.log("ha ana fin hhh\n", res.id);
       wsProvider.chat.emit("createChannel", {channelId : res.id});
+
+      router.push(`/chat/${res.id}_channel`)
     } catch (e) { }
   };
   const changeTab = (e: React.MouseEvent<HTMLAnchorElement>) => {

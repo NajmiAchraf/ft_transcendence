@@ -1,7 +1,9 @@
 "use client"
 import React from "react";
+import Link from 'next/link';
 
 interface LiveChatProps {
+  id : number;
   Message: string;
   Username: string;
   Avatar: string;
@@ -9,7 +11,7 @@ interface LiveChatProps {
   status : string;
 }
 
-function LiveChat({ Avatar, Username, Message, Time, status }: LiveChatProps) {
+function LiveChat({ id, Avatar, Username, Message, Time, status }: LiveChatProps) {
   return (
     <div className=" flex justify-between   w-full relative items-start ">
       <div className="flex gap-x-[15px] ">
@@ -18,9 +20,9 @@ function LiveChat({ Avatar, Username, Message, Time, status }: LiveChatProps) {
         <div className={`status ${status}`}></div>
         </div>
         <div className="  flex flex-col gap-y-[2px] mt-[5px]">
-          <p className="text-white text-xs font-medium font-Montserrat">
+          <Link href={`/profile/${id}`} className="text-white text-xs font-medium font-Montserrat">
             {Username}
-          </p>
+          </Link>
           <div className=" font-montserrat  text-xs font-light text-[#ffffffcc] leading-[16px] ">
             <p className="max-w-[200px] break-words ">
               {Message}

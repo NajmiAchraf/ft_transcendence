@@ -128,6 +128,7 @@ function DrawerLiveChat() {
               {messages.slice().reverse().map((message, index) => (
                 <LiveChat
                   key={index}
+                  id={message.sender_id}
                   Username={message.nickname}
                   Avatar={message.avatar}
                   Message={message.message_text}

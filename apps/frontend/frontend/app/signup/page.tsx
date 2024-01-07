@@ -80,7 +80,6 @@ const Signup = () => {
   };
   return (
     <div className="relative flex w-[100%] h-screen  text-white bg-[#272932]">
-      <div className="absolute top-0 left-0">logo</div>
       {error ?(
       <div className="Error-message">
         {error}

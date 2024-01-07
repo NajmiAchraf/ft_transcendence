@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from 'next/link';
 import { getCookie } from "../errorChecks";
+import { formatChatDate } from "../errorChecks";
 const NotificationBell = ({svg}: any) => {
   const [isOpen, setIsOpen] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null); // Specify the type here
@@ -78,7 +79,7 @@ const NotificationBell = ({svg}: any) => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-[-17px] top-[40px] w-72 bg-gray-700 border border-gray-900 divide-y divide-gray-400  rounded-[20px] shadow-lg overflow-hidden z-50 notification-section">
+        <div className="absolute right-[-17px] top-[40px] w-72 bg-gray-700 border border-gray-900 divide-y divide-gray-400  rounded-[20px] shadow-lg overflow-hidden z-50 notification-section flex flex-col">
           {(notifications && notifications.length > 0 ?
           (notifications.map((notification, i) => (
             <Link href={`/profile/${notification.id}`}
@@ -87,8 +88,8 @@ const NotificationBell = ({svg}: any) => {
                 notification.read ? "bg-gray-700 " : "bg-[#272932] "
               }`}
             >
-              <p className="text-sm font-medium">{notification.nickname}</p>
-              <p className="text-xs text-gray-400">{notification.created_at}</p>            
+              <p className="text-sm font-medium">{notification.nickname.slice(0, 8)} sent you a request !</p>
+              <p className="text-xs text-gray-400">{formatChatDate(new Date(notification.created_at))}</p>
             </Link>
           ))) : <div className="no-notifications">You have no notifications at the moment</div>)}
         </div>
