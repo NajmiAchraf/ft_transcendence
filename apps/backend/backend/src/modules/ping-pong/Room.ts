@@ -221,28 +221,36 @@ export default class Room {
 		console.log("loser: " + loserID + " winner: " + winnerID + " loserGoals: " + loserGoals + " winnerGoals: " + winnerGoals);
 
 		if (corruption === false) {
-			this.pingPongGateway.server.to(this.room[room][loser]).emit("youLose", this.room[room][loser]);
-			console.log("Player " + this.room[room][loser] + " lose");
+			this.pingPongGateway.server.to(this.room[room][loser][1]).emit("youLose", this.room[room][loser][1]);
+			console.log("Player " + this.room[room][loser][1] + " lose");
 		}
 
-		this.pingPongGateway.server.to(this.room[room][1 - loser]).emit("youWin", this.room[room][1 - loser]);
-		console.log("Player " + this.room[room][1 - loser] + " win");
-		this.game[room].stop();
-		const start = new Date(this.game[room].start_game);
-		// const duration = new Date(this.game[room].duration_game);
-		const end = new Date(this.game[room].end_game);
+		this.pingPongGateway.server.to(this.room[room][1 - loser][1]).emit("youWin", this.room[room][1 - loser][1]);
+		console.log("Player " + this.room[room][1 - loser][1] + " win");
 
-		console.log("start: " + start + " end: " + end);
+		const started = this.game[room].started;
 
-		const gameResult: GameResultType = {
-			winnerId: winnerID,
-			loserId: loserID,
-			winnerScore: winnerGoals,
-			loserScore: loserGoals,
-			startTime: start,
-			endTime: end,
-		};
-		this.pingPongGateway.pingPongService.postGameLogic(gameResult);
+		if (!started) {
+
+			this.pingPongGateway.server.to([this.room[room][0][1], this.room[room][1][1]]).emit("invalidAccess", { error: "Something went wrong" });
+
+		} else if (started) {
+
+			this.game[room].stop();
+			const start = new Date(this.game[room].start_game);
+			const end = new Date(this.game[room].end_game);
+			console.log("	start: " + start + "\n	end: " + end);
+
+			const gameResult: GameResultType = {
+				winnerId: winnerID,
+				loserId: loserID,
+				winnerScore: winnerGoals,
+				loserScore: loserGoals,
+				startTime: start,
+				endTime: end,
+			};
+			this.pingPongGateway.pingPongService.postGameLogic(gameResult);
+		}
 
 		// Delete and free the New Game allocated in the memory
 		if (this.game[room] instanceof Game) {

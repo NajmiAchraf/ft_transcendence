@@ -70,6 +70,8 @@ function PlayPingPong() {
 	const startTime = useRef<number>(Date.now());
 	const [currentTime, setCurrentTime] = useState<string>("--:--");
 
+	const [message, setMessage] = useState<string>("loading...");
+
 	useEffect(() => {
 		async function Start() {
 			// fill propsContext players
@@ -77,13 +79,15 @@ function PlayPingPong() {
 			// load font
 			await Text.loadFont();
 			// load asset texture
-			await CanvasComponent.loadAsset(propsContext.props.scene);
+			if (propsContext.props.scene !== "none")
+				await CanvasComponent.loadAsset(propsContext.props.scene);
 			// set canvas
 			canvasContext.canvas = canvasRef.current;
 			if (!canvasContext.canvas || !canvasRef.current) {
 				throw new Error("Canvas not defined");
 			}
 			webContext.socketGame.emit("readyCanvas");
+			setMessage("loading done");
 		}
 
 		Start();
@@ -149,7 +153,7 @@ function PlayPingPong() {
 				<div className='center-sec'>
 					{!optionsContext.options.startPlay && (
 						<div className="waiting">
-							<h3>loading</h3>
+							<h3>{message}</h3>
 						</div>
 					)}
 				</div>

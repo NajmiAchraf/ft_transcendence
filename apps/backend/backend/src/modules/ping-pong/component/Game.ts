@@ -16,10 +16,10 @@ export default class Game {
 	pair: [string, string]
 
 	interval: NodeJS.Timeout = null;
+	started: boolean = false;
 
-	start_game: number = 0;
-	end_game: number = 0;
-	duration_game: number = 0;
+	start_game: number = Date.now();
+	end_game: number = Date.now();
 
 	collapsed_time: number = Date.now();
 	time_status: boolean = false;
@@ -127,6 +127,8 @@ export default class Game {
 		this.server.to(this.pair).emit("startPlay");
 
 		this.run();
+
+		this.started = true;
 	}
 
 	private run(): void {
@@ -142,7 +144,6 @@ export default class Game {
 
 	stop(): void {
 		this.end_game = Date.now();
-		this.duration_game = Date.now() - this.start_game;
 		clearInterval(this.interval);
 	}
 
@@ -166,7 +167,6 @@ export default class Game {
 		delete this.pair;
 		delete this.start_game;
 		delete this.end_game;
-		delete this.duration_game;
 		delete this.collapsed_time;
 		delete this.time_status;
 		delete this.duration;
