@@ -71,7 +71,10 @@ const Signup = () => {
       deleteCookie("RefreshToken");
       document.cookie = `RefreshToken=${data.refreshToken}; expires=${ExpirationDate(7)}; path=/`;
       document.cookie = `AccessToken=${data.accessToken}; expires=${ExpirationDate(1)}; path=/`;
-      router.push("/home");
+      if (data.isTwoFaRequired)
+        router.push("/2factor")
+      else
+        router.push("/home");
     } catch (err) {
       console.log(err);
     }

@@ -35,9 +35,6 @@ const Matches = ({ userId }: { userId: number }) => {
         fetchData();
     }, [userId, useNavContext().isUpdated]);
     console.log(matches)
-    if (!matches) {
-        return (null);
-    }
     return (
         <div className="pf-section recent-matches">
             <div className="overlay"></div>
@@ -45,7 +42,7 @@ const Matches = ({ userId }: { userId: number }) => {
             <div className="matches-class">
                 <div className="matches">
                     {
-                        matches.map((match: any, id: number) => (
+                        matches && matches.map((match: any, id: number) => (
                             <Match key={id} id={match.opponent_id} name={match.nickname} image={match.avatar} time={match.duration} myscore={match.goals.playerGoals} enemyscore={match.goals.opponentGoals} />
                         ))
                     }
